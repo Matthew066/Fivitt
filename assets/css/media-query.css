@@ -1,0 +1,190 @@
+@media(max-width:1199px){
+	#workout-empty-main .ui-datepicker-header a.ui-datepicker-prev{
+		right: 30%;
+	}
+	#workout-empty-main .ui-datepicker-header a.ui-datepicker-next{
+		right: 25%;
+	}
+}
+@media(max-width:991px){
+	#homescreen-main .home-second-wrap{
+		overflow-x: scroll;
+	}
+}
+@media(max-width:500px){
+	.gol3 {
+		width: 56px;
+		height: 56px;
+		top: 14px;
+	}
+	#workout-empty-main .ui-datepicker-header a.ui-datepicker-prev{
+		right: 18%;
+	}
+	#workout-empty-main .ui-datepicker-header a.ui-datepicker-next{
+		right: 10%;
+	}
+}
+@media(max-width:400px){
+	#single-workout-overview-main .main-img-top img,
+	#single-workout-overview-main .main-img-bottom img,
+	#verify-email-main .main-img-top img, 
+	#verify-email-main .main-img-bottom img,
+	#notification-allow-main .main-img-top img,
+	#notification-allow-main .main-img-bottom img,
+	#reset-password-main .main-img-top img,
+	#reset-password-main .main-img-bottom img,
+	#enter-otp-main .main-img-top img,
+	#enter-otp-main .main-img-bottom img,
+	#workout-plan-ready .main-img-top img,
+	#workout-plan-ready .main-img-bottom img,
+	#contact-us-main .main-img-top img, 
+	#contact-us-main .main-img-bottom img,
+	#homescreen-main .main-img-top img,
+	#homescreen-main .main-img-bottom img ,
+	#stomach-main .main-img-top img,
+	#stomach-main .main-img-bottom img
+	{
+		width: 100%;
+	}
+	.splash-slider .slider-img img {
+		clip-path: circle(94% at 48% 11%);
+	}
+	#gym-type-content{
+		overflow-x: scroll;
+	}
+	.statistic-first,
+	.statistic-second{
+		width: 50% !important;
+	}
+	#bar-chart-main .custom-select-internet select, #line-chart-main .custom-select-internet select, #area-chart-main .custom-select-internet select{
+		width: 100% !important;
+	}
+	#homescreen-main .slick-custom-arrow-left {
+		left: 40%;
+		bottom: -25%;
+	}
+	#homescreen-main .slick-custom-arrow-right {
+		right: 30%;
+		bottom: -25%;
+	}
+	#select-gender-main .nav-tabs{
+		flex-wrap: nowrap;
+		overflow: scroll;
+	}
+}
+@media(max-width:320px){
+	.mt-32 {
+		margin-top: 22px !important;
+	}
+	.about-us-icon-wrapper {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	.concentric-circles {
+		width: 250px;
+		height: 250px;
+	}
+	.middle {
+		width: 190px;
+		height: 190px;
+	}
+	#ui-datepicker-div {
+		padding: 8px;
+		margin: 10px 12px;
+	}
+	.card-date-cvv{
+		letter-spacing: unset;
+	}
+	.card-name-jessica-main-sub{
+		column-gap: 18px;
+	}
+	.card-name-jessica{
+		max-width: 135px;
+	}
+	.md-font-zen{
+		font-size: 22px;
+		line-height: 34px;
+	}
+	.icons_main{
+		column-gap: 16px;
+	}
+	#account-upgrade-main .workout-bottom-btn-wrap{
+		display: block;
+	}
+	#account-upgrade-main .select-plan{
+		margin-top: 12px;
+	}
+	.gol3 {
+		width: 45px;
+		height: 45px;
+		top: 25px;
+	}
+	.slider-img:nth-child(2){
+		bottom: -135px;
+	}
+	.splash-slider .slider-img img {
+		clip-path: circle(94% at 42% 9%);
+	}
+	.password-btn a{
+		font-size: 14px;
+	}
+	#workout-empty-main .ui-datepicker-calendar tbody td a{
+		width: 32px;
+		height: 32px;
+		margin-top: 10px;
+	}
+	#workout-empty-main .workout-time h2,
+	#discover-workout-main .workout-time h2,
+	#wokout-category1-main .workout-time h2{
+		width: auto !important;
+		white-space: wrap;
+	}
+	#workout-empty-main .workout-preference-first{
+		column-gap: 8px;
+	}
+	#workout-empty-main .empty-box,
+	#workout-empty-main .calendar{
+		padding: 10px;
+	}
+	.bg-img {
+		width: 100%;
+		height: 343px;
+		background-size: 100% 100%;
+	}
+	.chart-bottom-img img{
+		width: 100%;
+	}
+	.workout-first h2{
+		font-size: 18px;
+	}
+	#bar-chart-main .bar-chart{
+		padding: 8px;
+	}
+	.billing-price h1, .billing-price h2{
+		font-size: 26px;
+	}
+	#workout-complete-main .report-btn a{
+		font-size: 14px;
+	}
+	#workout-complete-main .report-btn, 
+	#workout-complete-main .home-btn{
+		padding: 10px;
+	}
+	#setting-main .workout-time h2{
+		font-size: 16px;
+	}
+}
+@media(max-width:280px){
+	.md-font-sans{
+		font-size: 16px;
+	}
+	.otp-section input{
+		width: 56px;
+		height: 56px;
+	}
+	.sm-font-zen{
+		font-size: 12px;
+	}
+	.sm-font-sans{
+		font-size: 14px;
+	}
+}
