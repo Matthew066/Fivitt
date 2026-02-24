@@ -1,9 +1,10 @@
-<?php
+﻿<?php
 session_start();
 require_once 'includes/db.php';
 
 $pageTitle = 'Workout Plan';
-include 'includes/header.php';
+$bodyClass = 'workout-page';
+require 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;
 $success = '';
@@ -278,129 +279,6 @@ if (!$planLines) {
 $planText = implode("\n", $planLines);
 ?>
 
-<style>
-.app {
-    max-width: 420px;
-    margin: 0 auto;
-    padding: 18px 18px 80px;
-}
-
-.card {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 18px;
-    box-shadow: 0 12px 26px rgba(22, 64, 94, 0.12);
-    margin-bottom: 16px;
-}
-
-.hero {
-    background: #2ec4cc;
-    color: #ffffff;
-    border-radius: 22px;
-    padding: 20px;
-}
-
-.hero h2 {
-    margin: 0 0 6px;
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.hero p {
-    margin: 0;
-    font-size: 13px;
-    opacity: 0.9;
-}
-
-.plan-item {
-    background: #f7fbfd;
-    border-radius: 14px;
-    padding: 12px;
-    margin-bottom: 10px;
-    border: 1px solid #e1edf4;
-}
-
-.plan-name {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 4px;
-}
-
-.plan-desc {
-    font-size: 12px;
-    color: #60707e;
-}
-
-.plan-meta {
-    margin-top: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #1c8a6a;
-}
-
-.input-group {
-    margin-bottom: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.input-group label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #24343f;
-}
-
-.input-group input,
-.input-group textarea {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid #d7e1ea;
-    font-size: 13px;
-}
-
-.btn-primary {
-    width: 100%;
-    background: #3ad26f;
-    color: #ffffff;
-    border: none;
-    border-radius: 999px;
-    padding: 10px 16px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.btn-secondary {
-    width: 100%;
-    background: #ffffff;
-    color: #1c3a4f;
-    border: 1px solid #cfe1ee;
-    border-radius: 999px;
-    padding: 10px 16px;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-}
-
-.message {
-    background: #e8fff1;
-    border: 1px solid #b7f1cd;
-    color: #1b6c3d;
-    padding: 10px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    margin-bottom: 12px;
-}
-
-.error {
-    background: #ffecec;
-    border: 1px solid #f7bcbc;
-    color: #8a2f2f;
-}
-</style>
-
 <main class="app">
     <section class="card hero">
         <h2>Workout Personalization</h2>
@@ -472,3 +350,5 @@ $planText = implode("\n", $planLines);
 </main>
 
 <?php include 'includes/footer.php'; ?>
+
+

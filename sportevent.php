@@ -1,9 +1,10 @@
-<?php
+﻿<?php
 session_start();
 require_once 'includes/db.php';
 
 $pageTitle = 'Sport Events';
-include 'includes/header.php';
+$bodyClass = 'sportevent-page';
+require 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;
 $user_role = $_SESSION['role'] ?? 'user';
@@ -118,202 +119,6 @@ $events = $listStmt->fetchAll() ?: [];
 
 ?>
 
-<style>
-.app {
-    max-width: 420px;
-    margin: 0 auto;
-    padding: 18px 18px 80px;
-}
-
-.card {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 18px;
-    box-shadow: 0 12px 26px rgba(22, 64, 94, 0.12);
-    margin-bottom: 16px;
-}
-
-.hero {
-    background: #2ec4cc;
-    color: #ffffff;
-    border-radius: 22px;
-    padding: 20px;
-}
-
-.hero h2 {
-    margin: 0 0 6px;
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.hero p {
-    margin: 0;
-    font-size: 13px;
-    opacity: 0.9;
-}
-
-.pill-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 14px;
-}
-
-.pill {
-    background: #ffffff;
-    color: #1f2a44;
-    padding: 8px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    border: none;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
-}
-
-.tab-row {
-    display: flex;
-    gap: 16px;
-    margin: 8px 4px 12px;
-    font-weight: 600;
-    font-size: 13px;
-}
-
-.tab-row a {
-    text-decoration: none;
-    color: #7b8a9a;
-    padding-bottom: 6px;
-}
-
-.tab-row a.active {
-    color: #1a2e3a;
-    border-bottom: 2px solid #2ec4cc;
-}
-
-.event-card {
-    background: #2ec4cc;
-    border-radius: 18px;
-    padding: 12px;
-    color: #ffffff;
-    position: relative;
-    margin-bottom: 16px;
-}
-
-.event-chip {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(255,255,255,0.3);
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.event-detail {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 12px;
-    color: #3a3a3a;
-    margin-top: 36px;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
-}
-
-.event-title {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.event-desc {
-    font-size: 12px;
-    color: #6b7a88;
-    margin-bottom: 10px;
-}
-
-.event-actions {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.btn-detail {
-    background: #3ad26f;
-    color: #ffffff;
-    padding: 6px 14px;
-    border: none;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.input-group {
-    margin-bottom: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.input-group label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #24343f;
-}
-
-.input-group input,
-.input-group textarea,
-.input-group select {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid #d7e1ea;
-    font-size: 13px;
-}
-
-.btn-primary {
-    width: 100%;
-    background: #3ad26f;
-    color: #ffffff;
-    border: none;
-    border-radius: 999px;
-    padding: 10px 16px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.detail-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 14px;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-}
-
-.detail-title {
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-
-.detail-item {
-    font-size: 12px;
-    color: #6b7a88;
-    margin-bottom: 6px;
-}
-
-.message {
-    background: #e8fff1;
-    border: 1px solid #b7f1cd;
-    color: #1b6c3d;
-    padding: 10px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    margin-bottom: 12px;
-}
-
-.error {
-    background: #ffecec;
-    border: 1px solid #f7bcbc;
-    color: #8a2f2f;
-}
-</style>
-
 <main class="app">
 
 <section class="card hero">
@@ -416,3 +221,5 @@ $events = $listStmt->fetchAll() ?: [];
 </main>
 
 <?php include 'includes/footer.php'; ?>
+
+

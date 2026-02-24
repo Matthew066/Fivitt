@@ -1,76 +1,19 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
+$pageTitle = 'Home';
+$bodyClass = 'home-page';
+require 'includes/header.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fivit - Home</title>
-
-<link rel="icon" href="assets/images/favicon/icon-fivit.png">
-<link href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="assets/css/all.min.css">
-<link rel="stylesheet" href="assets/css/bootstrap.min.css">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/media-query.css">
-<style>
-.preloader{
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at center, #1f1f1f 0%, #000000 70%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-</style>
-<style>
-.preloader img{
-    animation: fadeScale 5s ease-in-out infinite alternate;
-}
-
-@keyframes fadeScale{
-    from{
-        transform: scale(1);
-        opacity: 0.9;
-    }
-    to{
-        transform: scale(1.05);
-        opacity: 1;
-    }
-}
-</style>
-</head>
-
-<body>
 
 <div class="site-content">
 
 <div class="preloader">
     <img src="assets/images/favicon/icon-fivit.png" style="width:250px;">
 </div>
-
-<header>
-<div class="header-logo">
-    <img src="assets/images/splashscreen/logofivit.png"
-         alt="Fivit Logo"
-         style="height:55px; width:auto;">
-</div>
-    <button class="hamburger" aria-label="Menu">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
-</header>
 
 <main>
 
@@ -202,8 +145,6 @@ if (!isset($_SESSION['user_id'])) {
 </div>
 </section>
 
-<div class="footer-watermark">@Fivit 2026</div>
-
 </main>
 <script>
 window.addEventListener("load", function() {
@@ -222,10 +163,10 @@ window.addEventListener("load", function() {
                 preloader.style.display = "none";
             }, 500);
 
-        }, ); // ubah ini kalau mau lebih lama
+        }, 2500);
     }
 
 });
 </script>
-</body>
-</html>
+<?php include 'includes/footer.php'; ?>
+

@@ -1,9 +1,9 @@
-<?php
+﻿<?php
 session_start();
 require_once 'includes/db.php';
 
 $pageTitle = 'Sleep & Recovery';
-include 'includes/header.php';
+require 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;
 $today = date('Y-m-d');
@@ -174,7 +174,7 @@ if ($averageScore < 6) {
 <!-- ================= HERO ================= -->
 <section class="card sleep-hero">
     <div class="sleep-hero-inner">
-        <div class="emoji-bubble">🌙</div>
+        <div class="emoji-bubble">ðŸŒ™</div>
         <div>
             <div class="sleep-title"><?= $status ?></div>
             <div class="sleep-sub">
@@ -262,3 +262,4 @@ new Chart(document.getElementById('sleepChart'), {
 </script>
 
 <?php include 'includes/footer.php'; ?>
+

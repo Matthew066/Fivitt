@@ -3,7 +3,8 @@ session_start();
 require_once 'includes/db.php';
 
 $pageTitle = 'Health Overview';
-include 'includes/header.php';
+$bodyClass = 'health-page';
+require 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;
 $today = date('Y-m-d');
@@ -155,152 +156,6 @@ if ($averageScore < 5) {
 }
 
 ?>
-
-<style>
-
-/* ===== WATER CARD ===== */
-.water-card {
-    background: #ffffff;
-    padding: 24px;
-    border-radius: 20px;
-    box-shadow: 0 12px 24px rgba(0,150,255,0.08);
-    text-align: center;
-}
-
-.water-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #0077b6;
-    margin-bottom: 18px;
-}
-
-/* ===== GLASS WRAPPER ===== */
-.glass-wrapper {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
-}
-
-/* ===== GLASS ===== */
-.glass {
-    width: 36px;
-    height: 60px;
-    border: 2px solid #00b4d8;
-    border-radius: 8px 8px 15px 15px;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    transition: 0.3s ease;
-    background: rgba(255,255,255,0.7);
-}
-
-.glass:hover {
-    transform: translateY(-6px);
-}
-
-@media (max-width: 520px) {
-    .glass-wrapper {
-        justify-content: flex-start;
-    }
-}
-
-/* ===== WATER ===== */
-.water {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 0%;
-    background: linear-gradient(to top,#00b4d8,#90e0ef);
-    transition: height 0.4s ease;
-}
-
-/* ACTIVE GLASS */
-.glass.active .water {
-    height: 85%;
-}
-
-/* ===== LABEL ===== */
-.glass-label {
-    margin-top: 25px;
-    font-size: 16px;
-}
-
-.glass-label strong {
-    font-size: 24px;
-    color: #0077b6;
-}
-
-.glass-label small {
-    display: block;
-    font-size: 13px;
-    color: #666;
-    margin-top: 5px;
-}
-
-/* ===== BMI GAUGE ===== */
-.bmi-gauge {
-    margin-top: 16px;
-}
-
-.bmi-track {
-    position: relative;
-    height: 12px;
-    border-radius: 999px;
-    background: linear-gradient(90deg,
-        #f4a261 0%,
-        #f4a261 28%,
-        #2a9d8f 28%,
-        #2a9d8f 50%,
-        #e9c46a 50%,
-        #e9c46a 67%,
-        #e76f51 67%,
-        #e76f51 100%
-    );
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
-}
-
-.bmi-marker {
-    position: absolute;
-    top: -6px;
-    width: 3px;
-    height: 24px;
-    background: #1d3557;
-    border-radius: 2px;
-}
-
-.bmi-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    font-size: 12px;
-    color: #556;
-}
-
-.bmi-status {
-    margin-top: 8px;
-    font-weight: 600;
-}
-
-.bmi-gauge.bmi-none {
-    opacity: 0.6;
-}
-
-.bmi-gauge.bmi-none .bmi-marker {
-    display: none;
-}
-
-.bmi-low { color: #b65734; }
-.bmi-normal { color: #1f7a6c; }
-.bmi-high { color: #a37c15; }
-.bmi-obese { color: #b23a2f; }
-.bmi-none { color: #666; }
-
-
-</style>
 
 <main class="app">
 
@@ -476,3 +331,5 @@ function setGlass(count) {
 </script>
 
 <?php include 'includes/footer.php'; ?>
+
+

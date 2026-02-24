@@ -1,9 +1,10 @@
-<?php
+﻿<?php
 session_start();
 require_once 'includes/db.php';
 
 $pageTitle = 'Detail Event';
-include 'includes/header.php';
+$bodyClass = 'sportevent-detail-page';
+require 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;
 $today = date('Y-m-d');
@@ -63,80 +64,6 @@ if ($event_id > 0) {
 }
 ?>
 
-<style>
-.app {
-    max-width: 420px;
-    margin: 0 auto;
-    padding: 18px 18px 80px;
-}
-
-.card {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 18px;
-    box-shadow: 0 12px 26px rgba(22, 64, 94, 0.12);
-    margin-bottom: 16px;
-}
-
-.hero {
-    background: #2ec4cc;
-    color: #ffffff;
-    border-radius: 22px;
-    padding: 20px;
-}
-
-.hero h2 {
-    margin: 0 0 6px;
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.hero p {
-    margin: 0;
-    font-size: 13px;
-    opacity: 0.9;
-}
-
-.detail-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 14px;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-}
-
-.detail-title {
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-
-.detail-item {
-    font-size: 12px;
-    color: #6b7a88;
-    margin-bottom: 6px;
-}
-
-.btn-primary {
-    width: 100%;
-    background: #3ad26f;
-    color: #ffffff;
-    border: none;
-    border-radius: 999px;
-    padding: 10px 16px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.message {
-    background: #e8fff1;
-    border: 1px solid #b7f1cd;
-    color: #1b6c3d;
-    padding: 10px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    margin-bottom: 12px;
-}
-</style>
-
 <main class="app">
 
 <?php if (!$event): ?>
@@ -179,3 +106,5 @@ if ($event_id > 0) {
 </main>
 
 <?php include 'includes/footer.php'; ?>
+
+
