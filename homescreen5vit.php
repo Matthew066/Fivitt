@@ -13,6 +13,35 @@ $extraStyles = [
 include 'includes/header.php';
 ?>
 
+<style>
+.preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(ellipse at center, rgb(0, 0, 0) 0%, rgba(8, 10, 15, 0.98) 100%),
+        repeating-linear-gradient(90deg, rgb(0, 0, 0) 0 1px, transparent 1px 56px);
+}
+
+.preloader img {
+    width: min(240px, 62vw);
+    animation: preloadPulse 1.4s ease-in-out infinite;
+}
+    
+@keyframes preloadPulse {
+    0% { opacity: 0.7; transform: scale(0.96); }
+    50% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0.7; transform: scale(0.96); }
+}
+</style>
+
+<div class="preloader">
+    <img src="assets/images/splashscreen/logofivit.png" alt="Loading Fivit">
+</div>
+
 <div class="homescreen-wrapper">
     <main class="home-main">
         <section class="hero-card">
@@ -105,4 +134,22 @@ include 'includes/header.php';
     <footer class="home-footer">@Fivit 2026</footer>
 </div>
 
+
+
 <?php include 'includes/footer.php'; ?>
+
+<script>
+window.addEventListener("load", function () {
+    const loader = document.querySelector(".preloader");
+    if (loader) {
+        loader.style.transition = "opacity 1s ease";
+
+        setTimeout(() => {
+            loader.style.opacity = "0";
+            setTimeout(() => {
+                loader.style.display = "none";
+            }, 1000);
+        }, 2000);
+    }
+});
+</script>

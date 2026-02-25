@@ -1,5 +1,6 @@
 <?php
 $pageTitle = $pageTitle ?? 'FIVIT';
+$bodyClass = $bodyClass ?? '';
 $extraStyles = $extraStyles ?? [];
 if (is_string($extraStyles)) {
     $extraStyles = [$extraStyles];
@@ -17,7 +18,7 @@ if (is_string($extraStyles)) {
         <link rel="stylesheet" href="<?= htmlspecialchars($stylePath, ENT_QUOTES, 'UTF-8') ?>">
     <?php endforeach; ?>
 </head>
-<body>
+<body class="<?= htmlspecialchars($bodyClass, ENT_QUOTES, 'UTF-8') ?>">
 
 <header class="header">
     <img src="assets/Foto/Logo5vit.png" alt="FIVIT" class="logo" style="width: 50px; height: 50px;">
@@ -43,9 +44,12 @@ if (is_string($extraStyles)) {
         <a class="drawer-link sub" href="#">Gym booking</a>
 
         <div class="drawer-section">Canteen</div>
-        <a class="drawer-link sub" href="#">Food Selection</a>
+        <a class="drawer-link sub" href="foodselection.php">Food Selection</a>
 
         <div class="drawer-section">Event</div>
         <a class="drawer-link sub" href="#">Education</a>
+
+        <div class="drawer-spacer"></div>
+        <a class="drawer-link drawer-link-logout" href="logout.php">Logout</a>
     </nav>
 </aside>

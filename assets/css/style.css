@@ -90,6 +90,8 @@ body.no-scroll {
     transition: transform 0.28s ease;
     z-index: 50;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .drawer.open {
@@ -111,6 +113,10 @@ body.no-scroll {
 
 .drawer-nav {
     padding: 10px 14px 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    flex: 1;
 }
 
 .drawer-section {
@@ -142,6 +148,22 @@ body.no-scroll {
 .drawer-link.sub {
     font-size: 14px;
     color: #334155;
+}
+
+.drawer-spacer {
+    margin-top: auto;
+}
+
+.drawer-link-logout {
+    margin-top: 12px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 700;
+}
+
+.drawer-link-logout:hover {
+    background: #fecaca;
+    color: #991b1b;
 }
 
 /* ===== FOOTER ===== */
@@ -425,4 +447,246 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     margin-top:6px;
     font-weight:600;
     font-size:14px;
+}
+
+/* ===== FOOD SELECTION ===== */
+body.foodselection-page {
+    background: #efefef;
+    font-family: "DM Sans", sans-serif;
+}
+
+.food-screen {
+    max-width: 390px;
+    margin: 0 auto;
+    padding: 14px;
+}
+
+.food-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0 14px;
+}
+
+.food-head h1 {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.cart-btn {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #16181d;
+    font-size: 27px;
+    position: relative;
+}
+
+.cart-count {
+    position: absolute;
+    right: -2px;
+    top: -3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: #fd5c63;
+}
+
+.panel {
+    background: linear-gradient(180deg, #45c8d2, #3fbfc9);
+    border-radius: 18px;
+    padding: 14px 12px 16px;
+}
+
+.panel-title {
+    color: #ffffff;
+    margin: 0 0 10px 12px;
+    font-size: 34px;
+    font-weight: 700;
+}
+
+.food-grid {
+    border: 4px solid #2e9be8;
+    border-radius: 6px;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.food-card {
+    background: #f5f5f5;
+    border-radius: 14px;
+    padding: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+}
+
+.food-image {
+    width: 100%;
+    aspect-ratio: 1.15 / 1;
+    border-radius: 0;
+    background-image: url("../images/homescreen/home2.png");
+    background-size: cover;
+    background-position: center;
+}
+
+.food-name {
+    margin: 8px 0 2px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #111;
+    line-height: 1.15;
+}
+
+.food-meta {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #232323;
+    font-size: 12px;
+}
+
+.action-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 0;
+    background: #42c5ce;
+    color: #fff;
+    font-size: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-btn {
+    margin-top: 12px;
+    width: 100%;
+    border: 0;
+    border-radius: 12px;
+    background: #1f2937;
+    color: #fff;
+    font-weight: 700;
+    min-height: 44px;
+}
+
+.confirm-btn.is-hidden {
+    display: none;
+}
+/* ================= LOGIN PAGE RESET (BACK TO OLD STYLE) ================= */
+
+body.login-page {
+    background: #efefef !important;
+    font-family: "DM Sans", sans-serif !important;
+}
+
+/* Remove new glass background */
+body.login-page .header,
+body.login-page .drawer,
+body.login-page .drawer-backdrop,
+body.login-page .footer {
+    display: none !important;
+}
+
+/* Restore old container */
+body.login-page .site-content {
+    max-width: 420px;
+    min-height: 100vh;
+    margin: 0 auto;
+    background: #efefef;
+}
+
+/* Restore old login form style */
+body.login-page .form-details-sign-in {
+    border-radius: 12px;
+    background: #ffffff !important;
+    padding: 11px;
+    display: flex;
+    align-items: center;
+}
+
+body.login-page .sign-in-custom-input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    padding-left: 12px;
+    font-family: "DM Sans";
+}
+
+body.login-page .custom-login-btn {
+    width: 78%;
+    padding: 12px 0;
+    background: #7FD83B;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: "Zen Dots";
+    font-size: 16px;
+    text-transform: uppercase;
+    transition: 0.3s ease;
+}
+
+body.login-page .custom-login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(127, 216, 59, 0.3);
+}
+
+/* Restore heading style */
+body.login-page .md-font-zen {
+    font-family: "Zen Dots";
+    font-size: 26px;
+    text-transform: uppercase;
+}
+
+/* ================= FIX OLD PRELOADER ================= */
+
+body.login-page .preloader {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: radial-gradient(circle, #333, #000) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 99999 !important;
+}
+
+body.login-page .preloader img {
+    width: 220px !important;
+    animation: fadePulse 1.2s ease-in-out infinite;
+}
+
+body.home-page .preloader {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: radial-gradient(circle, #333, #000) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 99999 !important;
+}
+
+body.home-page .preloader img {
+    width: 220px !important;
+    animation: fadePulse 1.2s ease-in-out infinite;
+}
+
+@keyframes fadePulse {
+    0% { opacity: 0.6; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0.6; transform: scale(0.95); }
 }
