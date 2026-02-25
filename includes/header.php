@@ -1,14 +1,21 @@
 <?php
 $pageTitle = $pageTitle ?? 'FIVIT';
+$extraStyles = $extraStyles ?? [];
+if (is_string($extraStyles)) {
+    $extraStyles = [$extraStyles];
+}
 ?>
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= htmlspecialchars($pageTitle) ?> - FIVIT</title>
-    <link rel="stylesheet" href="assets/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title><?= $pageTitle ?? 'Fivit' ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/style.css?v=1">
+    <?php foreach ($extraStyles as $stylePath): ?>
+        <link rel="stylesheet" href="<?= htmlspecialchars($stylePath, ENT_QUOTES, 'UTF-8') ?>">
+    <?php endforeach; ?>
 </head>
 <body>
 
@@ -24,7 +31,7 @@ $pageTitle = $pageTitle ?? 'FIVIT';
         <button class="menu drawer-close" aria-label="Tutup Menu" data-drawer-close>&#9776;</button>
     </div>
     <nav class="drawer-nav">
-        <a class="drawer-link" href="#">Home</a>
+        <a class="drawer-link" href="homescreen.php">Home</a>
 
         <div class="drawer-section">Daily</div>
         <a class="drawer-link sub" href="health.php">Basic Health Monitoring</a>
@@ -42,4 +49,3 @@ $pageTitle = $pageTitle ?? 'FIVIT';
         <a class="drawer-link sub" href="#">Education</a>
     </nav>
 </aside>
-
