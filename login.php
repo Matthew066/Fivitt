@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require 'includes/db.php';
 
@@ -302,100 +302,84 @@ body {
 </head>
 
 <body>
-
-<div class="site-content">
-
-<div class="preloader">
-    <img src="assets/images/splashscreen/logofivit.png" alt="Loading Fivit">
-</div>
-
-<header id="top-header" class="border-0">
-    <div class="header-wrap">
-        <div class="header-back">
-            <a href="javascript:history.go(-1)">
-                <img src="assets/svg/black-left-arrow.svg" alt="back">
-            </a>
+    <div class="site-content">
+        <div class="preloader">
+            <img src="assets/images/splashscreen/logofivit.png" alt="Loading Fivit">
         </div>
+
+        <main class="login-main" id="sign-in-main">
+            <div class="login-hero">
+                <img src="assets/images/splashscreen/logofivit.png" style="width:220px;" alt="Fivit Logo">
+                <h1>WELCOME BACK</h1>
+                <p>
+                    Login now to access your personalized fitness dashboard and stay on track.
+                </p>
+            </div>
+
+            <form class="login-form-wrap" method="POST">
+
+                <div class="field">
+                    <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                    <input 
+                        type="email" 
+                        name="email"
+                        placeholder="Email Address" 
+                        class="sign-in-custom-input"
+                        required>
+                </div>
+
+                <div class="field">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    <input 
+                        type="password" 
+                        name="password"
+                        id="password"
+                        placeholder="Password" 
+                        class="sign-in-custom-input"
+                        required>
+                    <i class="fas fa-eye-slash toggle-eye" id="eye"></i>
+                </div>
+
+                <?php if ($error !== ""): ?>
+                <p class="error-msg">
+                    <?php echo htmlspecialchars($error); ?>
+                </p>
+                <?php endif; ?>
+
+                <div class="password-btn">
+                    <button type="submit" class="custom-login-btn">
+                        Login
+                    </button>
+                </div>
+            </form>
+        </main>
     </div>
-</header>
 
-<main class="login-main" id="sign-in-main">
-<div class="login-hero">
-    <img src="assets/images/splashscreen/logofivit.png" style="width:220px;" alt="Fivit Logo">
-    <h1>WELCOME BACK</h1>
-    <p>
-        Login now to access your personalized fitness dashboard and stay on track.
-    </p>
-</div>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/custom.js"></script>
 
-<form class="login-form-wrap" method="POST">
+    <script>
+    document.getElementById("eye").addEventListener("click", function () {
+        const pass = document.getElementById("password");
+        pass.type = pass.type === "password" ? "text" : "password";
+        this.classList.toggle("fa-eye");
+        this.classList.toggle("fa-eye-slash");
+    });
+    </script>
 
-<div class="field">
-<i class="fa-regular fa-envelope" aria-hidden="true"></i>
-<input 
-    type="email" 
-    name="email"
-    placeholder="Email Address" 
-    class="sign-in-custom-input"
-    required>
-</div>
-
-<div class="field">
-<i class="fa-solid fa-lock" aria-hidden="true"></i>
-<input 
-    type="password" 
-    name="password"
-    id="password"
-    placeholder="Password" 
-    class="sign-in-custom-input"
-    required>
-<i class="fas fa-eye-slash toggle-eye" id="eye"></i>
-</div>
-
-<?php if ($error !== ""): ?>
-<p class="error-msg">
-<?php echo htmlspecialchars($error); ?>
-</p>
-<?php endif; ?>
-
-<div class="password-btn">
-    <button type="submit" class="custom-login-btn">
-        Login
-    </button>
-</div>
-
-</form>
-
-</main>
-
-</div>
-
-<script src="assets/js/jquery.min.js"></script>
-<script src="assets/js/bootstrap.bundle.min.js"></script>
-<script src="assets/js/custom.js"></script>
-
-<script>
-document.getElementById("eye").addEventListener("click", function () {
-    const pass = document.getElementById("password");
-    pass.type = pass.type === "password" ? "text" : "password";
-    this.classList.toggle("fa-eye");
-    this.classList.toggle("fa-eye-slash");
-});
-</script>
-
-<script>
-window.addEventListener("load", function () {
-    const loader = document.querySelector(".preloader");
-    if (loader) {
-        loader.style.transition = "opacity 1s ease";
-        
-        setTimeout(() => {
-            loader.style.opacity = "0";
-            setTimeout(() => loader.style.display = "none", 1000);
-        }, 2000); // tampil 3 detik
-    }
-});
-</script>
-
+    <script>
+    window.addEventListener("load", function () {
+        const loader = document.querySelector(".preloader");
+        if (loader) {
+            loader.style.transition = "opacity 1s ease";
+            
+            setTimeout(() => {
+                loader.style.opacity = "0";
+                setTimeout(() => loader.style.display = "none", 1000);
+            }, 2000); // tampil 3 detik
+        }
+    });
+    </script>
 </body>
 </html>
