@@ -72,10 +72,10 @@ include 'includes/header.php';
                     <div class="tracking-icon icon-yellow"><i class="fa-solid fa-heart-pulse"></i></div>
                     <p>Lifestyle Tracking</p>
                 </div>
-                <div class="tracking-card">
+                <a class="tracking-card link-card" href="gym_booking.php">
                     <div class="tracking-icon icon-purple"><i class="fa-solid fa-dumbbell"></i></div>
                     <p>Fitness and Sport</p>
-                </div>
+                </a>
                 <div class="tracking-card">
                     <div class="tracking-icon icon-cream"><i class="fa-solid fa-utensils"></i></div>
                     <p>Healthy Canteen</p>
