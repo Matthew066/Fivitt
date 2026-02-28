@@ -24,9 +24,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $category = trim($_POST['category'] ?? 'artikel');
         $author = trim($_POST['author_name'] ?? '');
         $publishedAt = trim($_POST['published_at'] ?? '') ?: null;
+        $sourceUrl = trim($_POST['source_url'] ?? '');
         $isActive = isset($_POST['is_active']) ? 1 : 0;
         $currentImagePath = trim($_POST['current_image_path'] ?? '');
         $imagePath = $currentImagePath;
+        if ($sourceUrl !== '' && !filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
+            $sourceUrl = '';
+        }
 
         if (isset($_POST['remove_image'])) {
             $imagePath = '';
@@ -64,16 +68,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($id > 0) {
                 $stmt = $pdo->prepare("
                     UPDATE articles
-                    SET title = ?, summary = ?, content = ?, category = ?, author_name = ?, published_at = ?, is_active = ?, image_path = ?
+                    SET title = ?, summary = ?, content = ?, category = ?, author_name = ?, published_at = ?, source_url = ?, is_active = ?, image_path = ?
                     WHERE id_articles = ?
                 ");
-                $stmt->execute([$title, $summary, $content, $category, $author, $publishedAt, $isActive, ($imagePath !== '' ? $imagePath : null), $id]);
+                $stmt->execute([$title, $summary, $content, $category, $author, $publishedAt, ($sourceUrl !== '' ? $sourceUrl : null), $isActive, ($imagePath !== '' ? $imagePath : null), $id]);
             } else {
                 $stmt = $pdo->prepare("
-                    INSERT INTO articles (title, summary, content, category, author_name, published_at, is_active, image_path, created_by)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO articles (title, summary, content, category, author_name, published_at, source_url, is_active, image_path, created_by)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
-                $stmt->execute([$title, $summary, $content, $category, $author, $publishedAt, $isActive, ($imagePath !== '' ? $imagePath : null), $creatorId]);
+                $stmt->execute([$title, $summary, $content, $category, $author, $publishedAt, ($sourceUrl !== '' ? $sourceUrl : null), $isActive, ($imagePath !== '' ? $imagePath : null), $creatorId]);
             }
         }
 
@@ -114,7 +118,7 @@ if ($editId > 0) {
 }
 
 $articles = $pdo->query("
-    SELECT id_articles, title, summary, category, author_name, published_at, is_active, image_path
+    SELECT id_articles, title, summary, category, author_name, published_at, source_url, is_active, image_path
     FROM articles
     ORDER BY COALESCE(published_at, DATE(created_at)) DESC, id_articles DESC
 ")->fetchAll();
@@ -171,6 +175,10 @@ $articles = $pdo->query("
                                     <input class="form-control" type="date" name="published_at" value="<?php echo h($editArticle['published_at'] ?? ''); ?>">
                                 </div>
                                 <div class="mb-3">
+                                    <label class="form-label">Link Sumber Asli</label>
+                                    <input class="form-control" type="url" name="source_url" placeholder="https://contoh.com/artikel" value="<?php echo h($editArticle['source_url'] ?? ''); ?>">
+                                </div>
+                                <div class="mb-3">
                                     <label class="form-label">Gambar (JPG/PNG/WEBP, max 2MB)</label>
                                     <input class="form-control" type="file" name="image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
                                 </div>
@@ -208,13 +216,14 @@ $articles = $pdo->query("
                                         <th>Judul</th>
                                         <th>Kategori</th>
                                         <th>Publish</th>
+                                        <th>Sumber</th>
                                         <th>Status</th>
                                         <th>Aksi</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     <?php if (!$articles): ?>
-                                        <tr><td colspan="6" class="text-center">Belum ada artikel.</td></tr>
+                                        <tr><td colspan="7" class="text-center">Belum ada artikel.</td></tr>
                                     <?php endif; ?>
                                     <?php foreach ($articles as $article): ?>
                                         <tr>
@@ -225,6 +234,13 @@ $articles = $pdo->query("
                                             </td>
                                             <td><?php echo h($article['category']); ?></td>
                                             <td><?php echo h($article['published_at']); ?></td>
+                                            <td>
+                                                <?php if (!empty($article['source_url'])): ?>
+                                                    <a href="<?php echo h($article['source_url']); ?>" target="_blank" rel="noopener noreferrer">Buka</a>
+                                                <?php else: ?>
+                                                    <span class="text-muted">-</span>
+                                                <?php endif; ?>
+                                            </td>
                                             <td>
                                                 <span class="badge <?php echo ((int) $article['is_active'] === 1) ? 'bg-success' : 'bg-secondary'; ?>">
                                                     <?php echo ((int) $article['is_active'] === 1) ? 'Aktif' : 'Draft'; ?>

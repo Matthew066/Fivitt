@@ -7,6 +7,7 @@ function ensure_articles_schema(PDO $pdo): void
         "ALTER TABLE articles ADD COLUMN image_path varchar(255) DEFAULT NULL",
         "ALTER TABLE articles ADD COLUMN author_name varchar(120) DEFAULT NULL",
         "ALTER TABLE articles ADD COLUMN published_at date DEFAULT NULL",
+        "ALTER TABLE articles ADD COLUMN source_url varchar(500) DEFAULT NULL",
         "ALTER TABLE articles ADD COLUMN is_active tinyint(1) NOT NULL DEFAULT 1",
     ];
 

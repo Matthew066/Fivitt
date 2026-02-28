@@ -30,8 +30,14 @@ SET time_zone = "+00:00";
 CREATE TABLE `articles` (
   `id_articles` bigint(20) NOT NULL,
   `title` varchar(255) DEFAULT NULL,
+  `summary` varchar(255) DEFAULT NULL,
   `content` text DEFAULT NULL,
   `category` varchar(100) DEFAULT NULL,
+  `author_name` varchar(120) DEFAULT NULL,
+  `image_path` varchar(255) DEFAULT NULL,
+  `published_at` date DEFAULT NULL,
+  `source_url` varchar(500) DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `created_by` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
