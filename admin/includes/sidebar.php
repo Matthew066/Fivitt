@@ -21,6 +21,9 @@ function isActive(array $pages, string $currentPage): string
 		<li class="<?php echo isActive(['datauser.php'], $currentPage); ?>">
 			<a href="datauser.php">Users</a>
 		</li>
+		<li class="<?php echo isActive(['add_gym_tools.php'], $currentPage); ?>">
+			<a href="add_gym_tools.php">Gym Tools</a>
+		</li>
 		<!-- Logout Button -->
 		<li class="<?php echo isActive(['logout.php'], $currentPage); ?>">
 			<a href="logout.php">

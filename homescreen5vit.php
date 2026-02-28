@@ -76,7 +76,7 @@ include 'includes/header.php';
                     <div class="tracking-icon icon-purple"><i class="fa-solid fa-dumbbell"></i></div>
                     <p>Fitness and Sport</p>
                 </a>
-                <div class="tracking-card">
+                <div class="tracking-card"> 
                     <div class="tracking-icon icon-cream"><i class="fa-solid fa-utensils"></i></div>
                     <p>Healthy Canteen</p>
                 </div>

@@ -251,7 +251,8 @@ CREATE TABLE `gym_equipments` (
   `gym_id` bigint(20) DEFAULT NULL,
   `equipment_name` varchar(255) DEFAULT NULL,
   `quantity` int(11) DEFAULT NULL,
-  `description` varchar(255) DEFAULT NULL
+  `description` varchar(255) DEFAULT NULL,
+  `image_path` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------

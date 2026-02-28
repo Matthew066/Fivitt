@@ -312,6 +312,26 @@ $planText = implode("\n", $planLines);
     opacity: 0.9;
 }
 
+.tab-row {
+    display: flex;
+    gap: 18px;
+    margin: 8px 4px 14px;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.tab-row a,
+.tab-row span {
+    text-decoration: none;
+    color: #6b7a88;
+    padding-bottom: 7px;
+}
+
+.tab-row .active {
+    color: #1a2e3a;
+    border-bottom: 2px solid #2ec4cc;
+}
+
 .plan-item {
     background: #f7fbfd;
     border-radius: 14px;
@@ -406,6 +426,11 @@ $planText = implode("\n", $planLines);
         <h2>Workout Personalization</h2>
         <p>Rekomendasi latihan otomatis untuk hari ini</p>
     </section>
+
+    <div class="tab-row">
+        <a href="gym_booking.php">Available &amp; Pesan alat</a>
+        <span class="active">Workout Recommend</span>
+    </div>
 
     <?php if ($errors): ?>
         <section class="card">
