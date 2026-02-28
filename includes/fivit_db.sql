@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 18, 2026 at 06:04 AM
+-- Generation Time: Feb 28, 2026 at 05:39 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -64,6 +64,42 @@ CREATE TABLE `bmi_records` (
   `recorded_at` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `bmi_records`
+--
+
+INSERT INTO `bmi_records` (`id_bmi_records`, `user_id`, `height_cm`, `weight_kg`, `bmi_value`, `recorded_at`) VALUES
+(1, 2, 170, 65.00, 22.49, '2026-02-18'),
+(2, 1, 170, 55.00, 19.03, '2026-02-18'),
+(3, 1, 150, 55.00, 24.44, '2026-02-18'),
+(4, 1, 170, 55.00, 19.03, '2026-02-18'),
+(5, 1, 170, 65.00, 22.49, '2026-02-18'),
+(6, 1, 170, 90.00, 31.14, '2026-02-18'),
+(7, 1, 170, 90.00, 31.14, '2026-02-18'),
+(8, 1, 170, 90.00, 31.14, '2026-02-18'),
+(9, 1, 170, 90.00, 31.14, '2026-02-18'),
+(10, 1, 170, 90.00, 31.14, '2026-02-18'),
+(11, 1, 170, 80.00, 27.68, '2026-02-18'),
+(12, 1, 170, 50.00, 17.30, '2026-02-18'),
+(13, 1, 170, 60.00, 20.76, '2026-02-18'),
+(14, 1, 170, 60.00, 20.76, '2026-02-18'),
+(15, 1, 170, 60.00, 20.76, '2026-02-18'),
+(16, 1, 170, 60.00, 20.76, '2026-02-18'),
+(17, 1, 155, 60.00, 24.97, '2026-02-18'),
+(18, 1, 155, 60.00, 24.97, '2026-02-18'),
+(19, 1, 155, 80.00, 33.30, '2026-02-18'),
+(20, 1, 155, 80.00, 33.30, '2026-02-18'),
+(21, 1, 155, 80.00, 33.30, '2026-02-18'),
+(22, 1, 175, 80.00, 26.12, '2026-02-18'),
+(23, 1, 190, 80.00, 22.16, '2026-02-18'),
+(24, 1, 190, 80.00, 22.16, '2026-02-18'),
+(25, 1, 190, 80.00, 22.16, '2026-02-18'),
+(26, 1, 150, 80.00, 35.56, '2026-02-18'),
+(27, 1, 150, 80.00, 35.56, '2026-02-18'),
+(28, 1, 150, 70.00, 31.11, '2026-02-18'),
+(29, 1, 130, 70.00, 41.42, '2026-02-18'),
+(30, 1, 130, 70.00, 41.42, '2026-02-18');
+
 -- --------------------------------------------------------
 
 --
@@ -78,6 +114,14 @@ CREATE TABLE `daily_checkins` (
   `checkin_date` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `daily_checkins`
+--
+
+INSERT INTO `daily_checkins` (`id_daily_checkins`, `user_id`, `activity_minutes`, `water_intake_ml`, `checkin_date`, `created_at`) VALUES
+(1, 2, 60, 250, '2026-02-18', '2026-02-18 05:30:08'),
+(2, 1, 0, 500, '2026-02-18', '2026-02-18 06:13:09');
 
 -- --------------------------------------------------------
 
@@ -96,6 +140,13 @@ CREATE TABLE `events` (
   `is_active` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `events`
+--
+
+INSERT INTO `events` (`id_events`, `title`, `description`, `event_type`, `start_date`, `end_date`, `reward_points`, `is_active`) VALUES
+(1, 'Morning Health Run 5K', 'Event lari santai sejauh 5KM untuk meningkatkan kebugaran dan menjaga kesehatan jantung. Terbuka untuk semua mahasiswa.', 'Santai', '2026-02-12', '2026-02-18', 30, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -108,6 +159,13 @@ CREATE TABLE `event_participants` (
   `user_id` bigint(20) DEFAULT NULL,
   `status` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `event_participants`
+--
+
+INSERT INTO `event_participants` (`id_event_participants`, `event_id`, `user_id`, `status`) VALUES
+(1, 1, 1, 'registered');
 
 -- --------------------------------------------------------
 
@@ -233,7 +291,9 @@ CREATE TABLE `sleep_logs` (
 --
 
 INSERT INTO `sleep_logs` (`id_sleep_logs`, `user_id`, `sleep_date`, `sleep_start`, `sleep_end`, `total_sleep_hours`, `sleep_quality`, `late_night`, `note`, `created_at`) VALUES
-(1, 1, '2026-02-18', '22:00:00', '06:00:00', 8.00, NULL, 0, NULL, '2026-02-18 03:49:27');
+(1, 1, '2026-02-18', '00:00:00', '06:00:00', 8.00, NULL, 0, NULL, '2026-02-18 03:49:27'),
+(3, 2, '2026-02-18', '22:00:00', '06:00:00', NULL, NULL, NULL, NULL, '2026-02-18 05:12:28'),
+(4, 1, '2026-02-23', '22:00:00', '06:00:00', NULL, NULL, NULL, NULL, '2026-02-23 11:45:26');
 
 -- --------------------------------------------------------
 
@@ -258,7 +318,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id_users`, `name`, `email`, `password_hash`, `role`, `department`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'phylicia', 'phylicia@gmail.com', '$2y$10$vy2FD/27VdAKJ2APgux03O29ReA74urQyFHFwPsKQAffj0rZp7ZQC', 'user', 'General', 1, '2026-02-18 03:13:16', '2026-02-18 03:13:16');
+(1, 'phylicia', 'phylicia@gmail.com', '$2y$10$vy2FD/27VdAKJ2APgux03O29ReA74urQyFHFwPsKQAffj0rZp7ZQC', 'user', 'General', 1, '2026-02-18 03:13:16', '2026-02-18 03:13:16'),
+(2, 'phyliciatiffany456', 'phyliciatiffany456@gmail.com', '$2y$10$XiWi.XgrUWT5.8BLm8QpBeZojdYLIGFGH3BSyVgO.Vxdej0VO9u26', 'user', 'General', 1, '2026-02-18 05:12:28', '2026-02-18 05:12:28');
 
 -- --------------------------------------------------------
 
@@ -316,6 +377,34 @@ CREATE TABLE `user_streaks` (
   `longest_streak` int(11) DEFAULT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `workout_personalizations`
+--
+
+CREATE TABLE `workout_personalizations` (
+  `id_workout` bigint(20) NOT NULL,
+  `user_id` bigint(20) DEFAULT NULL,
+  `goal` varchar(255) DEFAULT NULL,
+  `fitness_level` varchar(100) DEFAULT NULL,
+  `detail_workout` text DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `name` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `workout_personalizations`
+--
+
+INSERT INTO `workout_personalizations` (`id_workout`, `user_id`, `goal`, `fitness_level`, `detail_workout`, `notes`, `created_at`, `name`) VALUES
+(1, 1, '', '', '', '', '2026-02-18 08:22:46', NULL),
+(2, 1, 'Fat Loss', 'Beginner', 'Jumping Jacks - 3 set x 14 repetisi\r\nHigh Knees - 3 set x 12 repetisi\r\nMountain Climbers - 3 set x 9 repetisi\r\nBurpees - 3 set x 9 repetisi\r\nSquats - 3 set x 11 repetisi\r\nLunges - 3 set x 9 repetisi\r\nPush Ups - 3 set x 11 repetisi\r\nPlank - 3 set x 10 repetisi\r\nGlute Bridge - 3 set x 9 repetisi\r\nBicycle Crunches - 13 menit\r\nJump Rope - 3 set x 10 repetisi\r\nJog in Place - 18 menit', '', '2026-02-18 08:41:10', NULL),
+(3, 1, 'Fat Loss', 'Beginner', 'Jump Rope - 3 set x 13 repetisi\r\nHigh Knees - 3 set x 15 repetisi\r\nMountain Climbers - 3 set x 14 repetisi\r\nBurpees - 3 set x 15 repetisi\r\nJumping Jacks - 3 set x 13 repetisi\r\nJog in Place - 12 menit\r\nPlank - 3 set x 9 repetisi\r\nBicycle Crunches - 15 menit', '', '2026-02-18 08:44:50', NULL),
+(4, 1, 'Fat Loss', 'Beginner', 'Jump Rope - 3 set x 15 repetisi\r\nHigh Knees - 3 set x 9 repetisi\r\nMountain Climbers - 3 set x 9 repetisi\r\nBurpees - 3 set x 11 repetisi\r\nJumping Jacks - 3 set x 14 repetisi\r\nJog in Place - 15 menit\r\nPlank - 3 set x 14 repetisi\r\nBicycle Crunches - 17 menit', '', '2026-02-18 08:47:00', NULL),
+(5, 1, 'Fat Loss', 'Beginner', 'Jump Rope - 3 set x 11 repetisi\r\nHigh Knees - 3 set x 10 repetisi\r\nMountain Climbers - 3 set x 9 repetisi\r\nBurpees - 3 set x 12 repetisi\r\nJumping Jacks - 3 set x 12 repetisi\r\nJog in Place - 19 menit', '', '2026-02-18 08:50:02', NULL);
 
 --
 -- Indexes for dumped tables
@@ -458,6 +547,13 @@ ALTER TABLE `user_streaks`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Indexes for table `workout_personalizations`
+--
+ALTER TABLE `workout_personalizations`
+  ADD PRIMARY KEY (`id_workout`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -477,25 +573,25 @@ ALTER TABLE `badges`
 -- AUTO_INCREMENT for table `bmi_records`
 --
 ALTER TABLE `bmi_records`
-  MODIFY `id_bmi_records` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_bmi_records` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `daily_checkins`
 --
 ALTER TABLE `daily_checkins`
-  MODIFY `id_daily_checkins` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_daily_checkins` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
-  MODIFY `id_events` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_events` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `event_participants`
 --
 ALTER TABLE `event_participants`
-  MODIFY `id_event_participants` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_event_participants` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `feature_settings`
@@ -543,13 +639,13 @@ ALTER TABLE `point_logs`
 -- AUTO_INCREMENT for table `sleep_logs`
 --
 ALTER TABLE `sleep_logs`
-  MODIFY `id_sleep_logs` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_sleep_logs` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_users` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `user_badges`
@@ -574,6 +670,12 @@ ALTER TABLE `user_sessions`
 --
 ALTER TABLE `user_streaks`
   MODIFY `id_user_streaks` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `workout_personalizations`
+--
+ALTER TABLE `workout_personalizations`
+  MODIFY `id_workout` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
@@ -672,6 +774,12 @@ ALTER TABLE `user_sessions`
 --
 ALTER TABLE `user_streaks`
   ADD CONSTRAINT `user_streaks_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id_users`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `workout_personalizations`
+--
+ALTER TABLE `workout_personalizations`
+  ADD CONSTRAINT `workout_personalizations_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id_users`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
