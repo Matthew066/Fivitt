@@ -11,7 +11,17 @@ if (is_string($extraStyles)) {
 <head>
     <meta charset="UTF-8">
     <title><?= $pageTitle ?? 'Fivit' ?></title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fivit - Login</title>
+
+    <link rel="icon" href="assets/images/favicon/icon-fivit.png">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,100..1000;1,100..1000&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/media-query.css">
     <!-- CSS -->
     <link rel="stylesheet" href="assets/css/style.css?v=1">
     <?php foreach ($extraStyles as $stylePath): ?>
