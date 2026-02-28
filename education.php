@@ -150,7 +150,7 @@ include 'includes/header.php';
                 <div class="trend-meta">Oleh : Dispendik Mojokerto</div>
                 <div class="trend-meta">15 Agustus 2023</div>
             </div>
-            <i class="fa-solid fa-share-nodes trend-share"></i>
+                
         </article>
 
         <article class="trending-item">
@@ -160,7 +160,7 @@ include 'includes/header.php';
                 <div class="trend-meta">Oleh : Redaksi Jagoan Hosting</div>
                 <div class="trend-meta">24 September 2023</div>
             </div>
-            <i class="fa-solid fa-share-nodes trend-share"></i>
+            
         </article>
 
         <article class="trending-item">
@@ -170,7 +170,7 @@ include 'includes/header.php';
                 <div class="trend-meta">Oleh : Kompasiana</div>
                 <div class="trend-meta">14 September 2023</div>
             </div>
-            <i class="fa-solid fa-share-nodes trend-share"></i>
+            
         </article>
 
         <article class="trending-item">
@@ -180,7 +180,7 @@ include 'includes/header.php';
                 <div class="trend-meta">Oleh : Kompasiana</div>
                 <div class="trend-meta">08 September 2023</div>
             </div>
-            <i class="fa-solid fa-share-nodes trend-share"></i>
+            
         </article>
     </section>
 
