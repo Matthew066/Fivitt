@@ -5152,8 +5152,12 @@ input::placeholder {
 
 .mobile-toggle-menu {
 
-
-	display: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 42px;
+	height: 42px;
+	border-radius: 50%;
 
 
 	font-size: 26px;
@@ -5165,6 +5169,11 @@ input::placeholder {
 	cursor: pointer;
 
 
+}
+
+.mobile-toggle-menu:hover {
+	background-color: rgb(50 199 216 / 12%);
+	color: #32C7D8;
 }
 
 
@@ -5367,8 +5376,7 @@ input::placeholder {
 
 	.mobile-toggle-menu {
 
-
-		display: block;
+		display: flex;
 
 
 	}

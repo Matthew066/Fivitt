@@ -17,9 +17,17 @@
 	<script src="assets/plugins/apexcharts-bundle/js/apexcharts.min.js"></script>
 	<script src="assets/js/index3.js"></script>
 	<script>
-		new PerfectScrollbar('.best-selling-products');
-		new PerfectScrollbar('.recent-reviews');
-		new PerfectScrollbar('.support-list');
+		if (typeof PerfectScrollbar !== 'undefined') {
+			if (document.querySelector('.best-selling-products')) {
+				new PerfectScrollbar('.best-selling-products');
+			}
+			if (document.querySelector('.recent-reviews')) {
+				new PerfectScrollbar('.recent-reviews');
+			}
+			if (document.querySelector('.support-list')) {
+				new PerfectScrollbar('.support-list');
+			}
+		}
 	</script>
 	<!--app JS-->
-	<script src="assets/js/app.js"></script>
+	<script src="assets/js/app.js?v=20260301"></script>
