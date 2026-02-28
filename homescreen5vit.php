@@ -4,6 +4,18 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
+require_once 'includes/db.php';
+require_once 'includes/profile_image.php';
+
+ensure_users_profile_image_schema($pdo);
+
+$userId = (int) ($_SESSION['user_id'] ?? 0);
+$profileImage = null;
+if ($userId > 0) {
+    $stmt = $pdo->prepare("SELECT profile_image FROM users WHERE id_users = ? LIMIT 1");
+    $stmt->execute([$userId]);
+    $profileImage = $stmt->fetchColumn() ?: null;
+}
  
 $pageTitle = 'Home';
 $extraStyles = [
@@ -30,6 +42,35 @@ include 'includes/header.php';
     width: min(240px, 62vw);
     animation: preloadPulse 1.4s ease-in-out infinite;
 }
+
+.avatar-upload-form {
+    position: relative;
+}
+
+.avatar-upload-btn {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 0;
+    color: #fff;
+    background: #1ca9a1;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
     
 @keyframes preloadPulse {
     0% { opacity: 0.7; transform: scale(0.96); }
@@ -46,7 +87,19 @@ include 'includes/header.php';
     <main class="home-main">
         <section class="hero-card">
             <div class="hero-top">
-                <div class="avatar-circle"><i class="fa-solid fa-seedling"></i></div>
+                <form class="avatar-upload-form" method="post" action="update_profile_image.php" enctype="multipart/form-data">
+                    <input type="file" name="profile_image" id="userProfileImageInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
+                    <div class="avatar-circle">
+                        <?php if (!empty($profileImage)): ?>
+                            <img class="avatar-image" src="<?php echo htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8'); ?>" alt="Profile">
+                        <?php else: ?>
+                            <i class="fa-solid fa-seedling"></i>
+                        <?php endif; ?>
+                    </div>
+                    <button type="button" class="avatar-upload-btn" onclick="document.getElementById('userProfileImageInput').click()">
+                        <i class="fa-solid fa-camera"></i>
+                    </button>
+                </form>
                 <div class="hero-text">
                     <h1>Hi, <?php echo htmlspecialchars($_SESSION['user_name'], ENT_QUOTES, 'UTF-8'); ?>!</h1>
                     <p>Let's Stay Healthy Today</p>
@@ -150,6 +203,12 @@ window.addEventListener("load", function () {
                 loader.style.display = "none";
             }, 1000);
         }, 2000);
+    }
+});
+
+document.getElementById('userProfileImageInput')?.addEventListener('change', function () {
+    if (this.files && this.files.length > 0) {
+        this.form.submit();
     }
 });
 </script>

@@ -317,6 +317,7 @@ CREATE TABLE `users` (
   `password_hash` varchar(255) DEFAULT NULL,
   `role` varchar(100) DEFAULT NULL,
   `department` varchar(100) DEFAULT NULL,
+  `profile_image` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
