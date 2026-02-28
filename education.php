@@ -134,7 +134,7 @@ include 'includes/header.php';
                 <i class="fa-solid fa-book"></i>
                 <span>Life Style Tips</span>
             </a>
-            <a class="menu-link" href="#">
+            <a class="menu-link" href="artikel.php">
                 <i class="fa-regular fa-newspaper"></i>
                 <span>Artikel</span>
             </a>
