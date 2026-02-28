@@ -234,6 +234,7 @@ CREATE TABLE `gym_bookings` (
   `id_gym_bookings` bigint(20) NOT NULL,
   `user_id` bigint(20) DEFAULT NULL,
   `gym_id` bigint(20) DEFAULT NULL,
+  `equipment_id` bigint(20) DEFAULT NULL,
   `booking_date` date DEFAULT NULL,
   `time_slot` varchar(100) DEFAULT NULL,
   `status` varchar(100) DEFAULT NULL
@@ -249,7 +250,8 @@ CREATE TABLE `gym_equipments` (
   `id_gym_equipments` bigint(20) NOT NULL,
   `gym_id` bigint(20) DEFAULT NULL,
   `equipment_name` varchar(255) DEFAULT NULL,
-  `quantity` int(11) DEFAULT NULL
+  `quantity` int(11) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
