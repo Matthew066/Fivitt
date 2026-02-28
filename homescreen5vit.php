@@ -76,18 +76,18 @@ include 'includes/header.php';
                     <div class="tracking-icon icon-purple"><i class="fa-solid fa-dumbbell"></i></div>
                     <p>Fitness and Sport</p>
                 </a>
-                <div class="tracking-card"> 
+                <a class="tracking-card link-card" href="foodselection.php">
                     <div class="tracking-icon icon-cream"><i class="fa-solid fa-utensils"></i></div>
                     <p>Healthy Canteen</p>
-                </div>
+                </a>
                 <a class="tracking-card link-card" href="sleep.php">
                     <div class="tracking-icon icon-mint"><i class="fa-solid fa-bed"></i></div>
                     <p>Sleep Status<br>00:59h</p>
                 </a>
-                <div class="tracking-card">
+                <a class="tracking-card link-card" href="health.php">
                     <div class="tracking-icon icon-peach"><i class="fa-solid fa-glass-water"></i></div>
                     <p>Drink Status<br>6/L</p>
-                </div>
+                </a>
                 <div class="tracking-card">
                     <div class="tracking-icon icon-pink"><i class="fa-solid fa-check"></i></div>
                     <p>Check-in Status<br>Done</p>
