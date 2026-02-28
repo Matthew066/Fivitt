@@ -58,7 +58,7 @@ if (is_string($extraStyles)) {
         <a class="drawer-link sub" href="foodselection.php">Food Selection</a>
 
         <div class="drawer-section">Event</div>
-        <a class="drawer-link sub" href="#">Education</a>
+        <a class="drawer-link sub" href="education.php">Education</a>
 
         <div class="drawer-spacer"></div>
         <a class="drawer-link drawer-link-logout" href="logout.php">Logout</a>

@@ -119,10 +119,10 @@ include 'includes/header.php';
                     <div class="other-icon"><i class="fa-solid fa-calendar-days"></i></div>
                     <p>Events</p>
                 </a>
-                <div class="other-card">
+                <a class="other-card" href="education.php">
                     <div class="other-icon"><i class="fa-solid fa-graduation-cap"></i></div>
                     <p>Education</p>
-                </div>
+                </a>
                 <div class="other-card">
                     <div class="other-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
                     <p>Recent Activity</p>
