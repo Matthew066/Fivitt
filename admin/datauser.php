@@ -97,9 +97,9 @@ $result = $pdo->query($query);
                       <td><?php echo htmlspecialchars((string)$row['name'], ENT_QUOTES, 'UTF-8'); ?></td>
                       <td><?php echo htmlspecialchars((string)$row['email'], ENT_QUOTES, 'UTF-8'); ?></td>
                       <td>
-                        <select class="form-control" id="role_<?php echo $row['id_users']; ?>" onchange="updateUserRole(<?php echo $row['id_users']; ?>)">
-                          <option value="user" <?php echo $row['role'] == 'user' ? 'selected' : ''; ?>>User</option>
-                          <option value="admin" <?php echo $row['role'] == 'admin' ? 'selected' : ''; ?>>Admin</option>
+                        <select class="form-select" name="role" form="<?php echo htmlspecialchars($formId, ENT_QUOTES, 'UTF-8'); ?>">
+                          <option value="user" <?php echo strtolower((string)$row['role']) === 'user' ? 'selected' : ''; ?>>User</option>
+                          <option value="admin" <?php echo strtolower((string)$row['role']) === 'admin' ? 'selected' : ''; ?>>Admin</option>
                         </select>
                       </td>
                       <td>
