@@ -2953,424 +2953,284 @@ ul.nav.nav-tabs.focus-tab-main{
     line-height: 60px;
     margin-top: 20px;
 }
-.height-item.selected1,
-.age-item.selected1,
-.weight-item.selected1,
-.day-item.selected1 {
-    opacity: 1;
-    margin-left: 55px;
+
+.activity-btn small{
+    font-size:11px;
+    opacity:0.7;
 }
-.timer .countdown,
-.percent_text,
-.loader-content span,
-.single2-txt {
-    color: var(--4, #12151C);
-    text-align: center;
-    font-family: "Zen Dots";
+
+.activity-btn.active{
+    background:#2ec4cc;
+    color:white;
+    box-shadow:0 4px 12px rgba(46,196,204,0.4);
+}
+
+.activity-btn:hover{
+    transform:translateY(-2px);
+}
+
+.glass-wrapper{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+}
+
+.glass{
+    font-size:28px;
+    cursor:pointer;
+    opacity:0.3;
+    transition:0.2s;
+}
+
+.glass.active{
+    opacity:1;
+    transform:scale(1.1);
+}
+
+.glass-label{
+    margin-top:6px;
+    font-weight:600;
+    font-size:14px;
+}
+
+/* ===== FOOD SELECTION ===== */
+body.foodselection-page {
+    background: #efefef;
+    font-family: "DM Sans", sans-serif;
+}
+
+.food-screen {
+    max-width: 390px;
+    margin: 0 auto;
+    padding: 14px;
+}
+
+.food-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0 14px;
+}
+
+.food-head h1 {
+    margin: 0;
     font-size: 36px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 36px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.cart-btn {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #16181d;
+    font-size: 27px;
+    position: relative;
+}
+
+.cart-count {
+    position: absolute;
+    right: -2px;
+    top: -3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: #fd5c63;
+}
+
+.panel {
+    background: linear-gradient(180deg, #45c8d2, #3fbfc9);
+    border-radius: 18px;
+    padding: 14px 12px 16px;
+}
+
+.panel-title {
+    color: #ffffff;
+    margin: 0 0 10px 12px;
+    font-size: 34px;
+    font-weight: 700;
+}
+
+.food-grid {
+    border: 4px solid #2e9be8;
+    border-radius: 6px;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.food-card {
+    background: #f5f5f5;
+    border-radius: 14px;
+    padding: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+}
+
+.food-image {
+    width: 100%;
+    aspect-ratio: 1.15 / 1;
+    border-radius: 0;
+    background-image: url("../images/homescreen/home2.png");
+    background-size: cover;
+    background-position: center;
+}
+
+.food-name {
+    margin: 8px 0 2px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #111;
+    line-height: 1.15;
+}
+
+.food-meta {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #232323;
+    font-size: 12px;
+}
+
+.action-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 0;
+    background: #42c5ce;
+    color: #fff;
+    font-size: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-btn {
+    margin-top: 12px;
+    width: 100%;
+    border: 0;
+    border-radius: 12px;
+    background: #1f2937;
+    color: #fff;
+    font-weight: 700;
+    min-height: 44px;
+}
+
+.confirm-btn.is-hidden {
+    display: none;
+}
+/* ================= LOGIN PAGE RESET (BACK TO OLD STYLE) ================= */
+
+body.login-page {
+    background: #efefef !important;
+    font-family: "DM Sans", sans-serif !important;
+}
+
+/* Remove new glass background */
+body.login-page .header,
+body.login-page .drawer,
+body.login-page .drawer-backdrop,
+body.login-page .footer {
+    display: none !important;
+}
+
+/* Restore old container */
+body.login-page .site-content {
+    max-width: 420px;
+    min-height: 100vh;
+    margin: 0 auto;
+    background: #efefef;
+}
+
+/* Restore old login form style */
+body.login-page .form-details-sign-in {
+    border-radius: 12px;
+    background: #ffffff !important;
+    padding: 11px;
+    display: flex;
+    align-items: center;
+}
+
+body.login-page .sign-in-custom-input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    padding-left: 12px;
+    font-family: "DM Sans";
+}
+
+body.login-page .custom-login-btn {
+    width: 78%;
+    padding: 12px 0;
+    background: #7FD83B;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: "Zen Dots";
+    font-size: 16px;
+    text-transform: uppercase;
+    transition: 0.3s ease;
+}
+
+body.login-page .custom-login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(127, 216, 59, 0.3);
+}
+
+/* Restore heading style */
+body.login-page .md-font-zen {
+    font-family: "Zen Dots";
+    font-size: 26px;
     text-transform: uppercase;
 }
-#stomach-main .single-workout-tab-content{
-    margin-top: 25px;
+
+/* ================= FIX OLD PRELOADER ================= */
+
+body.login-page .preloader {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: radial-gradient(circle, #333, #000) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 99999 !important;
 }
 
+body.login-page .preloader img {
+    width: 220px !important;
+    animation: fadePulse 1.2s ease-in-out infinite;
+}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+body.home-page .preloader {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: radial-gradient(circle, #333, #000) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 99999 !important;
+}
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-        }
+body.home-page .preloader img {
+    width: 220px !important;
+    animation: fadePulse 1.2s ease-in-out infinite;
+}
 
-        /* ===== HEADER ===== */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 16px;
-            background-color: #fff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-logo {
-            font-size: 20px;
-            font-weight: 700;
-            color: #20C5BA;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .header-logo span {
-            color: #333;
-        }
-
-        .hamburger {
-            width: 28px;
-            height: 28px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 5px;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-
-        .hamburger span {
-            width: 100%;
-            height: 3px;
-            background-color: #333;
-            border-radius: 2px;
-            transition: all 0.3s ease;
-        }
-
-        /* ===== MAIN CONTENT ===== */
-        main {
-            padding: 0;
-            max-width: 480px;
-            margin: 0 auto;
-        }
-
-        /* ===== USER GREETING SECTION ===== */
-        .greeting-section {
-            background-color: #fff;
-            padding: 20px 16px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #20C5BA, #1aa39f);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 20px;
-            flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(32, 197, 186, 0.25);
-        }
-
-        .greeting-text h2 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 2px;
-        }
-
-        .greeting-text p {
-            font-size: 12px;
-            color: #999;
-            font-weight: 400;
-        }
-
-        /* ===== PROGRESS BAR SECTION ===== */
-        .progress-section {
-            background-color: #fff;
-            padding: 16px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .progress-stats {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .progress-labels {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            color: #666;
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-
-        .location-pin {
-            color: #E91E63;
-            font-size: 14px;
-        }
-
-        .progress-container {
-            position: relative;
-            width: 100%;
-            height: 24px;
-            background: linear-gradient(90deg, #A1887F 0%, #7CB342 100%);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 50%;
-            background: linear-gradient(90deg, #A1887F 0%, #7CB342 100%);
-            border-radius: 12px;
-        }
-
-        /* ===== DAILY HEALTH TRACKING SECTION ===== */
-        .tracking-section {
-            background: linear-gradient(135deg, #20C5BA, #1aa39f);
-            padding: 24px 16px;
-            margin: 16px;
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(32, 197, 186, 0.25);
-        }
-
-        .tracking-section h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #fff;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .tracking-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .tracking-card {
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-        }
-
-        .tracking-card:active {
-            transform: scale(0.95);
-        }
-
-        .tracking-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 4px;
-        }
-
-        .tracking-card.fitness .tracking-icon {
-            background: linear-gradient(135deg, #F3E5F5, #E1BEE7);
-        }
-
-        .tracking-card.health .tracking-icon {
-            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
-        }
-
-        .tracking-card label {
-            font-size: 12px;
-            font-weight: 500;
-            color: #333;
-            line-height: 1.3;
-        }
-
-        .tracking-card.secondary {
-            background-color: rgba(255, 255, 255, 0.85);
-        }
-
-        /* ===== CHART SECTION ===== */
-        .chart-section {
-            background-color: #fff;
-            margin: 0 16px 16px 16px;
-            padding: 20px 16px;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .chart-container {
-            width: 100%;
-            height: 200px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 16px 0;
-            border-left: 2px solid #f0f0f0;
-            border-bottom: 2px solid #f0f0f0;
-            position: relative;
-        }
-
-        .chart-bar {
-            flex: 1;
-            background: linear-gradient(180deg, rgba(32, 197, 186, 0.3), rgba(32, 197, 186, 0.1));
-            border-radius: 4px 4px 0 0;
-            position: relative;
-            min-height: 20px;
-        }
-
-        .chart-bar.line1 { height: 60%; border-top: 2px solid #20C5BA; }
-        .chart-bar.line2 { height: 40%; border-top: 2px solid #A1887F; }
-        .chart-bar.line3 { height: 70%; border-top: 2px solid #7CB342; }
-        .chart-bar.line4 { height: 50%; border-top: 2px solid #FF9800; }
-
-        .chart-legend {
-            display: flex;
-            gap: 12px;
-            margin-top: 12px;
-            font-size: 10px;
-            color: #999;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .legend-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        /* ===== OTHER SECTION ===== */
-        .other-section {
-            padding: 24px 16px;
-            background-color: #f5f5f5;
-        }
-
-        .other-section h3 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 16px;
-        }
-
-        .other-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .other-card {
-            background: linear-gradient(135deg, #7CB342, #689F38);
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(124, 179, 66, 0.25);
-            color: #fff;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-        }
-
-        .other-card:active {
-            transform: scale(0.95);
-        }
-
-        .other-icon {
-            width: 48px;
-            height: 48px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .other-card label {
-            font-size: 12px;
-            font-weight: 500;
-            color: #fff;
-            cursor: pointer;
-        }
-
-        /* ===== FOOTER WATERMARK ===== */
-        .footer-watermark {
-            text-align: center;
-            padding: 16px;
-            font-size: 10px;
-            color: #999;
-            background-color: #f5f5f5;
-        }
-
-        /* ===== RESPONSIVE DESIGN ===== */
-        @media (max-width: 480px) {
-            .tracking-grid,
-            .other-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .tracking-section {
-                margin: 12px;
-                padding: 16px 12px;
-            }
-
-            .tracking-card label {
-                font-size: 11px;
-            }
-
-            .chart-section {
-                margin: 0 12px 12px 12px;
-                padding: 16px 12px;
-            }
-
-            .greeting-section {
-                padding: 16px 12px;
-            }
-
-            .progress-section {
-                padding: 12px 16px;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .greeting-text h2 {
-                font-size: 16px;
-            }
-
-            .tracking-icon {
-                width: 50px;
-                height: 50px;
-                font-size: 24px;
-            }
-
-            .other-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 20px;
-            }
-        }
-        
-        
-
-        
+@keyframes fadePulse {
+    0% { opacity: 0.6; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0.6; transform: scale(0.95); }
+}

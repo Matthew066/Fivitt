@@ -1,8 +1,10 @@
 <?php
 require_once '../includes/db.php';
 
-// Ambil semua data user
-$query = "SELECT id_users, name, email, role, department FROM users";
+$statusType = (string)($_GET['status'] ?? '');
+$statusMessage = (string)($_GET['message'] ?? '');
+
+$query = "SELECT id_users, name, email, role, department FROM users ORDER BY id_users DESC";
 $result = $pdo->query($query);
 
 ?>
@@ -30,6 +32,48 @@ $result = $pdo->query($query);
         <!--end breadcrumb-->
         <h6 class="mb-0 text-uppercase">Manage Users</h6>
         <hr/>
+
+        <?php if ($statusType !== '' && $statusMessage !== ''): ?>
+          <div class="alert alert-<?php echo htmlspecialchars($statusType, ENT_QUOTES, 'UTF-8'); ?> border-0 bg-<?php echo htmlspecialchars($statusType, ENT_QUOTES, 'UTF-8'); ?> alert-dismissible fade show">
+            <div class="text-white"><?php echo htmlspecialchars($statusMessage, ENT_QUOTES, 'UTF-8'); ?></div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        <?php endif; ?>
+
+        <div class="card mb-4">
+          <div class="card-body">
+            <h6 class="mb-3">Add User</h6>
+            <form method="post" action="create-user.php" class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label">Name</label>
+                <input type="text" name="name" class="form-control" required>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" required>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" minlength="6" required>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Role</label>
+                <select name="role" class="form-select">
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Department</label>
+                <input type="text" name="department" class="form-control" value="General">
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary">Add User</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-body">
             <div class="table-responsive">
@@ -46,19 +90,37 @@ $result = $pdo->query($query);
                 </thead>
                 <tbody>
                   <?php while ($row = $result->fetch()): ?>
+                    <?php $userId = (int)$row['id_users']; ?>
+                    <?php $formId = 'update_user_' . $userId; ?>
                     <tr>
-                      <td><?php echo $row['id_users']; ?></td>
-                      <td><?php echo $row['name']; ?></td>
-                      <td><?php echo $row['email']; ?></td>
+                      <td><?php echo htmlspecialchars((string)$row['id_users'], ENT_QUOTES, 'UTF-8'); ?></td>
+                      <td><?php echo htmlspecialchars((string)$row['name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                      <td><?php echo htmlspecialchars((string)$row['email'], ENT_QUOTES, 'UTF-8'); ?></td>
                       <td>
                         <select class="form-control" id="role_<?php echo $row['id_users']; ?>" onchange="updateUserRole(<?php echo $row['id_users']; ?>)">
-                          <option value="customer" <?php echo $row['role'] == 'user' ? 'selected' : ''; ?>>User</option>
+                          <option value="user" <?php echo $row['role'] == 'user' ? 'selected' : ''; ?>>User</option>
                           <option value="admin" <?php echo $row['role'] == 'admin' ? 'selected' : ''; ?>>Admin</option>
                         </select>
                       </td>
-                      <td><?php echo $row['department']; ?></td>
                       <td>
-                        <a href="delete-user.php?id_users=<?php echo $row['id_users']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="department"
+                          form="<?php echo htmlspecialchars($formId, ENT_QUOTES, 'UTF-8'); ?>"
+                          value="<?php echo htmlspecialchars((string)$row['department'], ENT_QUOTES, 'UTF-8'); ?>"
+                        >
+                      </td>
+                      <td class="text-nowrap">
+                        <form id="<?php echo htmlspecialchars($formId, ENT_QUOTES, 'UTF-8'); ?>" method="post" action="update-user.php" class="d-inline">
+                          <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
+                          <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                        </form>
+
+                        <form method="post" action="delete-user.php" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus user ini?');">
+                          <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
+                          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
                       </td>
                     </tr>
                   <?php endwhile; ?>
@@ -72,26 +134,5 @@ $result = $pdo->query($query);
   </div>
 
   <?php include 'includes/footer.php'; ?>
-  <script>
-    // Function to update user role
-    function updateUserRole(userId) {
-      const role = document.getElementById(`role_${userId}`).value;
-      
-      // Send AJAX request to update role
-      fetch('update-user-role.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ user_id: userId, role: role })
-      }).then(response => response.json()).then(data => {
-        if (data.success) {
-          alert('User role updated successfully!');
-        } else {
-          alert('Failed to update user role.');
-        }
-      });
-    }
-  </script>
 </body>
 </html>
