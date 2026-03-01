@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -19,7 +19,7 @@ if (!isset($_SESSION['user_id'])) {
 
 <link rel="stylesheet" href="assets/css/all.min.css">
 <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20260301-home-fix">
 <link rel="stylesheet" href="assets/css/media-query.css">
 <style>
 .preloader{
@@ -51,7 +51,7 @@ if (!isset($_SESSION['user_id'])) {
 </style>
 </head>
 
-<body>
+<body class="home-page">
 
 <div class="site-content">
 
@@ -76,7 +76,7 @@ if (!isset($_SESSION['user_id'])) {
 
 <!-- GREETING -->
 <section class="greeting-section">
-    <div class="avatar">??</div>
+    <div class="avatar"><i class="fa-regular fa-user"></i></div>
     <div class="greeting-text">
         <h2>Hi, <?php echo htmlspecialchars($_SESSION['user_name'], ENT_QUOTES, 'UTF-8'); ?>!</h2>
         <p>Let's Stay Healthy Today</p>
@@ -89,7 +89,7 @@ if (!isset($_SESSION['user_id'])) {
 
     <div class="progress-labels">
         <span>0%</span>
-        <span class="location-pin">??</span>
+        <span class="location-pin"><i class="fa-solid fa-location-dot"></i></span>
         <span>100%</span>
     </div>
 
@@ -109,34 +109,34 @@ if (!isset($_SESSION['user_id'])) {
 <div class="tracking-grid">
 
 <div class="tracking-card">
-<div class="tracking-icon" style="background:linear-gradient(135deg,#FFE082,#FDD835);">??</div>
+<div class="tracking-icon" style="background:linear-gradient(135deg,#FFE082,#FDD835);"><i class="fa-solid fa-heart-pulse"></i></div>
 <label>Lifestyle Tracking</label>
 </div>
 
 <div class="tracking-card fitness">
-<div class="tracking-icon">??</div>
+<div class="tracking-icon"><i class="fa-solid fa-dumbbell"></i></div>
 <label>Fitness and Sport</label>
 </div>
 
 <div class="tracking-card health">
-<div class="tracking-icon">??</div>
+<div class="tracking-icon"><i class="fa-solid fa-utensils"></i></div>
 <label>Healthy Canteen</label>
 </div>
 
 <a href="sleep.php" style="text-decoration:none; color:inherit;">
     <div class="tracking-card secondary">
-        <div class="tracking-icon" style="background:linear-gradient(135deg,#C8E6C9,#A5D6A7);">??</div>
+        <div class="tracking-icon" style="background:linear-gradient(135deg,#C8E6C9,#A5D6A7);"><i class="fa-regular fa-moon"></i></div>
         <label>Sleep Status <br>00:59h</label>
     </div>
 </a>
 
 <div class="tracking-card secondary">
-<div class="tracking-icon" style="background:linear-gradient(135deg,#FFCCBC,#FFAB91);">??</div>
+<div class="tracking-icon" style="background:linear-gradient(135deg,#FFCCBC,#FFAB91);"><i class="fa-solid fa-glass-water"></i></div>
 <label>Drink Status <br>6/L</label>
 </div>
 
 <div class="tracking-card secondary">
-<div class="tracking-icon" style="background:linear-gradient(135deg,#F8BBD0,#F48FB1);">?</div>
+<div class="tracking-icon" style="background:linear-gradient(135deg,#F8BBD0,#F48FB1);"><i class="fa-solid fa-square-check"></i></div>
 <label>Check-in Status <br>Done</label>
 </div>
 
@@ -184,18 +184,18 @@ if (!isset($_SESSION['user_id'])) {
 
 <a href="sportevent.php" style="text-decoration:none; color:inherit;">
     <div class="other-card">
-        <div class="other-icon">??</div>
+        <div class="other-icon"><i class="fa-solid fa-calendar-days"></i></div>
         <label>Events</label>
     </div>
 </a>
 
 <div class="other-card">
-<div class="other-icon">??</div>
+<div class="other-icon"><i class="fa-solid fa-book-open-reader"></i></div>
 <label>Education</label>
 </div>
 
 <div class="other-card">
-<div class="other-icon">?</div>
+<div class="other-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
 <label>Recent Activity</label>
 </div>
 
@@ -222,10 +222,11 @@ window.addEventListener("load", function() {
                 preloader.style.display = "none";
             }, 500);
 
-        }, ); // ubah ini kalau mau lebih lama
+        }, 2000); // ubah ini kalau mau lebih lama
     }
 
 });
 </script>
 </body>
 </html>
+
