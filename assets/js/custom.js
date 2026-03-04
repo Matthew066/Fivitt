@@ -1,11 +1,63 @@
 /*------------------------------------- Preloader -------------------------------------*/
-$(window).on("load" , function () {
-  $('.loader-mask1').delay(2000).fadeOut(3000);
-});
+(function () {
+  var startedAt = Date.now();
+  var minDuration = 1500;
+  var fadeDuration = 700;
+  var hidden = false;
 
-$(window).on("load", function() {
-  $('.preloader').delay(1000).fadeOut(1000); 
-});
+  function getPreloaders() {
+    return document.querySelectorAll('.loader-mask1, .preloader');
+  }
+
+  function removePreloader(el) {
+    if (!el) return;
+    el.classList.add('is-hidden');
+    el.style.display = 'none';
+    if (el.parentNode) {
+      el.parentNode.removeChild(el);
+    }
+  }
+
+  function hideImmediately() {
+    var nodes = getPreloaders();
+    for (var i = 0; i < nodes.length; i++) {
+      removePreloader(nodes[i]);
+    }
+  }
+
+  function hidePreloader() {
+    if (hidden) return;
+    hidden = true;
+
+    var nodes = getPreloaders();
+    for (var i = 0; i < nodes.length; i++) {
+      (function (el) {
+        if (el.classList.contains('is-hidden') || el.classList.contains('is-hiding')) return;
+        el.classList.add('is-hiding');
+        setTimeout(function () {
+          removePreloader(el);
+        }, fadeDuration);
+      })(nodes[i]);
+    }
+
+  }
+
+  window.addEventListener('load', function () {
+    var elapsed = Date.now() - startedAt;
+    var remaining = Math.max(0, minDuration - elapsed);
+    setTimeout(hidePreloader, remaining);
+  }, { once: true });
+
+  // Fallback path in case "load" is delayed or blocked.
+  setTimeout(hidePreloader, minDuration + 3000);
+
+  // On bfcache restore, avoid stale overlay.
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted) {
+      hideImmediately();
+    }
+  });
+})();
 
 /*------------------------------------- Onboarding Screen -------------------------------------*/
 $(document).on('click', '.skip_btn_1', function(){

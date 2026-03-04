@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require 'includes/db.php';
 
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
         } else {
-            $error = "Email atau password salah.";
+            $error = "Akun belum terdaftar. Silakan register terlebih dahulu.";
         }
     }
 }
@@ -47,8 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Fivit - Login</title>
 
 <link rel="icon" href="assets/images/favicon/icon-fivit.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/all.min.css">
 <link rel="stylesheet" href="assets/css/bootstrap.min.css">
@@ -65,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <main class="login-main" id="sign-in-main">
             <div class="login-hero">
-                <img src="assets/images/splashscreen/logofivit.png" alt="Fivit Logo">
+                <img src="assets/images/splashscreen/logofivit.png" class="login-logo" alt="Fivit Logo">
                 <h1>WELCOME BACK</h1>
                 <p>
                     Login now to access your personalized fitness dashboard and stay on track.
@@ -113,10 +111,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         Login
                     </button>
                 </div>
-
                 <p class="register-now-link">
                     Didn't have account?
-                    <a href="register.php">Register now</a>
+                    <a href="register.php">Register</a>
                 </p>
             </form>
         </main>
@@ -135,21 +132,6 @@ document.getElementById("eye").addEventListener("click", function () {
 });
 </script>
 
-    <script>
-    window.addEventListener("load", function () {
-        const loader = document.querySelector(".preloader");
-        if (loader) {
-            loader.style.transition = "opacity 0.6s ease";
-
-            setTimeout(() => {
-                loader.style.opacity = "0";
-                setTimeout(() => {
-                    loader.remove();
-                }, 700);
-            }, 1200);
-        }
-    });
-    </script>
 </body>
 </html>
 

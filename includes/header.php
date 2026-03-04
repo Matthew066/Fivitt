@@ -6,9 +6,19 @@ $pageTitle = $pageTitle ?? 'FIVIT';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= htmlspecialchars($pageTitle) ?> - FIVIT</title>
-    <link rel="stylesheet" href="assets/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Fivit - Login</title>
+
+    <link rel="icon" href="assets/images/favicon/icon-fivit.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/media-query.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/style.css?v=1">
+    <?php foreach ($extraStyles as $stylePath): ?>
+        <link rel="stylesheet" href="<?= htmlspecialchars($stylePath, ENT_QUOTES, 'UTF-8') ?>">
+    <?php endforeach; ?>
 </head>
 <body>
 

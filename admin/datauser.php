@@ -1,8 +1,14 @@
 <?php
 require_once '../includes/db.php';
 
-$statusType = (string)($_GET['status'] ?? '');
-$statusMessage = (string)($_GET['message'] ?? '');
+$status = strtolower(trim((string)($_GET['status'] ?? '')));
+$message = trim((string)($_GET['message'] ?? ''));
+$allowedStatus = ['success', 'danger', 'warning', 'info'];
+$departmentOptions = ['General', 'HR', 'Finance', 'IT', 'Marketing', 'Operations'];
+
+if (!in_array($status, $allowedStatus, true)) {
+    $status = '';
+}
 
 $query = "SELECT id_users, name, email, role, department FROM users ORDER BY id_users DESC";
 $result = $pdo->query($query);
@@ -32,10 +38,9 @@ $result = $pdo->query($query);
         <!--end breadcrumb-->
         <h6 class="mb-0 text-uppercase">Manage Users</h6>
         <hr/>
-
-        <?php if ($statusType !== '' && $statusMessage !== ''): ?>
-          <div class="alert alert-<?php echo htmlspecialchars($statusType, ENT_QUOTES, 'UTF-8'); ?> border-0 bg-<?php echo htmlspecialchars($statusType, ENT_QUOTES, 'UTF-8'); ?> alert-dismissible fade show">
-            <div class="text-white"><?php echo htmlspecialchars($statusMessage, ENT_QUOTES, 'UTF-8'); ?></div>
+        <?php if ($status !== '' && $message !== ''): ?>
+          <div class="alert alert-<?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?> border-0 bg-<?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?> alert-dismissible fade show">
+            <div class="text-white"><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></div>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
         <?php endif; ?>
@@ -43,29 +48,35 @@ $result = $pdo->query($query);
         <div class="card mb-4">
           <div class="card-body">
             <h6 class="mb-3">Add User</h6>
-            <form method="post" action="create-user.php" class="row g-3">
+            <form action="create-user.php" method="POST" class="row g-3">
               <div class="col-md-3">
-                <label class="form-label">Name</label>
-                <input type="text" name="name" class="form-control" required>
+                <label for="name" class="form-label">Name</label>
+                <input type="text" id="name" name="name" class="form-control" required>
               </div>
               <div class="col-md-3">
-                <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" required>
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required>
               </div>
               <div class="col-md-2">
-                <label class="form-label">Password</label>
-                <input type="password" name="password" class="form-control" minlength="6" required>
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" minlength="6" required>
               </div>
               <div class="col-md-2">
-                <label class="form-label">Role</label>
-                <select name="role" class="form-select">
+                <label for="role" class="form-label">Role</label>
+                <select id="role" name="role" class="form-select">
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
               <div class="col-md-2">
-                <label class="form-label">Department</label>
-                <input type="text" name="department" class="form-control" value="General">
+                <label for="department" class="form-label">Department</label>
+                <select id="department" name="department" class="form-select">
+                  <?php foreach ($departmentOptions as $dept): ?>
+                    <option value="<?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $dept === 'General' ? 'selected' : ''; ?>>
+                      <?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
               </div>
               <div class="col-12">
                 <button type="submit" class="btn btn-primary">Add User</button>
@@ -93,33 +104,38 @@ $result = $pdo->query($query);
                     <?php $userId = (int)$row['id_users']; ?>
                     <?php $formId = 'update_user_' . $userId; ?>
                     <tr>
-                      <td><?php echo htmlspecialchars((string)$row['id_users'], ENT_QUOTES, 'UTF-8'); ?></td>
+                      <td><?php echo (int)$row['id_users']; ?></td>
                       <td><?php echo htmlspecialchars((string)$row['name'], ENT_QUOTES, 'UTF-8'); ?></td>
                       <td><?php echo htmlspecialchars((string)$row['email'], ENT_QUOTES, 'UTF-8'); ?></td>
                       <td>
-                        <select class="form-select" name="role" form="<?php echo htmlspecialchars($formId, ENT_QUOTES, 'UTF-8'); ?>">
-                          <option value="user" <?php echo strtolower((string)$row['role']) === 'user' ? 'selected' : ''; ?>>User</option>
-                          <option value="admin" <?php echo strtolower((string)$row['role']) === 'admin' ? 'selected' : ''; ?>>Admin</option>
-                        </select>
+                        <form action="update-user.php" method="POST" class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                          <input type="hidden" name="user_id" value="<?php echo (int)$row['id_users']; ?>">
+                          <?php echo htmlspecialchars(ucfirst(strtolower((string)$row['role'])), ENT_QUOTES, 'UTF-8'); ?>
                       </td>
                       <td>
-                        <input
-                          type="text"
-                          class="form-control"
-                          name="department"
-                          form="<?php echo htmlspecialchars($formId, ENT_QUOTES, 'UTF-8'); ?>"
-                          value="<?php echo htmlspecialchars((string)$row['department'], ENT_QUOTES, 'UTF-8'); ?>"
-                        >
+                          <?php
+                            $currentDepartment = trim((string)$row['department']);
+                            $isCustomDepartment = !in_array($currentDepartment, $departmentOptions, true);
+                          ?>
+                          <select class="form-select" name="department">
+                            <?php if ($isCustomDepartment && $currentDepartment !== ''): ?>
+                              <option value="<?php echo htmlspecialchars($currentDepartment, ENT_QUOTES, 'UTF-8'); ?>" selected>
+                                Custom: <?php echo htmlspecialchars($currentDepartment, ENT_QUOTES, 'UTF-8'); ?>
+                              </option>
+                            <?php endif; ?>
+                            <?php foreach ($departmentOptions as $dept): ?>
+                              <option value="<?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $currentDepartment === $dept ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>
+                              </option>
+                            <?php endforeach; ?>
+                          </select>
                       </td>
-                      <td class="text-nowrap">
-                        <form id="<?php echo htmlspecialchars($formId, ENT_QUOTES, 'UTF-8'); ?>" method="post" action="update-user.php" class="d-inline">
-                          <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
-                          <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                      <td>
+                          <button type="submit" class="btn btn-warning btn-sm">Update</button>
                         </form>
-
-                        <form method="post" action="delete-user.php" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus user ini?');">
-                          <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
-                          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        <form action="delete-user.php" method="POST" class="d-inline-block mt-2" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                          <input type="hidden" name="user_id" value="<?php echo (int)$row['id_users']; ?>">
+                          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                         </form>
                       </td>
                     </tr>

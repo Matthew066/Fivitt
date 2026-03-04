@@ -1,228 +1,235 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
+require_once 'includes/db.php';
+require_once 'includes/profile_image.php';
+
+ensure_users_profile_image_schema($pdo);
+
+$userId = (int) ($_SESSION['user_id'] ?? 0);
+$profileImage = null;
+if ($userId > 0) {
+    $stmt = $pdo->prepare("SELECT profile_image FROM users WHERE id_users = ? LIMIT 1");
+    $stmt->execute([$userId]);
+    $profileImage = $stmt->fetchColumn() ?: null;
+}
+ 
+$pageTitle = 'Home';
+$bodyClass = 'home-page';
+$extraStyles = [
+    'assets/css/all.min.css',
+    'assets/css/homsescreen.css'
+];
+include 'includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fivit - Home</title>
-
-<link rel="icon" href="assets/images/favicon/icon-fivit.png">
-<link href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="assets/css/all.min.css">
-<link rel="stylesheet" href="assets/css/bootstrap.min.css">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/media-query.css">
 <style>
-.preloader{
+.preloader {
     position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(ellipse at center, rgb(0, 0, 0) 0%, rgba(8, 10, 15, 0.98) 100%),
+        repeating-linear-gradient(90deg, rgb(0, 0, 0) 0 1px, transparent 1px 56px);
+}
+
+.preloader img {
+    width: min(240px, 62vw);
+    animation: preloadPulse 1.4s ease-in-out infinite;
+}
+
+.avatar-upload-form {
+    position: relative;
+}
+
+.avatar-upload-btn {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 0;
+    color: #fff;
+    background: #1ca9a1;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-image {
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, #1f1f1f 0%, #000000 70%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
+    border-radius: 50%;
+    object-fit: cover;
+}
+    
+@keyframes preloadPulse {
+    0% { opacity: 0.7; transform: scale(0.96); }
+    50% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0.7; transform: scale(0.96); }
 }
 </style>
-<style>
-.preloader img{
-    animation: fadeScale 5s ease-in-out infinite alternate;
-}
 
-@keyframes fadeScale{
-    from{
-        transform: scale(1);
-        opacity: 0.9;
-    }
-    to{
-        transform: scale(1.05);
-        opacity: 1;
-    }
-}
-</style>
-</head>
-
-<body>
-
-<div class="site-content">
-
-<div class="preloader">
-    <img src="assets/images/favicon/icon-fivit.png" style="width:250px;">
+<div class="preloader manual-preloader">
+    <img src="assets/images/splashscreen/logofivit.png" alt="Loading Fivit">
 </div>
 
-<header>
-<div class="header-logo">
-    <img src="assets/images/splashscreen/logofivit.png"
-         alt="Fivit Logo"
-         style="height:55px; width:auto;">
-</div>
-    <button class="hamburger" aria-label="Menu">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
-</header>
+<div class="homescreen-wrapper">
+    <main class="home-main">
+        <section class="hero-card">
+            <div class="hero-top">
+                <form class="avatar-upload-form" method="post" action="update_profile_image.php" enctype="multipart/form-data">
+                    <input type="file" name="profile_image" id="userProfileImageInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
+                    <div class="avatar-circle">
+                        <?php if (!empty($profileImage)): ?>
+                            <img class="avatar-image" src="<?php echo htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8'); ?>" alt="Profile">
+                        <?php else: ?>
+                            <i class="fa-solid fa-seedling"></i>
+                        <?php endif; ?>
+                    </div>
+                    <button type="button" class="avatar-upload-btn" onclick="document.getElementById('userProfileImageInput').click()">
+                        <i class="fa-solid fa-camera"></i>
+                    </button>
+                </form>
+                <div class="hero-text">
+                    <h1>Hi, <?php echo htmlspecialchars($_SESSION['user_name'], ENT_QUOTES, 'UTF-8'); ?>!</h1>
+                    <p>Let's Stay Healthy Today</p>
+                </div>
+            </div>
 
-<main>
+            <div class="hero-progress">
+                <div class="progress-labels">
+                    <span>0%</span>
+                    <span class="pin"><i class="fa-solid fa-location-dot"></i></span>
+                    <span>100%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: 60%;"></div>
+                </div>
+            </div>
+        </section>
 
-<!-- GREETING -->
-<section class="greeting-section">
-    <div class="avatar">??</div>
-    <div class="greeting-text">
-        <h2>Hi, <?php echo htmlspecialchars($_SESSION['user_name'], ENT_QUOTES, 'UTF-8'); ?>!</h2>
-        <p>Let's Stay Healthy Today</p>
-    </div>
-</section>
+        <section class="tracking-section">
+            <h2>Daily Health Tracking</h2>
+            <div class="tracking-grid">
+                <div class="tracking-card">
+                    <div class="tracking-icon icon-yellow"><i class="fa-solid fa-heart-pulse"></i></div>
+                    <p>Lifestyle Tracking</p>
+                </div>
+                <a class="tracking-card link-card" href="gym_booking.php">
+                    <div class="tracking-icon icon-purple"><i class="fa-solid fa-dumbbell"></i></div>
+                    <p>Fitness and Sport</p>
+                </a>
+                <a class="tracking-card link-card" href="foodselection.php">
+                    <div class="tracking-icon icon-cream"><i class="fa-solid fa-utensils"></i></div>
+                    <p>Healthy Canteen</p>
+                </a>
+                <a class="tracking-card link-card" href="sleep.php">
+                    <div class="tracking-icon icon-mint"><i class="fa-solid fa-bed"></i></div>
+                    <p>Sleep Status<br>00:59h</p>
+                </a>
+                <a class="tracking-card link-card" href="health.php">
+                    <div class="tracking-icon icon-peach"><i class="fa-solid fa-glass-water"></i></div>
+                    <p>Drink Status<br>6/L</p>
+                </a>
+                <div class="tracking-card">
+                    <div class="tracking-icon icon-pink"><i class="fa-solid fa-check"></i></div>
+                    <p>Check-in Status<br>Done</p>
+                </div>
+            </div>
+        </section>
 
-<!-- PROGRESS -->
-<section class="progress-section">
-<div class="progress-stats">
+        <section class="chart-section">
+            <div class="bars">
+                <div class="bar h30"></div>
+                <div class="bar h45"></div>
+                <div class="bar h65"></div>
+                <div class="bar h40"></div>
+                <div class="bar h55"></div>
+                <div class="bar h48"></div>
+                <div class="bar h70"></div>
+            </div>
+            <div class="legend">
+                <span><i class="dot teal"></i>Calories</span>
+                <span><i class="dot sand"></i>Steps</span>
+                <span><i class="dot green"></i>Activity</span>
+            </div>
+        </section>
 
-    <div class="progress-labels">
-        <span>0%</span>
-        <span class="location-pin">??</span>
-        <span>100%</span>
-    </div>
+        <section class="other-section">
+            <h3>Other</h3>
+            <div class="other-grid">
+                <a class="other-card" href="sportevent.php">
+                    <div class="other-icon"><i class="fa-solid fa-calendar-days"></i></div>
+                    <p>Events</p>
+                </a>
+                <a class="other-card" href="education.php">
+                    <div class="other-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <p>Education</p>
+                </a>
+                <div class="other-card">
+                    <div class="other-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <p>Recent Activity</p>
+                </div>
+            </div>
+        </section>
+    </main>
 
-    <div style="display:flex; justify-content:center;">
-        <div class="progress-container" style="width:70%;">
-            <div class="progress-fill" style="width:60%;"></div>
-        </div>
-    </div>
-
-</div>
-</section>
-
-<!-- TRACKING -->
-<section class="tracking-section">
-<h3>Daily Health Tracking</h3>
-
-<div class="tracking-grid">
-
-<div class="tracking-card">
-<div class="tracking-icon" style="background:linear-gradient(135deg,#FFE082,#FDD835);">??</div>
-<label>Lifestyle Tracking</label>
-</div>
-
-<div class="tracking-card fitness">
-<div class="tracking-icon">??</div>
-<label>Fitness and Sport</label>
-</div>
-
-<div class="tracking-card health">
-<div class="tracking-icon">??</div>
-<label>Healthy Canteen</label>
-</div>
-
-<a href="sleep.php" style="text-decoration:none; color:inherit;">
-    <div class="tracking-card secondary">
-        <div class="tracking-icon" style="background:linear-gradient(135deg,#C8E6C9,#A5D6A7);">??</div>
-        <label>Sleep Status <br>00:59h</label>
-    </div>
-</a>
-
-<div class="tracking-card secondary">
-<div class="tracking-icon" style="background:linear-gradient(135deg,#FFCCBC,#FFAB91);">??</div>
-<label>Drink Status <br>6/L</label>
-</div>
-
-<div class="tracking-card secondary">
-<div class="tracking-icon" style="background:linear-gradient(135deg,#F8BBD0,#F48FB1);">?</div>
-<label>Check-in Status <br>Done</label>
-</div>
-
-</div>
-</section>
-
-<!-- CHART -->
-<section class="chart-section">
-
-<div class="chart-container">
-<div class="chart-bar" style="height:30%; border-top:2px solid #20C5BA;"></div>
-<div class="chart-bar" style="height:45%; border-top:2px solid #20C5BA;"></div>
-<div class="chart-bar" style="height:65%; border-top:2px solid #20C5BA;"></div>
-<div class="chart-bar" style="height:40%; border-top:2px solid #A1887F;"></div>
-<div class="chart-bar" style="height:55%; border-top:2px solid #A1887F;"></div>
-<div class="chart-bar" style="height:48%; border-top:2px solid #7CB342;"></div>
-<div class="chart-bar" style="height:70%; border-top:2px solid #7CB342;"></div>
-</div>
-
-<div class="chart-legend">
-
-<div class="legend-item">
-<div class="legend-dot" style="background:#20C5BA;"></div>
-<span>Calories</span>
-</div>
-
-<div class="legend-item">
-<div class="legend-dot" style="background:#A1887F;"></div>
-<span>Steps</span>
+    <footer class="home-footer">@Fivit 2026</footer>
 </div>
 
-<div class="legend-item">
-<div class="legend-dot" style="background:#7CB342;"></div>
-<span>Activity</span>
-</div>
 
-</div>
-</section>
 
-<!-- OTHER -->
-<section class="other-section">
-<h3>Other</h3>
+<?php include 'includes/footer.php'; ?>
 
-<div class="other-grid">
-
-<a href="sportevent.php" style="text-decoration:none; color:inherit;">
-    <div class="other-card">
-        <div class="other-icon">??</div>
-        <label>Events</label>
-    </div>
-</a>
-
-<div class="other-card">
-<div class="other-icon">??</div>
-<label>Education</label>
-</div>
-
-<div class="other-card">
-<div class="other-icon">?</div>
-<label>Recent Activity</label>
-</div>
-
-</div>
-</section>
-
-<div class="footer-watermark">@Fivit 2026</div>
-
-</main>
 <script>
-window.addEventListener("load", function() {
+(() => {
+    const loader = document.querySelector(".preloader");
+    if (!loader) return;
+    const startedAt = Date.now();
+    const minDuration = 4000;
+    const fadeDuration = 450;
 
-    const preloader = document.querySelector(".preloader");
+    let hidden = false;
+    const hideLoader = () => {
+        if (hidden) return;
+        hidden = true;
+        loader.classList.add("is-hiding");
+        setTimeout(() => loader.classList.add("is-hidden"), fadeDuration);
+    };
+    const hideWithMinDelay = () => {
+        const elapsed = Date.now() - startedAt;
+        const remaining = Math.max(0, minDuration - elapsed);
+        setTimeout(hideLoader, remaining);
+    };
 
-    if(preloader){
+    document.addEventListener("DOMContentLoaded", () => {
+        hideWithMinDelay();
+    }, { once: true });
 
-        // Loader tampil minimal 2500ms
-        setTimeout(function(){
+    window.addEventListener("load", hideWithMinDelay, { once: true });
+    setTimeout(hideLoader, minDuration + 3000);
+})();
 
-            preloader.style.transition = "opacity 0.5s ease";
-            preloader.style.opacity = "0";
-
-            setTimeout(function(){
-                preloader.style.display = "none";
-            }, 500);
-
-        }, ); // ubah ini kalau mau lebih lama
+document.getElementById('userProfileImageInput')?.addEventListener('change', function () {
+    if (this.files && this.files.length > 0) {
+        this.form.submit();
+    }
+});
+</script>
+ileImageInput')?.addEventListener('change', function () {
+    if (this.files && this.files.length > 0) {
+        this.form.submit();
     }
 
 });
