@@ -1,141 +1,125 @@
-﻿<?php
+<?php
 session_start();
 require 'includes/db.php';
 
-$error = '';
+$error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim((string) ($_POST['email'] ?? ''));
-    $password = (string) ($_POST['password'] ?? '');
 
-    if ($email === '' || $password === '') {
-        $error = 'Semua field wajib diisi.';
+    $email = trim($_POST['email']);
+    $password = trim($_POST['password']);
+
+    if (!$email || !$password) {
+        $error = "Email dan password wajib diisi.";
     } else {
-        $stmt = $pdo->prepare('SELECT id_users, name, email, password_hash, is_active FROM users WHERE email = ? LIMIT 1');
+
+        // Cek apakah user sudah ada
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
-        if (!$user) {
-            $error = 'Email atau password salah.';
-        } elseif ((int) $user['is_active'] !== 1) {
-            $error = 'Akun tidak aktif. Hubungi admin.';
-        } else {
-            $storedHash = (string) ($user['password_hash'] ?? '');
-            $isValid = false;
-            $needsUpgrade = false;
+        if ($user) {
 
-            if ($storedHash !== '') {
-                if (preg_match('/^\$2y\$\d{2}\$.{53}$/', $storedHash) || str_starts_with($storedHash, '$argon2')) {
-                    $isValid = password_verify($password, $storedHash);
-                    if ($isValid && password_needs_rehash($storedHash, PASSWORD_DEFAULT)) {
-                        $needsUpgrade = true;
-                    }
-                } elseif (preg_match('/^[a-f0-9]{32}$/i', $storedHash)) {
-                    $isValid = hash_equals(strtolower($storedHash), md5($password));
-                    $needsUpgrade = $isValid;
-                } elseif (preg_match('/^[a-f0-9]{40}$/i', $storedHash)) {
-                    $isValid = hash_equals(strtolower($storedHash), sha1($password));
-                    $needsUpgrade = $isValid;
-                } else {
-                    $isValid = hash_equals($storedHash, $password);
-                    $needsUpgrade = $isValid;
-                }
-            }
+            // Login
+            if (password_verify($password, $user['password_hash'])) {
 
-            if ($isValid) {
-                if ($needsUpgrade) {
-                    $newHash = password_hash($password, PASSWORD_DEFAULT);
-                    $update = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id_users = ?');
-                    $update->execute([$newHash, $user['id_users']]);
-                }
+                $_SESSION['user_id'] = $user['id_users'];
+                $_SESSION['user_name'] = $user['name'];
 
-                $_SESSION['user_id'] = (int) $user['id_users'];
-                $_SESSION['user_name'] = (string) ($user['name'] ?: explode('@', $user['email'])[0]);
-
-                header('Location: homescreen5vit.php');
+                header("Location: health.php");
                 exit;
+
+            } else {
+                $error = "Password salah.";
             }
 
-            $error = 'Email atau password salah.';
+        } else {
+
+            // Auto register kalau belum ada
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+
+            $insert = $pdo->prepare("
+                INSERT INTO users 
+                (name, email, password_hash, role, department, is_active, created_at)
+                VALUES (?, ?, ?, 'user', 'General', 1, NOW())
+            ");
+
+            $insert->execute([
+                explode("@", $email)[0],
+                $email,
+                $hash
+            ]);
+
+            $_SESSION['user_id'] = $pdo->lastInsertId();
+            $_SESSION['user_name'] = explode("@", $email)[0];
+
+            header("Location: sleep.php");
+            exit;
         }
     }
 }
-
-$pageTitle = 'Login';
-$bodyClass = 'login-page';
-$showAppChrome = false;
-require 'includes/header.php';
 ?>
 
-<div class="site-content">
-    <div class="preloader">
-        <img src="assets/images/favicon/icon-fivit.png" class="login-preloader-logo" alt="Fivit Logo">
-    </div>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Login - Fivit</title>
+<style>
+body{
+    font-family:Arial;
+    background:#f5f7fa;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+.card{
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    width:320px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+input{
+    width:100%;
+    padding:10px;
+    margin-bottom:15px;
+}
+button{
+    width:100%;
+    padding:10px;
+    background:#2ec4cc;
+    border:none;
+    color:white;
+    border-radius:8px;
+    cursor:pointer;
+}
+.error{
+    color:red;
+    margin-bottom:10px;
+}
+</style>
+</head>
+<body>
 
-    <div class="verify-email pb-80" id="sign-in-main">
-        <div class="container">
-            <div class="let-you-middle-wrap">
+<div class="card">
+    <h2>Login / Register</h2>
 
-                <div class="middle-first mt-24 text-center">
-                    <img src="assets/images/splashscreen/logofivit.png" class="login-brand-logo" alt="Fivit Logo">
-                    <h1 class="md-font-zen fw-400 mt-24">WELCOME BACK</h1>
-                    <p class="sm-font-sans fw-400 mt-12">
-                        Login now to access your personalized fitness dashboard and stay on track.
-                    </p>
-                </div>
+    <?php if($error): ?>
+        <div class="error"><?= $error ?></div>
+    <?php endif; ?>
 
-                <form class="mt-32" method="POST" action="">
-                    <div class="form-details-sign-in border">
-                        <span><img src="assets/svg/mail-icon.svg" alt="mail"></span>
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="Email Address"
-                            class="sign-in-custom-input md-font-sans fw-400"
-                            required>
-                    </div>
+    <form method="POST">
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Masuk</button>
+    </form>
 
-                    <div class="form-details-sign-in border mt-8">
-                        <span><img src="assets/svg/password-icon.svg" alt="password"></span>
-                        <input
-                            type="password"
-                            name="password"
-                            id="password"
-                            placeholder="Password"
-                            class="sign-in-custom-input md-font-sans fw-400"
-                            required>
-                        <i class="fas fa-eye-slash" id="eye"></i>
-                    </div>
-
-                    <?php if ($error !== ''): ?>
-                        <p class="login-error-text"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></p>
-                    <?php endif; ?>
-
-                    <div class="password-btn mt-16 login-password-btn-wrap">
-                        <button type="submit" class="custom-login-btn">Login</button>
-                    </div>
-                </form>
-
-            </div>
-        </div>
-    </div>
+    <p style="font-size:12px;color:gray;margin-top:10px;">
+        Jika email belum terdaftar, akun akan dibuat otomatis.
+    </p>
 </div>
 
-<script src="assets/js/jquery.min.js"></script>
-<script src="assets/js/bootstrap.bundle.min.js"></script>
-<script src="assets/js/custom.js"></script>
-<script>
-const eyeBtn = document.getElementById('eye');
-if (eyeBtn) {
-    eyeBtn.addEventListener('click', function () {
-        const pass = document.getElementById('password');
-        if (!pass) return;
-
-        pass.type = pass.type === 'password' ? 'text' : 'password';
-        this.classList.toggle('fa-eye');
-        this.classList.toggle('fa-eye-slash');
-    });
-}
-</script>
-
-<?php include 'includes/footer.php'; ?>
+</body>
+</html>
