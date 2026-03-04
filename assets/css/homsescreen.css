@@ -4,7 +4,7 @@
 
 body {
     margin: 0;
-    font-family: "DM Sans", sans-serif;
+    font-family: "Poppins", sans-serif;
     background: #efefef;
     color: #1f2733;
 }
@@ -326,3 +326,4 @@ body {
 .footer {
     display: none;
 }
+

@@ -14,7 +14,7 @@
 	<!-- Bootstrap CSS -->
 	<link href="assets/css/bootstrap.min.css?v=20260223" rel="stylesheet">
 	<link href="assets/css/bootstrap-extended.css?v=20260223" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 	<link href="assets/css/app.css?v=20260301" rel="stylesheet">
 	<link href="assets/css/icons.css?v=20260223" rel="stylesheet">
 	<!-- Theme Style CSS -->
@@ -44,3 +44,4 @@
 	</style>
 	<title>Fivit - Admin</title>
 </head>
+

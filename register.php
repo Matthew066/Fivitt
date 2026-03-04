@@ -3,7 +3,7 @@ session_start();
 require 'includes/db.php';
 
 if (isset($_SESSION['user_id'])) {
-    $role = strtolower(trim((string) ($_SESSION['user_role'] ?? 'user')));
+    $role = strtolower(trim((string)($_SESSION['user_role'] ?? 'user')));
     if ($role === 'admin') {
         header('Location: admin/index.php');
     } else {
@@ -15,14 +15,17 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 $name = '';
 $email = '';
+$department = '';
+$departmentOptions = ['General', 'HR', 'Finance', 'IT', 'Marketing', 'Operations'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim((string) ($_POST['name'] ?? ''));
-    $email = strtolower(trim((string) ($_POST['email'] ?? '')));
-    $password = trim((string) ($_POST['password'] ?? ''));
-    $confirmPassword = trim((string) ($_POST['confirm_password'] ?? ''));
+    $name = trim((string)($_POST['name'] ?? ''));
+    $email = strtolower(trim((string)($_POST['email'] ?? '')));
+    $password = trim((string)($_POST['password'] ?? ''));
+    $confirmPassword = trim((string)($_POST['confirm_password'] ?? ''));
+    $department = trim((string)($_POST['department'] ?? 'General'));
 
-    if ($name === '' || $email === '' || $password === '' || $confirmPassword === '') {
+    if ($name === '' || $email === '' || $password === '' || $confirmPassword === '' || $department === '') {
         $error = 'Semua field wajib diisi.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Format email tidak valid.';
@@ -30,8 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Password minimal 6 karakter.';
     } elseif ($password !== $confirmPassword) {
         $error = 'Konfirmasi password tidak cocok.';
+    } elseif (!in_array($department, $departmentOptions, true)) {
+        $error = 'Department tidak valid.';
     } else {
-        $check = $pdo->prepare('SELECT id_users FROM users WHERE LOWER(email) = ? LIMIT 1');
+        $check = $pdo->prepare('SELECT id_users FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) LIMIT 1');
         $check->execute([$email]);
 
         if ($check->fetch()) {
@@ -41,9 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $insert = $pdo->prepare(
                 "INSERT INTO users (name, email, password_hash, role, department, is_active, created_at)
-                 VALUES (?, ?, ?, 'user', 'General', 1, NOW())"
+                 VALUES (?, ?, ?, 'user', ?, 1, NOW())"
             );
-            $insert->execute([$name, $email, $hash]);
+            $insert->execute([$name, $email, $hash, $department]);
 
             $_SESSION['register_success'] = 'Registrasi berhasil. Silakan login.';
             header('Location: login.php');
@@ -59,12 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fivit - Register</title>
     <link rel="icon" href="assets/images/favicon/icon-fivit.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=20260301-login-no-inline">
+    <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/media-query.css">
 </head>
-<body class="login-page register-page">
+<body class="auth-screen register-screen">
     <div class="site-content">
         <div class="preloader">
             <img src="assets/images/splashscreen/logofivit.png" alt="Loading Fivit">
@@ -79,63 +85,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="login-hero">
-                <img src="assets/images/splashscreen/logofivit.png" alt="Fivit Logo">
+                <img src="assets/images/splashscreen/logofivit.png" class="auth-logo" alt="Fivit Logo">
                 <h1>CREATE ACCOUNT</h1>
-                <p>
-                    Register now to start your fitness journey and access personalized features.
-                </p>
+                <p>Register now to start your fitness journey and access personalized features.</p>
             </div>
 
             <form class="login-form-wrap" method="POST" autocomplete="off">
                 <div class="field">
                     <i class="fa-regular fa-user" aria-hidden="true"></i>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value="<?php echo htmlspecialchars($name); ?>"
-                        placeholder="Username"
-                        class="sign-in-custom-input"
-                        required
-                    >
+                    <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($name); ?>" placeholder="Username" class="sign-in-custom-input" required>
                 </div>
 
                 <div class="field">
                     <i class="fa-regular fa-envelope" aria-hidden="true"></i>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value="<?php echo htmlspecialchars($email); ?>"
-                        placeholder="Email Address"
-                        class="sign-in-custom-input"
-                        required
-                    >
+                    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" placeholder="Email Address" class="sign-in-custom-input" required>
+                </div>
+
+                <div class="field">
+                    <i class="fa-solid fa-building" aria-hidden="true"></i>
+                    <select id="department" name="department" class="sign-in-custom-input" required>
+                        <option value="" disabled <?php echo $department === '' ? 'selected' : ''; ?>>Select department</option>
+                        <?php foreach ($departmentOptions as $dept): ?>
+                            <option value="<?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $department === $dept ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret" aria-hidden="true"></i>
                 </div>
 
                 <div class="field">
                     <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Password"
-                        class="sign-in-custom-input"
-                        required
-                    >
+                    <input type="password" id="password" name="password" placeholder="Password" class="sign-in-custom-input" required>
                     <i class="fas fa-eye-slash toggle-eye" id="eye"></i>
                 </div>
 
                 <div class="field">
                     <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                    <input
-                        type="password"
-                        id="confirm_password"
-                        name="confirm_password"
-                        placeholder="Confirm Password"
-                        class="sign-in-custom-input"
-                        required
-                    >
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" class="sign-in-custom-input" required>
                     <i class="fas fa-eye-slash toggle-eye" id="eye1"></i>
                 </div>
 

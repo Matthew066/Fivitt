@@ -17,8 +17,7 @@ if (is_string($extraStyles)) {
     <title>Fivit - Login</title>
 
     <link rel="icon" href="assets/images/favicon/icon-fivit.png">
-    <link href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,100..1000;1,100..1000&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -64,3 +63,4 @@ if (is_string($extraStyles)) {
         <a class="drawer-link drawer-link-logout" href="logout.php">Logout</a>
     </nav>
 </aside>
+
