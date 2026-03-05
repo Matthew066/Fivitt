@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require 'includes/db.php';
 
@@ -11,13 +11,14 @@ if (isset($_SESSION['register_success'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = strtolower(trim((string)($_POST['email'] ?? '')));
+    $identifier = trim((string)($_POST['identifier'] ?? ''));
+    $identifierLower = strtolower($identifier);
     $password = trim((string)($_POST['password'] ?? ''));
 
-    if ($email === '' || $password === '') {
+    if ($identifier === '' || $password === '') {
         $error = 'Semua field wajib diisi.';
     } else {
-        if ($email === 'admin@fivit.com' && $password === 'password') {
+        if ($identifierLower === 'admin@fivit.com' && $password === 'password') {
             $adminStmt = $pdo->prepare("
                 SELECT id_users, name
                 FROM users
@@ -25,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ORDER BY id_users DESC
                 LIMIT 1
             ");
-            $adminStmt->execute([$email]);
+            $adminStmt->execute([$identifier]);
             $adminUser = $adminStmt->fetch();
 
             $_SESSION['user_id'] = $adminUser['id_users'] ?? 0;
@@ -40,21 +41,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             SELECT *
             FROM users
             WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))
+               OR LOWER(TRIM(name)) = LOWER(TRIM(?))
             ORDER BY (LOWER(TRIM(role)) = 'admin') DESC, id_users DESC
             LIMIT 1
         ");
-        $stmt->execute([$email]);
+        $stmt->execute([$identifier, $identifier]);
         $user = $stmt->fetch();
 
         if (!$user) {
             $error = 'Akun belum terdaftar. Silakan register terlebih dahulu.';
         } else {
-            $isAdminEmail = strcasecmp($email, 'admin@fivit.com') === 0;
+            $isAdminEmail = strcasecmp($identifier, 'admin@fivit.com') === 0;
             $isFallbackAdmin = $isAdminEmail && $password === 'password';
             $isPasswordValid = password_verify($password, (string)($user['password_hash'] ?? '')) || $isFallbackAdmin;
 
             if (!$isPasswordValid) {
-                $error = 'Email atau password salah.';
+                $error = 'Username/Email atau password salah.';
             } else {
                 $role = strtolower(trim((string)($user['role'] ?? 'user')));
                 if ($isAdminEmail) {
@@ -106,8 +108,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form class="login-form-wrap" method="POST" autocomplete="off">
                 <div class="field">
-                    <i class="fa-regular fa-envelope" aria-hidden="true"></i>
-                    <input type="email" name="email" placeholder="Email Address" class="sign-in-custom-input" required>
+                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+                    <input type="text" name="identifier" placeholder="Username atau Email" class="sign-in-custom-input" required>
                 </div>
 
                 <div class="field">

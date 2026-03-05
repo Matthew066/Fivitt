@@ -529,6 +529,23 @@ body.foodselection-page {
     border-radius: 14px;
     padding: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.food-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.14);
+}
+
+.empty-order {
+    grid-column: 1 / -1;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 12px;
+    text-align: center;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .food-image {
@@ -538,6 +555,11 @@ body.foodselection-page {
     background-image: url("../images/homescreen/home2.png");
     background-size: cover;
     background-position: center;
+    transition: transform 0.25s ease;
+}
+
+.food-card:hover .food-image {
+    transform: scale(1.03);
 }
 
 .food-name {
@@ -568,22 +590,43 @@ body.foodselection-page {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: scale(1.15);
+    filter: brightness(1.05);
+}
+
+.cart-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+}
+
+.cart-actions.is-hidden {
+    display: none;
+}
+
+.back-btn,
+.confirm-btn {
+    border: 0;
+    border-radius: 12px;
+    font-weight: 700;
+    min-height: 44px;
+    flex: 1;
+}
+
+.back-btn {
+    background: #ffffff;
+    color: #1f2937;
 }
 
 .confirm-btn {
-    margin-top: 12px;
-    width: 100%;
-    border: 0;
-    border-radius: 12px;
     background: #1f2937;
     color: #fff;
-    font-weight: 700;
-    min-height: 44px;
 }
 
-.confirm-btn.is-hidden {
-    display: none;
-}
 /* ================= LOGIN PAGE RESET (BACK TO OLD STYLE) ================= */
 
 body.login-page {
