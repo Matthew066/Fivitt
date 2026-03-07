@@ -8,16 +8,6 @@ include 'includes/header.php';
 $user_id = $_SESSION['user_id'] ?? 1;
 $today = date('Y-m-d');
 
-// Localhost-friendly API config (no virtual host required).
-$apiConfig = [];
-$apiConfigPath = __DIR__ . '/includes/api_config.php';
-if (is_file($apiConfigPath)) {
-    $loaded = include $apiConfigPath;
-    if (is_array($loaded)) {
-        $apiConfig = $loaded;
-    }
-}
-
 /* ================= SCHEMA GUARD ================= */
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS mens_cycle_logs (
@@ -27,6 +17,7 @@ $pdo->exec("
         period_end_date DATE NULL,
         mood_type VARCHAR(20) DEFAULT 'calm',
         symptom_tags VARCHAR(255) DEFAULT '',
+        flow_level INT DEFAULT 3,
         reported_cycle_length INT DEFAULT 28,
         period_length INT DEFAULT 5,
         symptom_score INT DEFAULT 5,
@@ -53,157 +44,52 @@ function safeAlter(PDO $pdo, string $sql): void
     }
 }
 
-safeAlter($pdo, "ALTER TABLE mens_cycle_logs ADD COLUMN period_end_date DATE NULL");
-safeAlter($pdo, "ALTER TABLE mens_cycle_logs ADD COLUMN mood_type VARCHAR(20) DEFAULT 'calm'");
-safeAlter($pdo, "ALTER TABLE mens_cycle_logs ADD COLUMN symptom_tags VARCHAR(255) DEFAULT ''");
+function columnExists(PDO $pdo, string $tableName, string $columnName): bool
+{
+    static $dbName = null;
+    if ($dbName === null) {
+        $dbName = (string)$pdo->query("SELECT DATABASE()")->fetchColumn();
+    }
+    if ($dbName === '') return false;
+
+    $stmt = $pdo->prepare("
+        SELECT 1
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = ?
+          AND TABLE_NAME = ?
+          AND COLUMN_NAME = ?
+        LIMIT 1
+    ");
+    $stmt->execute([$dbName, $tableName, $columnName]);
+    return (bool)$stmt->fetchColumn();
+}
+
+function addColumnIfMissing(PDO $pdo, string $tableName, string $columnName, string $ddl): void
+{
+    if (!columnExists($pdo, $tableName, $columnName)) {
+        safeAlter($pdo, "ALTER TABLE {$tableName} ADD COLUMN {$columnName} {$ddl}");
+    }
+}
+
+// Avoid long ALTER TABLE waits on every request.
+try {
+    $pdo->exec("SET SESSION innodb_lock_wait_timeout = 3");
+} catch (Throwable $e) {
+    // Ignore if not supported.
+}
+
+addColumnIfMissing($pdo, 'mens_cycle_logs', 'period_end_date', 'DATE NULL');
+addColumnIfMissing($pdo, 'mens_cycle_logs', 'mood_type', "VARCHAR(20) DEFAULT 'calm'");
+addColumnIfMissing($pdo, 'mens_cycle_logs', 'symptom_tags', "VARCHAR(255) DEFAULT ''");
+addColumnIfMissing($pdo, 'mens_cycle_logs', 'flow_level', 'INT DEFAULT 3');
+addColumnIfMissing($pdo, 'mens_user_profiles', 'birth_month', 'INT DEFAULT 6');
+addColumnIfMissing($pdo, 'mens_user_profiles', 'birth_day', 'INT DEFAULT 15');
+addColumnIfMissing($pdo, 'mens_user_profiles', 'birth_hour', 'INT DEFAULT 12');
 
 /* ================= HELPERS ================= */
 function clampNumber($value, $min, $max): int
 {
     return max($min, min($max, (int)$value));
-}
-
-function cfg(string $key, string $default = ''): string
-{
-    global $apiConfig;
-
-    $fromEnv = getenv($key);
-    if ($fromEnv !== false && trim((string)$fromEnv) !== '') {
-        return trim((string)$fromEnv);
-    }
-
-    if (isset($_SERVER[$key]) && trim((string)$_SERVER[$key]) !== '') {
-        return trim((string)$_SERVER[$key]);
-    }
-
-    if (isset($apiConfig[$key]) && trim((string)$apiConfig[$key]) !== '') {
-        return trim((string)$apiConfig[$key]);
-    }
-
-    return $default;
-}
-
-function apiHeadersFromEnv(string $keyEnv, string $hostEnv): array
-{
-    $headers = ['Accept: application/json'];
-    $apiKey = cfg($keyEnv);
-    $apiHost = cfg($hostEnv);
-
-    if ($apiKey !== '') {
-        $headers[] = 'X-RapidAPI-Key: ' . $apiKey;
-        $headers[] = 'Authorization: Bearer ' . $apiKey;
-        $headers[] = 'apikey: ' . $apiKey;
-        $headers[] = 'x-api-key: ' . $apiKey;
-    }
-    if ($apiHost !== '') {
-        $headers[] = 'X-RapidAPI-Host: ' . $apiHost;
-    }
-
-    return $headers;
-}
-
-function requestJson(string $url, array $headers = [], int $timeoutSec = 3): ?array
-{
-    if ($url === '') return null;
-
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'timeout' => $timeoutSec,
-            'ignore_errors' => true,
-            'header' => implode("\r\n", $headers)
-        ]
-    ]);
-
-    $raw = @file_get_contents($url, false, $context);
-    if (!$raw) return null;
-
-    $decoded = json_decode($raw, true);
-    return is_array($decoded) ? $decoded : null;
-}
-
-function requestJsonPost(string $url, array $payload, array $headers = [], int $timeoutSec = 3): ?array
-{
-    if ($url === '') return null;
-
-    $mergedHeaders = array_merge(['Content-Type: application/json', 'Accept: application/json'], $headers);
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'POST',
-            'timeout' => $timeoutSec,
-            'ignore_errors' => true,
-            'header' => implode("\r\n", $mergedHeaders),
-            'content' => json_encode($payload)
-        ]
-    ]);
-
-    $raw = @file_get_contents($url, false, $context);
-    if (!$raw) return null;
-
-    $decoded = json_decode($raw, true);
-    return is_array($decoded) ? $decoded : null;
-}
-
-function arrGet(array $data, array $paths, $default = null)
-{
-    foreach ($paths as $path) {
-        $cursor = $data;
-        $ok = true;
-        foreach (explode('.', $path) as $key) {
-            if (!is_array($cursor) || !array_key_exists($key, $cursor)) {
-                $ok = false;
-                break;
-            }
-            $cursor = $cursor[$key];
-        }
-        if ($ok && $cursor !== null && $cursor !== '') {
-            return $cursor;
-        }
-    }
-    return $default;
-}
-
-function valueToString($value): string
-{
-    if (is_string($value)) return trim($value);
-    if (is_int($value) || is_float($value)) return (string)$value;
-    if (is_bool($value)) return $value ? '1' : '0';
-
-    if (is_array($value)) {
-        foreach (['name', 'phase_name', 'phase', 'value', 'text'] as $key) {
-            if (isset($value[$key])) {
-                $text = valueToString($value[$key]);
-                if ($text !== '') return $text;
-            }
-        }
-        foreach ($value as $item) {
-            $text = valueToString($item);
-            if ($text !== '') return $text;
-        }
-    }
-
-    return '';
-}
-
-function valueToFloat($value, ?float $default = null): ?float
-{
-    if (is_int($value) || is_float($value)) return (float)$value;
-    if (is_string($value) && trim($value) !== '' && is_numeric($value)) return (float)$value;
-
-    if (is_array($value)) {
-        foreach (['value', 'illumination', 'age', 'days'] as $key) {
-            if (isset($value[$key])) {
-                $num = valueToFloat($value[$key], null);
-                if ($num !== null) return $num;
-            }
-        }
-        foreach ($value as $item) {
-            $num = valueToFloat($item, null);
-            if ($num !== null) return $num;
-        }
-    }
-
-    return $default;
 }
 
 function moonPhaseName(string $date): string
@@ -260,132 +146,7 @@ function moonPhaseDataLocal(string $date): array
 
 function moonPhaseData(string $date): array
 {
-    static $cache = [];
-    if (isset($cache[$date])) {
-        return $cache[$date];
-    }
-
-    $fallback = moonPhaseDataLocal($date);
-    $ts = strtotime($date . ' 12:00:00 UTC');
-    if (!$ts) {
-        $cache[$date] = $fallback;
-        return $cache[$date];
-    }
-
-    // 1) Try lunar-mcp-server bridge first.
-    // Expected bridge: HTTP endpoint that accepts JSON {date:"YYYY-MM-DD"} or MCP-like payload.
-    $mcpUrl = cfg('LUNAR_MCP_URL');
-    if ($mcpUrl !== '') {
-        $mcpHeaders = apiHeadersFromEnv('LUNAR_MCP_API_KEY', 'LUNAR_MCP_API_HOST');
-
-        $mcpJson = requestJsonPost($mcpUrl, ['date' => $date], $mcpHeaders, 3);
-        if (!$mcpJson) {
-            // JSON-RPC style fallback if bridge expects MCP tool call envelope.
-            $mcpJson = requestJsonPost($mcpUrl, [
-                'jsonrpc' => '2.0',
-                'id' => 1,
-                'method' => 'tools/call',
-                'params' => [
-                    'name' => 'get_moon_phase',
-                    'arguments' => ['date' => $date]
-                ]
-            ], $mcpHeaders, 3);
-        }
-
-        if ($mcpJson) {
-            $root = $mcpJson;
-            if (isset($mcpJson['result']) && is_array($mcpJson['result'])) {
-                $root = $mcpJson['result'];
-            }
-            if (isset($root['content']) && is_array($root['content']) && isset($root['content'][0]['text'])) {
-                $decodedText = json_decode((string)$root['content'][0]['text'], true);
-                if (is_array($decodedText)) $root = $decodedText;
-            }
-
-            $phase = valueToString(arrGet($root, ['phase_name', 'phase', 'moon.phase', 'moon_phase.phase_name'], ''));
-            $illumRaw = arrGet($root, ['illumination', 'moon.illumination', 'moon_phase.illumination'], null);
-            $ageRaw = arrGet($root, ['age', 'moon_age', 'moon.age'], null);
-
-            if ($phase !== '') {
-                $illum = $fallback['illumination'];
-                $illumValue = valueToFloat($illumRaw, null);
-                if ($illumValue !== null) {
-                    $illum = $illumValue;
-                    if ($illum > 1) $illum /= 100;
-                }
-                $cache[$date] = [
-                    'phase' => $phase,
-                    'age' => valueToFloat($ageRaw, $fallback['age']),
-                    'illumination' => max(0.0, min(1.0, $illum)),
-                    'source' => 'lunar_mcp'
-                ];
-                return $cache[$date];
-            }
-        }
-    }
-
-    // 2) Try configured Moon Phase API.
-    $moonApiTpl = cfg('MOON_PHASE_API_URL');
-    if ($moonApiTpl !== '') {
-        $apiUrl = str_replace('{date}', $date, $moonApiTpl);
-        $apiUrl = str_replace('{timestamp}', (string)$ts, $apiUrl);
-        $apiJson = requestJson(
-            $apiUrl,
-            apiHeadersFromEnv('MOON_PHASE_API_KEY', 'MOON_PHASE_API_HOST')
-        );
-        if ($apiJson) {
-            $root = isset($apiJson[0]) && is_array($apiJson[0]) ? $apiJson[0] : $apiJson;
-            $phase = valueToString(arrGet($root, ['phase_name', 'phase', 'phase.name', 'moon.phase', 'moon_phase.phase_name'], ''));
-            $illumRaw = arrGet($root, ['illumination', 'phase.illumination', 'moon.illumination', 'moon_phase.illumination'], null);
-            $ageRaw = arrGet($root, ['age', 'moon_age', 'phase.age_days', 'moon.age'], null);
-
-            if ($phase !== '') {
-                $illum = $fallback['illumination'];
-                $illumValue = valueToFloat($illumRaw, null);
-                if ($illumValue !== null) {
-                    $illum = $illumValue;
-                    if ($illum > 1) $illum /= 100;
-                }
-                $cache[$date] = [
-                    'phase' => $phase,
-                    'age' => valueToFloat($ageRaw, $fallback['age']),
-                    'illumination' => max(0.0, min(1.0, $illum)),
-                    'source' => 'moon_api'
-                ];
-                return $cache[$date];
-            }
-        }
-
-        // API mode is enabled but response is invalid / quota exhausted.
-        $cache[$date] = [
-            'phase' => 'Unavailable',
-            'age' => 0.0,
-            'illumination' => 0.0,
-            'source' => 'moon_api_limit'
-        ];
-        return $cache[$date];
-    }
-
-    // 3) Fallback public moon API.
-    $url = 'https://api.farmsense.net/v1/moonphases/?d=' . $ts;
-    $json = requestJson($url, ['Accept: application/json'], 2);
-
-    if (is_array($json) && !empty($json[0]) && is_array($json[0])) {
-        $phase = $json[0]['Phase'] ?? $fallback['phase'];
-        $age = isset($json[0]['Age']) ? (float)$json[0]['Age'] : $fallback['age'];
-        $illum = isset($json[0]['Illumination']) ? ((float)$json[0]['Illumination'] / 100) : $fallback['illumination'];
-
-        $cache[$date] = [
-            'phase' => $phase ?: $fallback['phase'],
-            'age' => $age,
-            'illumination' => max(0.0, min(1.0, $illum)),
-            'source' => 'api'
-        ];
-        return $cache[$date];
-    }
-
-    $cache[$date] = $fallback;
-    return $cache[$date];
+    return moonPhaseDataLocal($date);
 }
 
 function lunarEnergyInsight(string $phase): array
@@ -402,120 +163,131 @@ function lunarEnergyInsight(string $phase): array
     return ['Recovery & Reset', 'Prioritaskan tidur, hidrasi, dan ritme aktivitas yang lebih tenang.'];
 }
 
-function getZodiacData(?int $birthYear): array
+function normalizeCycleIndex(int $value, int $mod): int
+{
+    return (($value % $mod) + $mod) % $mod;
+}
+
+function ganzhiFromIndex(int $index): array
+{
+    $stems = ['Jia', 'Yi', 'Bing', 'Ding', 'Wu', 'Ji', 'Geng', 'Xin', 'Ren', 'Gui'];
+    $branches = ['Zi', 'Chou', 'Yin', 'Mao', 'Chen', 'Si', 'Wu', 'Wei', 'Shen', 'You', 'Xu', 'Hai'];
+    $stemElements = ['Wood', 'Wood', 'Fire', 'Fire', 'Earth', 'Earth', 'Metal', 'Metal', 'Water', 'Water'];
+    $animals = ['Rat', 'Ox', 'Tiger', 'Rabbit', 'Dragon', 'Snake', 'Horse', 'Goat', 'Monkey', 'Rooster', 'Dog', 'Pig'];
+
+    $i = normalizeCycleIndex($index, 60);
+    $stemIndex = $i % 10;
+    $branchIndex = $i % 12;
+
+    return [
+        'index60' => $i,
+        'stem' => $stems[$stemIndex],
+        'branch' => $branches[$branchIndex],
+        'element' => $stemElements[$stemIndex],
+        'animal' => $animals[$branchIndex],
+        'text' => $stems[$stemIndex] . $branches[$branchIndex]
+    ];
+}
+
+function branchElementByIndex(int $branchIndex): string
+{
+    $branchElements = ['Water', 'Earth', 'Wood', 'Wood', 'Earth', 'Fire', 'Fire', 'Earth', 'Metal', 'Metal', 'Earth', 'Water'];
+    return $branchElements[normalizeCycleIndex($branchIndex, 12)];
+}
+
+function baziElementInsight(string $dominant, string $weak): string
+{
+    $guidance = [
+        'Wood' => 'Elemen dominan Wood: jaga ritme growth bertahap, tidur stabil, dan aktivitas mobilitas rutin.',
+        'Fire' => 'Elemen dominan Fire: energi cenderung tinggi, tetap jaga hidrasi dan pemulihan agar tidak overdrive.',
+        'Earth' => 'Elemen dominan Earth: struktur rutinitas harian biasanya membantu kestabilan mood dan siklus.',
+        'Metal' => 'Elemen dominan Metal: fokus pada konsistensi, manajemen stres, dan jadwal yang terukur.',
+        'Water' => 'Elemen dominan Water: sensitivitas tubuh meningkat saat transisi fase, prioritaskan recovery dan kualitas tidur.'
+    ];
+    $base = $guidance[$dominant] ?? 'Pertahankan pola hidup seimbang antar aktivitas, hidrasi, dan tidur.';
+    return $base . ' Elemen terendah: ' . $weak . ' dapat diperkuat lewat rutinitas yang konsisten.';
+}
+
+function getBaziData(?int $birthYear, int $birthMonth = 6, int $birthDay = 15, int $birthHour = 12): array
 {
     if (!$birthYear) {
         return [
             'zodiac' => 'Unknown',
             'element' => 'Unknown',
-            'bazi' => '',
-            'source' => 'none',
-            'insight' => 'Tambahkan tahun lahir untuk mendapatkan insight zodiac personal.'
+            'bazi' => 'Unknown',
+            'source' => 'local_bazi',
+            'insight' => 'Tambahkan data kelahiran untuk menghitung BaZi lokal (4 pilar).',
+            'pillars' => []
         ];
     }
 
-    $referenceDate = date('Y-m-d');
+    $birthMonth = max(1, min(12, $birthMonth));
+    $birthDay = max(1, min(28, $birthDay));
+    $birthHour = max(0, min(23, $birthHour));
 
-    // 1) Try configured Astrology + BaZi / Chinese Calendar API.
-    $astroTpl = cfg('ASTRO_BAZI_API_URL');
-    if ($astroTpl !== '') {
-        $apiUrl = str_replace('{birth_year}', (string)$birthYear, $astroTpl);
-        $apiUrl = str_replace('{date}', $referenceDate, $apiUrl);
+    $stems = ['Jia', 'Yi', 'Bing', 'Ding', 'Wu', 'Ji', 'Geng', 'Xin', 'Ren', 'Gui'];
+    $branches = ['Zi', 'Chou', 'Yin', 'Mao', 'Chen', 'Si', 'Wu', 'Wei', 'Shen', 'You', 'Xu', 'Hai'];
+    $stemElements = ['Wood', 'Wood', 'Fire', 'Fire', 'Earth', 'Earth', 'Metal', 'Metal', 'Water', 'Water'];
 
-        $apiMethod = strtoupper(cfg('ASTRO_BAZI_API_METHOD', 'GET'));
-        $apiHeaders = apiHeadersFromEnv('ASTRO_BAZI_API_KEY', 'ASTRO_BAZI_API_HOST');
+    // Approximation baseline: 1984 is JiaZi in sexagenary cycle.
+    $yearPillar = ganzhiFromIndex($birthYear - 1984);
+    $yearStemIndex = $yearPillar['index60'] % 10;
 
-        if ($apiMethod === 'POST' || str_contains($apiUrl, '/natal/calculate')) {
-            $city = cfg('ASTRO_BAZI_CITY', 'Jakarta, Indonesia');
-            $lat = (float)cfg('ASTRO_BAZI_LAT', '-6.2088');
-            $lng = (float)cfg('ASTRO_BAZI_LNG', '106.8456');
-            $tz = cfg('ASTRO_BAZI_TZ', 'AUTO');
-            $month = (int)cfg('ASTRO_BAZI_BIRTH_MONTH', '6');
-            $day = (int)cfg('ASTRO_BAZI_BIRTH_DAY', '15');
-            $hour = (int)cfg('ASTRO_BAZI_BIRTH_HOUR', '12');
-            $minute = (int)cfg('ASTRO_BAZI_BIRTH_MINUTE', '0');
+    // Gregorian month mapped to branch cycle: Jan=Chou ... Dec=Zi.
+    $monthBranchIndex = $birthMonth % 12;
+    $tigerMonthOrder = ($birthMonth >= 2) ? ($birthMonth - 1) : 12; // Feb=1 ... Jan=12
+    $monthStemStart = normalizeCycleIndex(($yearStemIndex * 2) + 2, 10);
+    $monthStemIndex = normalizeCycleIndex($monthStemStart + ($tigerMonthOrder - 1), 10);
+    $monthPillar = [
+        'text' => $stems[$monthStemIndex] . $branches[$monthBranchIndex],
+        'element' => $stemElements[$monthStemIndex]
+    ];
 
-            $month = max(1, min(12, $month));
-            $day = max(1, min(28, $day));
-            $hour = max(0, min(23, $hour));
-            $minute = max(0, min(59, $minute));
+    $birthDate = sprintf('%04d-%02d-%02d', $birthYear, $birthMonth, $birthDay);
+    $baseDate = strtotime('1984-02-02 00:00:00');
+    $targetDate = strtotime($birthDate . ' 00:00:00');
+    $daysDiff = (int)floor((($targetDate ?: $baseDate) - $baseDate) / 86400);
+    $dayPillar = ganzhiFromIndex($daysDiff);
+    $dayStemIndex = $dayPillar['index60'] % 10;
 
-            $payload = [
-                'name' => 'FIVIT User',
-                'year' => $birthYear,
-                'month' => $month,
-                'day' => $day,
-                'hour' => $hour,
-                'minute' => $minute,
-                'city' => $city,
-                'lat' => $lat,
-                'lng' => $lng,
-                'tz_str' => $tz
-            ];
-            $apiJson = requestJsonPost($apiUrl, $payload, $apiHeaders, 4);
-        } else {
-            $apiJson = requestJson($apiUrl, $apiHeaders, 4);
-        }
+    $hourBranchIndex = (int)floor((($birthHour + 1) % 24) / 2);
+    $hourStemStart = normalizeCycleIndex(($dayStemIndex % 5) * 2, 10);
+    $hourStemIndex = normalizeCycleIndex($hourStemStart + $hourBranchIndex, 10);
+    $hourPillar = [
+        'text' => $stems[$hourStemIndex] . $branches[$hourBranchIndex],
+        'element' => $stemElements[$hourStemIndex]
+    ];
 
-        if ($apiJson) {
-            $root = isset($apiJson['data']) && is_array($apiJson['data']) ? $apiJson['data'] : $apiJson;
-            $zodiacApi = valueToString(arrGet($root, [
-                'chinese_zodiac', 'zodiac', 'animal_sign', 'bazi.zodiac', 'calendar.chinese_zodiac',
-                'sun_sign', 'sun.sign', 'sun.zodiac_sign', 'planets.sun.sign'
-            ], ''));
-            $elementApi = valueToString(arrGet($root, [
-                'element', 'chinese_element', 'bazi.element', 'bazi.day_master_element', 'calendar.element', 'day_master.element',
-                'sun.element', 'planets.sun.element'
-            ], ''));
-            $baziText = valueToString(arrGet($root, [
-                'bazi.day_master', 'bazi.pillars', 'bazi.summary', 'bazi.description', 'natal.chart_summary'
-            ], ''));
-
-            if ($zodiacApi !== '' || $elementApi !== '') {
-                $zodiacFinal = $zodiacApi !== '' ? $zodiacApi : 'Unknown';
-                $elementFinal = $elementApi !== '' ? $elementApi : 'Unknown';
-                $insightApi = valueToString(arrGet($root, ['insight', 'guidance', 'wellness_note', 'summary', 'natal.interpretation'], ''));
-                if ($insightApi === '') {
-                    $insightApi = 'Insight diambil dari Astrology + BaZi API dan dipakai sebagai wellness guidance.';
-                }
-                return [
-                    'zodiac' => $zodiacFinal,
-                    'element' => $elementFinal,
-                    'bazi' => $baziText,
-                    'source' => 'astro_api',
-                    'insight' => $insightApi
-                ];
-            }
-        }
+    $elementCount = ['Wood' => 0, 'Fire' => 0, 'Earth' => 0, 'Metal' => 0, 'Water' => 0];
+    foreach ([$yearPillar['element'], $monthPillar['element'], $dayPillar['element'], $hourPillar['element']] as $el) {
+        $elementCount[$el]++;
     }
-
-    // 2) Local fallback mapping.
-    $zodiacs = [
-        'Rat', 'Ox', 'Tiger', 'Rabbit', 'Dragon', 'Snake',
-        'Horse', 'Goat', 'Monkey', 'Rooster', 'Dog', 'Pig'
-    ];
-    $elements = ['Wood', 'Wood', 'Fire', 'Fire', 'Earth', 'Earth', 'Metal', 'Metal', 'Water', 'Water'];
-
-    $zodiacIndex = (($birthYear - 4) % 12 + 12) % 12;
-    $stemIndex = (($birthYear - 4) % 10 + 10) % 10;
-
-    $zodiac = $zodiacs[$zodiacIndex];
-    $element = $elements[$stemIndex];
-
-    $elementInsights = [
-        'Wood' => 'Sebagai elemen Wood, ritme kamu cenderung kuat saat memulai kebiasaan baru dan growth phase.',
-        'Fire' => 'Sebagai elemen Fire, energi kamu biasanya naik saat fase sosial dan aktivitas intens.',
-        'Earth' => 'Sebagai elemen Earth, kestabilan rutinitas tidur dan nutrisi memberi dampak paling konsisten.',
-        'Metal' => 'Sebagai elemen Metal, fokus dan struktur harian sering membantu menstabilkan perubahan mood.',
-        'Water' => 'Sebagai elemen Water, sensitivitas emosi bisa meningkat saat transisi musim atau fase siklus.'
-    ];
+    foreach ([
+        branchElementByIndex($yearPillar['index60'] % 12),
+        branchElementByIndex($monthBranchIndex),
+        branchElementByIndex($dayPillar['index60'] % 12),
+        branchElementByIndex($hourBranchIndex)
+    ] as $el) {
+        $elementCount[$el]++;
+    }
+    arsort($elementCount);
+    $dominantElement = array_key_first($elementCount);
+    $weakElement = array_key_last($elementCount);
 
     return [
-        'zodiac' => $zodiac,
-        'element' => $element,
-        'bazi' => '',
-        'source' => 'local',
-        'insight' => $elementInsights[$element] ?? ''
+        'zodiac' => $yearPillar['animal'],
+        'element' => $dayPillar['element'],
+        'bazi' => $yearPillar['text'] . ' ' . $monthPillar['text'] . ' ' . $dayPillar['text'] . ' ' . $hourPillar['text'],
+        'source' => 'local_bazi',
+        'insight' => baziElementInsight((string)$dominantElement, (string)$weakElement),
+        'pillars' => [
+            'year' => $yearPillar['text'],
+            'month' => $monthPillar['text'],
+            'day' => $dayPillar['text'],
+            'hour' => $hourPillar['text']
+        ],
+        'dominant' => $dominantElement,
+        'weak' => $weakElement
     ];
 }
 
@@ -562,10 +334,14 @@ $symptomOptions = [
 /* ================= HANDLE SUBMIT ================= */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $birthYear = !empty($_POST['birth_year']) ? clampNumber($_POST['birth_year'], 1940, (int)date('Y')) : null;
+    $birthMonth = !empty($_POST['birth_month']) ? clampNumber($_POST['birth_month'], 1, 12) : 6;
+    $birthDay = !empty($_POST['birth_day']) ? clampNumber($_POST['birth_day'], 1, 28) : 15;
+    $birthHour = isset($_POST['birth_hour']) ? clampNumber($_POST['birth_hour'], 0, 23) : 12;
     $periodStart = $_POST['period_start_date'] ?? $today;
     $periodEnd = $_POST['period_end_date'] ?? '';
     $moodType = $_POST['mood_type'] ?? 'calm';
     $moodType = array_key_exists($moodType, $moodOptions) ? $moodType : 'calm';
+    $flowLevel = isset($_POST['flow_level']) ? clampNumber($_POST['flow_level'], 1, 5) : 3;
 
     $symptomsRaw = $_POST['symptoms'] ?? [];
     $symptoms = [];
@@ -585,35 +361,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $profileStmt = $pdo->prepare("
-        INSERT INTO mens_user_profiles (user_id, birth_year)
-        VALUES (?, ?)
-        ON DUPLICATE KEY UPDATE birth_year = VALUES(birth_year)
+        INSERT INTO mens_user_profiles (user_id, birth_year, birth_month, birth_day, birth_hour)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            birth_year = VALUES(birth_year),
+            birth_month = VALUES(birth_month),
+            birth_day = VALUES(birth_day),
+            birth_hour = VALUES(birth_hour)
     ");
-    $profileStmt->execute([$user_id, $birthYear]);
+    $profileStmt->execute([$user_id, $birthYear, $birthMonth, $birthDay, $birthHour]);
 
     $logStmt = $pdo->prepare("
         INSERT INTO mens_cycle_logs
-            (user_id, period_start_date, period_end_date, mood_type, symptom_tags)
-        VALUES (?, ?, ?, ?, ?)
+            (user_id, period_start_date, period_end_date, mood_type, symptom_tags, flow_level)
+        VALUES (?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
             period_end_date = VALUES(period_end_date),
             mood_type = VALUES(mood_type),
-            symptom_tags = VALUES(symptom_tags)
+            symptom_tags = VALUES(symptom_tags),
+            flow_level = VALUES(flow_level)
     ");
-    $logStmt->execute([$user_id, $periodStart, $periodEnd, $moodType, $symptomTags]);
+    $logStmt->execute([$user_id, $periodStart, $periodEnd, $moodType, $symptomTags, $flowLevel]);
 
     header("Location: mens_fivit.php");
     exit;
 }
 
 /* ================= LOAD DATA ================= */
-$profile = $pdo->prepare("SELECT birth_year FROM mens_user_profiles WHERE user_id = ? LIMIT 1");
+$profile = $pdo->prepare("SELECT birth_year, birth_month, birth_day, birth_hour FROM mens_user_profiles WHERE user_id = ? LIMIT 1");
 $profile->execute([$user_id]);
 $profileRow = $profile->fetch(PDO::FETCH_ASSOC) ?: [];
 $birthYear = !empty($profileRow['birth_year']) ? (int)$profileRow['birth_year'] : null;
+$birthMonth = !empty($profileRow['birth_month']) ? (int)$profileRow['birth_month'] : 6;
+$birthDay = !empty($profileRow['birth_day']) ? (int)$profileRow['birth_day'] : 15;
+$birthHour = isset($profileRow['birth_hour']) ? (int)$profileRow['birth_hour'] : 12;
 
 $cyclesStmt = $pdo->prepare("
-    SELECT period_start_date, period_end_date, mood_type, symptom_tags
+    SELECT period_start_date, period_end_date, mood_type, symptom_tags, flow_level
     FROM mens_cycle_logs
     WHERE user_id = ?
     ORDER BY period_start_date ASC
@@ -628,6 +412,15 @@ if ($latest !== false) {
 
 $latestMood = $latest['mood_type'] ?? 'calm';
 $selectedSymptoms = !empty($latest['symptom_tags']) ? explode(',', $latest['symptom_tags']) : [];
+$latestFlow = isset($latest['flow_level']) ? clampNumber($latest['flow_level'], 1, 5) : 3;
+$flowLabelMap = [
+    1 => 'Sangat Ringan',
+    2 => 'Ringan',
+    3 => 'Normal',
+    4 => 'Deras',
+    5 => 'Sangat Deras'
+];
+$latestFlowLabel = $flowLabelMap[$latestFlow] ?? 'Normal';
 
 $cycleLengthsActual = [];
 $intervalLabels = [];
@@ -670,7 +463,20 @@ $moodAdjust = [
     'energetic' => -0.4
 ];
 
-$predictedCycleLength = (int)round(max(21, min(40, $wma + $symptomAdjust + ($moodAdjust[$latestMood] ?? 0))));
+$flowPredictAdjust = [
+    1 => -0.4,
+    2 => -0.2,
+    3 => 0.0,
+    4 => 0.4,
+    5 => 0.8
+];
+
+$predictedCycleLength = (int)round(max(21, min(40,
+    $wma +
+    $symptomAdjust +
+    ($moodAdjust[$latestMood] ?? 0) +
+    ($flowPredictAdjust[$latestFlow] ?? 0)
+)));
 $averageCycleLength = (float)round(array_sum($cycleLengthsActual) / count($cycleLengthsActual), 1);
 $cycleStdDev = round(calculateStdDev($cycleLengthsActual), 2);
 $cycleRange = max($cycleLengthsActual) - min($cycleLengthsActual);
@@ -692,22 +498,12 @@ $periodMoon = moonPhaseData($nextPeriodDate);
 $ovulationMoon = moonPhaseData($ovulationDate);
 $periodPhase = $periodMoon['phase'];
 $ovulationPhase = $ovulationMoon['phase'];
-$moonApiStrictBlocked = (($periodMoon['source'] ?? '') === 'moon_api_limit') && (($ovulationMoon['source'] ?? '') === 'moon_api_limit');
-if ($moonApiStrictBlocked) {
-    $periodEnergyTitle = 'Unavailable';
-    $periodEnergyDesc = 'Lunar insight unavailable because Moon API daily limit is reached.';
-    $ovuEnergyTitle = 'Unavailable';
-    $ovuEnergyDesc = 'Upgrade API plan to re-enable lunar-based insights.';
-} else {
-    [$periodEnergyTitle, $periodEnergyDesc] = lunarEnergyInsight($periodPhase);
-    [$ovuEnergyTitle, $ovuEnergyDesc] = lunarEnergyInsight($ovulationPhase);
-}
-$zodiac = getZodiacData($birthYear);
+[$periodEnergyTitle, $periodEnergyDesc] = lunarEnergyInsight($periodPhase);
+[$ovuEnergyTitle, $ovuEnergyDesc] = lunarEnergyInsight($ovulationPhase);
+$zodiac = getBaziData($birthYear, $birthMonth, $birthDay, $birthHour);
 
 /* ================= FAVORABLE DAY ENGINE ================= */
-$energyDays = [];
-for ($i = 0; $i < 14; $i++) {
-    $date = date('Y-m-d', strtotime($today . " +{$i} days"));
+$calculateEnergy = function (string $date) use ($ovulationDate, $zodiac, $latestMood, $symptomCount, $latestFlow): array {
     $moon = moonPhaseData($date);
     $phase = $moon['phase'];
     $dayElement = elementOfDay($date);
@@ -732,9 +528,10 @@ for ($i = 0; $i < 14; $i++) {
     $elementBoost = ($zodiac['element'] !== 'Unknown' && $dayElement === $zodiac['element']) ? 7 : -1;
     $moodBase = ['very_low' => -7, 'moody' => -3, 'calm' => 2, 'energetic' => 4][$latestMood] ?? 0;
     $symptomPenalty = min(10, $symptomCount * 2);
+    $flowAdjust = [1 => 1, 2 => 0, 3 => 0, 4 => -2, 5 => -4][$latestFlow] ?? 0;
 
     // Deterministic score: aligned with API lunar phase + illumination.
-    $score = 40 + $ovulationBoost + $phaseBoost + $illuminationBoost + $elementBoost + $moodBase - $symptomPenalty;
+    $score = 40 + $ovulationBoost + $phaseBoost + $illuminationBoost + $elementBoost + $moodBase + $flowAdjust - $symptomPenalty;
     $score = max(20, min(95, $score));
 
     if ($score >= 70) {
@@ -751,7 +548,7 @@ for ($i = 0; $i < 14; $i++) {
         $tip = 'Lunar/biological alignment rendah. Prioritaskan recovery, hidrasi, dan tidur.';
     }
 
-    $energyDays[] = [
+    return [
         'date' => $date,
         'label' => $label,
         'badge' => $badge,
@@ -759,23 +556,9 @@ for ($i = 0; $i < 14; $i++) {
         'phase' => $phase,
         'element' => $dayElement,
         'score' => $score,
-        'illumination_pct' => round($illuminationPct, 1),
-        'source' => $moon['source']
+        'illumination_pct' => round($illuminationPct, 1)
     ];
-}
-$moonSourceCounts = [];
-foreach ($energyDays as $row) {
-    $src = (string)($row['source'] ?? 'unknown');
-    $moonSourceCounts[$src] = ($moonSourceCounts[$src] ?? 0) + 1;
-}
-$successfulApiCount =
-    ($moonSourceCounts['moon_api'] ?? 0) +
-    ($moonSourceCounts['lunar_mcp'] ?? 0) +
-    ($moonSourceCounts['api'] ?? 0);
-$limitCount = $moonSourceCounts['moon_api_limit'] ?? 0;
-$moonApiLimitReached = $limitCount > 0 && $successfulApiCount === 0;
-$primaryMoonSource = $energyDays[0]['source'] ?? 'unknown';
-$canRenderFavorableList = !$moonApiLimitReached;
+};
 
 /* ================= MONTH CALENDAR ================= */
 $monthStart = strtotime(date('Y-m-01'));
@@ -792,6 +575,13 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
 }
 while (count($calendarCells) % 7 !== 0) {
     $calendarCells[] = ['date' => null, 'day' => ''];
+}
+
+$energyByDate = [];
+foreach ($calendarCells as $cell) {
+    if (!empty($cell['date'])) {
+        $energyByDate[$cell['date']] = $calculateEnergy($cell['date']);
+    }
 }
 
 $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
@@ -941,6 +731,64 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
     accent-color: #2ec4cc;
 }
 
+.flow-card {
+    margin-top: 8px;
+    background: #fff7fb;
+    border: 1px solid #fbcfe8;
+    border-radius: 16px;
+    padding: 14px 12px;
+}
+
+.flow-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #be185d;
+    margin-bottom: 10px;
+}
+
+.flow-drops {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.flow-drop {
+    width: 24px;
+    height: 34px;
+    border-radius: 50% 50% 60% 60%;
+    border: 2px solid #ec4899;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.flow-drop::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background: linear-gradient(to top, #ec4899, #f472b6);
+    transition: height 0.25s ease;
+}
+
+.flow-drop.active::before {
+    height: 88%;
+}
+
+.flow-drop:hover {
+    transform: translateY(-3px);
+}
+
+.flow-status {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #6b2146;
+}
+
 .calendar-wrap {
     overflow-x: auto;
 }
@@ -966,6 +814,28 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
     border: 1px solid #e2e8f0;
     font-weight: 600;
     color: #1e293b;
+}
+
+.cycle-calendar td.has-energy {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cycle-calendar td.has-energy:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+}
+
+.cycle-calendar td.energy-high {
+    box-shadow: inset 0 -3px 0 #16a34a;
+}
+
+.cycle-calendar td.energy-balanced {
+    box-shadow: inset 0 -3px 0 #d97706;
+}
+
+.cycle-calendar td.energy-recovery {
+    box-shadow: inset 0 -3px 0 #2563eb;
 }
 
 .cycle-calendar td.empty {
@@ -1011,6 +881,9 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
 .legend-fertile { background: #dcfce7; }
 .legend-ovulation { background: #fde68a; }
 .legend-today { background: #dbeafe; }
+.legend-energy-high { background: #dcfce7; }
+.legend-energy-balanced { background: #fef3c7; }
+.legend-energy-recovery { background: #dbeafe; }
 
 .insight-grid {
     display: grid;
@@ -1082,6 +955,16 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
     color: #334155;
 }
 
+.energy-detail {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    font-size: 13px;
+    color: #334155;
+}
+
 @media (min-width: 760px) {
     .period-dates-grid {
         grid-template-columns: 1fr 1fr;
@@ -1112,7 +995,7 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
             <div>
                 <div class="sleep-title">Lunar Harmony Insight</div>
                 <div class="sleep-sub">
-                    AI-adaptive cycle prediction + cultural wellness layer
+                    Local cycle prediction + BaZi and lunar rhythm layer
                 </div>
             </div>
         </div>
@@ -1163,14 +1046,42 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
                 </div>
             </div>
 
+            <div class="flow-card">
+                <div class="flow-title">Flow Menstruasi (deras atau tidak)</div>
+                <div class="flow-drops">
+                    <?php for ($f = 1; $f <= 5; $f++): ?>
+                        <div
+                            class="flow-drop <?= $latestFlow >= $f ? 'active' : '' ?>"
+                            onclick="setFlowLevel(<?= $f ?>)"
+                        ></div>
+                    <?php endfor; ?>
+                </div>
+                <div class="flow-status">
+                    Level: <strong id="flowLabel"><?= htmlspecialchars($latestFlowLabel) ?></strong>
+                </div>
+                <input type="hidden" name="flow_level" id="flowLevelInput" value="<?= (int)$latestFlow ?>">
+            </div>
+
             <div class="input-row">
                 <div class="input-group">
-                    <label>Tahun lahir (Chinese Zodiac)</label>
+                    <label>Tahun lahir (BaZi)</label>
                     <input type="number" name="birth_year" min="1940" max="<?= date('Y') ?>" value="<?= htmlspecialchars((string)($birthYear ?? '')) ?>" placeholder="contoh: 2002">
+                </div>
+                <div class="input-group">
+                    <label>Bulan lahir</label>
+                    <input type="number" name="birth_month" min="1" max="12" value="<?= (int)$birthMonth ?>" placeholder="1-12">
+                </div>
+                <div class="input-group">
+                    <label>Tanggal lahir</label>
+                    <input type="number" name="birth_day" min="1" max="28" value="<?= (int)$birthDay ?>" placeholder="1-28">
+                </div>
+                <div class="input-group">
+                    <label>Jam lahir (0-23)</label>
+                    <input type="number" name="birth_hour" min="0" max="23" value="<?= (int)$birthHour ?>" placeholder="contoh: 14">
                 </div>
             </div>
 
-            <button class="btn-primary" type="submit">Update Lunar Harmony Data</button>
+            <button class="btn-primary" type="submit">Update Cycle & BaZi Data</button>
         </form>
     </section>
 
@@ -1200,8 +1111,15 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
                 </div>
                 <div class="small-muted">SD <?= number_format($cycleStdDev, 2) ?> | Range <?= (int)$cycleRange ?> hari</div>
             </div>
+            <div class="prediction-item">
+                <div class="k">Flow Saat Ini</div>
+                <div class="v"><?= htmlspecialchars($latestFlowLabel) ?></div>
+            </div>
         </div>
-        <div class="notice-box" style="margin-top:10px;"><?= htmlspecialchars($stabilityNote) ?></div>
+        <div class="notice-box" style="margin-top:10px;">
+            <?= htmlspecialchars($stabilityNote) ?><br>
+            Prediksi saat ini mempertimbangkan: histori siklus, mood, gejala, dan flow menstruasi terakhir.
+        </div>
     </section>
 
     <section class="card chart-card">
@@ -1228,16 +1146,44 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
                             <?php for ($j = 0; $j < 7; $j++):
                                 $cell = $calendarCells[$i + $j];
                                 $class = [];
+                                $energyJson = '';
+                                $energyTitle = '';
                                 if (!$cell['date']) {
                                     $class[] = 'empty';
                                 } else {
+                                    $energy = $energyByDate[$cell['date']] ?? null;
                                     if ($cell['date'] === $today) $class[] = 'today';
                                     if ($cell['date'] >= $lastStart && $cell['date'] <= $lastEnd) $class[] = 'period';
                                     if ($cell['date'] >= $fertileStart && $cell['date'] <= $fertileEnd) $class[] = 'fertile';
                                     if ($cell['date'] === $ovulationDate) $class[] = 'ovulation';
+                                    if ($energy) {
+                                        $class[] = 'has-energy';
+                                        if ($energy['badge'] === 'high') $class[] = 'energy-high';
+                                        if ($energy['badge'] === 'balanced') $class[] = 'energy-balanced';
+                                        if ($energy['badge'] === 'recovery') $class[] = 'energy-recovery';
+
+                                        $energyJson = htmlspecialchars(json_encode([
+                                            'date' => $energy['date'],
+                                            'label' => $energy['label'],
+                                            'score' => (int)$energy['score'],
+                                            'phase' => $energy['phase'],
+                                            'illumination_pct' => (float)$energy['illumination_pct'],
+                                            'element' => $energy['element'],
+                                            'tip' => $energy['tip']
+                                        ]), ENT_QUOTES, 'UTF-8');
+                                        $energyTitle = htmlspecialchars(
+                                            $energy['label'] . ' | Score ' . (int)$energy['score'] . ' | ' . $energy['phase'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        );
+                                    }
                                 }
                             ?>
-                                <td class="<?= htmlspecialchars(implode(' ', $class)) ?>"><?= htmlspecialchars((string)$cell['day']) ?></td>
+                                <td
+                                    class="<?= htmlspecialchars(implode(' ', $class)) ?>"
+                                    <?= $energyJson !== '' ? 'data-energy="' . $energyJson . '"' : '' ?>
+                                    <?= $energyTitle !== '' ? 'title="' . $energyTitle . '"' : '' ?>
+                                ><?= htmlspecialchars((string)$cell['day']) ?></td>
                             <?php endfor; ?>
                         </tr>
                     <?php endfor; ?>
@@ -1249,6 +1195,15 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
             <div class="legend-item legend-fertile">Fertile Window</div>
             <div class="legend-item legend-ovulation">Ovulation</div>
             <div class="legend-item legend-today">Today</div>
+            <div class="legend-item legend-energy-high">Energy High</div>
+            <div class="legend-item legend-energy-balanced">Energy Balanced</div>
+            <div class="legend-item legend-energy-recovery">Energy Recovery</div>
+        </div>
+        <div id="energyDetail" class="energy-detail">
+            Klik tanggal pada kalender untuk melihat detail energy day. Di desktop bisa hover untuk ringkasan cepat.
+        </div>
+        <div class="small-muted" style="margin-top:8px;">
+            Formula: 40 + ovulation proximity + moon phase + illumination + element match + mood - symptom penalty.
         </div>
     </section>
 
@@ -1267,20 +1222,22 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
     </section>
 
     <section class="card">
-        <div class="summary-title">Zodiac Personalization</div>
+        <div class="summary-title">BaZi Personalization (4 Pilar)</div>
         <div class="prediction-grid">
             <div class="prediction-item">
                 <div class="k">Chinese Zodiac</div>
                 <div class="v"><?= htmlspecialchars($zodiac['zodiac']) ?></div>
             </div>
             <div class="prediction-item">
-                <div class="k">Five Element</div>
+                <div class="k">Day Master Element</div>
                 <div class="v"><?= htmlspecialchars($zodiac['element']) ?></div>
             </div>
-            <div class="prediction-item">
-                <div class="k">Astrology Source</div>
-                <div class="v"><?= htmlspecialchars($zodiac['source']) ?></div>
-            </div>
+            <?php if (!empty($zodiac['dominant'])): ?>
+                <div class="prediction-item">
+                    <div class="k">Dominant Element</div>
+                    <div class="v"><?= htmlspecialchars((string)$zodiac['dominant']) ?></div>
+                </div>
+            <?php endif; ?>
         </div>
         <div class="notice-box" style="margin-top:10px;">
             <?= htmlspecialchars($zodiac['insight']) ?>
@@ -1290,35 +1247,12 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
                 BaZi: <?= htmlspecialchars((string)$zodiac['bazi']) ?>
             </div>
         <?php endif; ?>
-    </section>
-
-    <section class="card">
-        <div class="summary-title">Favorable Day Energy Indicator (14 Hari)</div>
-        <?php if ($canRenderFavorableList): ?>
-            <div class="energy-list">
-                <?php foreach ($energyDays as $energy): ?>
-                    <div class="energy-item">
-                        <div class="energy-head">
-                            <strong><?= date('d F', strtotime($energy['date'])) ?></strong>
-                            <span class="badge-energy <?= htmlspecialchars($energy['badge']) ?>">
-                                <?= htmlspecialchars($energy['label']) ?>
-                            </span>
-                        </div>
-                        <div class="small-muted">
-                            <?= htmlspecialchars($energy['phase']) ?> (illum <?= number_format((float)$energy['illumination_pct'], 1) ?>%) | Element Day: <?= htmlspecialchars($energy['element']) ?> | Score: <?= (int)$energy['score'] ?>
-                        </div>
-                        <div style="margin-top:6px;"><?= htmlspecialchars($energy['tip']) ?></div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-        <?php if ($moonApiLimitReached): ?>
-            <div class="notice-box" style="margin-top:10px; border-color:#fecaca; background:#fff1f2; color:#9f1239;">
-                Moon API daily limit reached. Upgrade your API plan to continue real-time lunar insights.
-            </div>
-        <?php else: ?>
+        <?php if (!empty($zodiac['pillars'])): ?>
             <div class="small-muted" style="margin-top:8px;">
-                Lunar source: <?= htmlspecialchars($primaryMoonSource) ?>
+                Year: <?= htmlspecialchars((string)$zodiac['pillars']['year']) ?> |
+                Month: <?= htmlspecialchars((string)$zodiac['pillars']['month']) ?> |
+                Day: <?= htmlspecialchars((string)$zodiac['pillars']['day']) ?> |
+                Hour: <?= htmlspecialchars((string)$zodiac['pillars']['hour']) ?>
             </div>
         <?php endif; ?>
     </section>
@@ -1331,6 +1265,27 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
 </main>
 
 <script>
+function setFlowLevel(level) {
+    const drops = document.querySelectorAll('.flow-drop');
+    const input = document.getElementById('flowLevelInput');
+    const label = document.getElementById('flowLabel');
+    const labels = {
+        1: 'Sangat Ringan',
+        2: 'Ringan',
+        3: 'Normal',
+        4: 'Deras',
+        5: 'Sangat Deras'
+    };
+
+    drops.forEach((drop, idx) => {
+        if (idx < level) drop.classList.add('active');
+        else drop.classList.remove('active');
+    });
+
+    if (input) input.value = level;
+    if (label) label.textContent = labels[level] || 'Normal';
+}
+
 new Chart(document.getElementById('cycleChart'), {
     type: 'line',
     data: {
@@ -1364,6 +1319,25 @@ new Chart(document.getElementById('cycleChart'), {
         }
     }
 });
+
+const energyDetail = document.getElementById('energyDetail');
+document.querySelectorAll('.cycle-calendar td[data-energy]').forEach((cell) => {
+    cell.addEventListener('click', () => {
+        try {
+            const data = JSON.parse(cell.getAttribute('data-energy'));
+            energyDetail.textContent =
+                `${data.date} | ${data.label} | Score ${data.score} | ${data.phase} (${data.illumination_pct}% illum) | Element: ${data.element}. ${data.tip}`;
+        } catch (e) {
+            energyDetail.textContent = 'Detail energy tidak tersedia untuk tanggal ini.';
+        }
+    });
+});
+
+const defaultFlowInput = document.getElementById('flowLevelInput');
+if (defaultFlowInput) {
+    const initialLevel = parseInt(defaultFlowInput.value || '3', 10);
+    setFlowLevel(isNaN(initialLevel) ? 3 : initialLevel);
+}
 </script>
 
 <?php include 'includes/footer.php'; ?>

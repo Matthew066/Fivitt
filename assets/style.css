@@ -347,6 +347,47 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     color: #4facfe;
 }
 
+/* ===== SCORE THEMES ===== */
+@keyframes scoreShimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes scorePulse {
+    0%, 100% { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05); }
+    50% { box-shadow: 0 12px 34px rgba(79, 172, 254, 0.20); }
+}
+
+.score-card.score-tier-low {
+    background: linear-gradient(135deg, #fff1f2, #ffe4e6, #fff1f2);
+    background-size: 220% 220%;
+    animation: scoreShimmer 6s ease infinite, scorePulse 2.8s ease infinite;
+}
+
+.score-card.score-tier-mid {
+    background: linear-gradient(135deg, #fff7ed, #ffedd5, #fff7ed);
+    background-size: 220% 220%;
+    animation: scoreShimmer 6s ease infinite, scorePulse 2.8s ease infinite;
+}
+
+.score-card.score-tier-good {
+    background: linear-gradient(135deg, #ecfeff, #cffafe, #ecfeff);
+    background-size: 220% 220%;
+    animation: scoreShimmer 6s ease infinite, scorePulse 2.8s ease infinite;
+}
+
+.score-card.score-tier-excellent {
+    background: linear-gradient(135deg, #ecfdf5, #dcfce7, #ecfdf5);
+    background-size: 220% 220%;
+    animation: scoreShimmer 6s ease infinite, scorePulse 2.8s ease infinite;
+}
+
+.summary-pill.score-tier-low { background: #ffe4e6; color: #9f1239; }
+.summary-pill.score-tier-mid { background: #ffedd5; color: #9a3412; }
+.summary-pill.score-tier-good { background: #cffafe; color: #155e75; }
+.summary-pill.score-tier-excellent { background: #dcfce7; color: #166534; }
+
 .gauge {
     width: 200px;
     height: 100px;
