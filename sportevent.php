@@ -2,18 +2,21 @@
 session_start();
 require_once 'includes/db.php';
 
+try {
+    $pdo->query("ALTER TABLE events ADD COLUMN image_path varchar(255) DEFAULT NULL");
+} catch (Throwable $e) {
+    // ignore if column already exists
+}
+
 $pageTitle = 'Sport Events';
 include 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;
-$user_role = $_SESSION['role'] ?? 'user';
-$is_admin = $user_role === 'admin';
 $today = date('Y-m-d');
 
 $tab = $_GET['tab'] ?? 'upcoming';
 $tab = in_array($tab, ['upcoming', 'finished'], true) ? $tab : 'upcoming';
 
-$errors = [];
 $success = '';
 
 function formatIndoDate(string $date): string {
@@ -31,37 +34,6 @@ function formatIndoDate(string $date): string {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-
-    if ($action === 'create_event' && $is_admin) {
-        $title = trim($_POST['title'] ?? '');
-        $description = trim($_POST['description'] ?? '');
-        $event_type = trim($_POST['event_type'] ?? '');
-        $start_date = $_POST['start_date'] ?? '';
-        $end_date = $_POST['end_date'] ?? '';
-        $reward_points = (int) ($_POST['reward_points'] ?? 0);
-        $is_active = isset($_POST['is_active']) ? 1 : 0;
-
-        if ($title === '' || $description === '' || $event_type === '' || $start_date === '' || $end_date === '') {
-            $errors[] = 'Semua field wajib diisi.';
-        }
-
-        if ($start_date && $end_date && $end_date < $start_date) {
-            $errors[] = 'Tanggal selesai harus setelah tanggal mulai.';
-        }
-
-        if (!$errors) {
-            $insert = $pdo->prepare("
-                INSERT INTO events (title, description, event_type, start_date, end_date, reward_points, is_active)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ");
-            $insert->execute([
-                $title, $description, $event_type, $start_date, $end_date, $reward_points, $is_active
-            ]);
-
-            header('Location: sportevent.php?tab=upcoming');
-            exit;
-        }
-    }
 
     if ($action === 'join_event') {
         $event_id = (int) ($_POST['event_id'] ?? 0);
@@ -197,6 +169,14 @@ $events = $listStmt->fetchAll() ?: [];
     margin-bottom: 16px;
 }
 
+.event-cover {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
 .event-chip {
     position: absolute;
     top: 10px;
@@ -325,68 +305,12 @@ $events = $listStmt->fetchAll() ?: [];
     </div>
 </section>
 
-<?php if ($errors): ?>
-    <section class="card">
-        <div class="message error">
-            <?= htmlspecialchars(implode(' ', $errors)) ?>
-        </div>
-    </section>
-<?php endif; ?>
-
 <?php if ($success): ?>
     <section class="card">
         <div class="message">
             <?= htmlspecialchars($success) ?>
         </div>
     </section>
-<?php endif; ?>
-
-<?php if ($is_admin): ?>
-<section class="card">
-    <div class="summary-title">Buat Event</div>
-
-    <form method="POST">
-        <input type="hidden" name="action" value="create_event">
-
-        <div class="input-group">
-            <label>Judul Event</label>
-            <input type="text" name="title" placeholder="Contoh: Fun Run 5K" required>
-        </div>
-
-        <div class="input-group">
-            <label>Deskripsi Event</label>
-            <textarea name="description" rows="3" placeholder="Ringkasan kegiatan" required></textarea>
-        </div>
-
-        <div class="input-group">
-            <label>Tipe Event</label>
-            <input type="text" name="event_type" placeholder="Contoh: Lari, Basket, Yoga" required>
-        </div>
-
-        <div class="input-group">
-            <label>Tanggal Mulai</label>
-            <input type="date" name="start_date" required>
-        </div>
-
-        <div class="input-group">
-            <label>Tanggal Selesai</label>
-            <input type="date" name="end_date" required>
-        </div>
-
-        <div class="input-group">
-            <label>Poin Reward</label>
-            <input type="number" name="reward_points" min="0" value="0" required>
-        </div>
-
-        <div class="input-group">
-            <label>
-                <input type="checkbox" name="is_active" checked> Aktif
-            </label>
-        </div>
-
-        <button class="btn-primary" type="submit">Simpan Event</button>
-    </form>
-</section>
 <?php endif; ?>
 
 <section class="card">
@@ -403,6 +327,9 @@ $events = $listStmt->fetchAll() ?: [];
         <div class="event-card">
             <div class="event-chip"><?= htmlspecialchars($event['event_type']) ?></div>
             <div class="event-detail">
+                <?php if (!empty($event['image_path'])): ?>
+                    <img class="event-cover" src="<?= htmlspecialchars($event['image_path']) ?>" alt="<?= htmlspecialchars($event['title']) ?>">
+                <?php endif; ?>
                 <div class="event-title"><?= htmlspecialchars($event['title']) ?></div>
                 <div class="event-desc"><?= htmlspecialchars($event['description']) ?></div>
                 <div class="event-actions">

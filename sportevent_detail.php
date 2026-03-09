@@ -2,6 +2,12 @@
 session_start();
 require_once 'includes/db.php';
 
+try {
+    $pdo->query("ALTER TABLE events ADD COLUMN image_path varchar(255) DEFAULT NULL");
+} catch (Throwable $e) {
+    // ignore if column already exists
+}
+
 $pageTitle = 'Detail Event';
 include 'includes/header.php';
 
@@ -97,6 +103,14 @@ if ($event_id > 0) {
     opacity: 0.9;
 }
 
+.event-cover {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 14px;
+    margin-top: 12px;
+}
+
 .detail-card {
     background: #ffffff;
     border-radius: 16px;
@@ -147,6 +161,9 @@ if ($event_id > 0) {
     <section class="card hero">
         <h2><?= htmlspecialchars($event['title']) ?></h2>
         <p><?= htmlspecialchars($event['description']) ?></p>
+        <?php if (!empty($event['image_path'])): ?>
+            <img class="event-cover" src="<?= htmlspecialchars($event['image_path']) ?>" alt="<?= htmlspecialchars($event['title']) ?>">
+        <?php endif; ?>
     </section>
 
     <?php if ($success): ?>
