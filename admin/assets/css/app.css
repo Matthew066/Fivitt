@@ -5805,3 +5805,82 @@ input::placeholder {
 
 }
 
+.crud-page .card {
+    margin-bottom: 1.25rem;
+}
+
+.crud-page .card:last-child {
+    margin-bottom: 0;
+}
+
+.crud-page .card-body {
+    padding: 1.25rem;
+}
+
+.crud-page .table-responsive {
+    margin-top: 0.25rem;
+}
+
+.crud-page .form-label {
+    margin-bottom: 0.4rem;
+}
+
+.btn.btn-action {
+    border-width: 1px;
+    font-weight: 500;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn.btn-sport-primary,
+.btn.btn-sport-primary:not(:disabled):not(.disabled) {
+    color: #ffffff !important;
+    background-color: #32C7D8 !important;
+    border-color: #32C7D8 !important;
+}
+
+.btn.btn-sport-primary:hover,
+.btn.btn-sport-primary:not(:disabled):not(.disabled):hover {
+    color: #ffffff !important;
+    background-color: #2AAAB9 !important;
+    border-color: #2AAAB9 !important;
+    transform: translateY(-1px);
+}
+
+.btn.btn-sport-primary:focus,
+.btn.btn-sport-primary:focus-visible,
+.btn.btn-sport-primary:active,
+.btn.btn-sport-primary.active,
+.show > .btn.btn-sport-primary.dropdown-toggle {
+    color: #28B8C9 !important;
+    background-color: #ffffff !important;
+    border-color: #28B8C9 !important;
+    box-shadow: 0 0 0 0.2rem rgba(50, 199, 216, 0.2) !important;
+    transform: none;
+}
+
+.btn.btn-sport-danger,
+.btn.btn-sport-danger:not(:disabled):not(.disabled) {
+    color: #ffffff !important;
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+.btn.btn-sport-danger:hover,
+.btn.btn-sport-danger:not(:disabled):not(.disabled):hover {
+    color: #ffffff !important;
+    background-color: #bb2d3b !important;
+    border-color: #bb2d3b !important;
+    transform: translateY(-1px);
+}
+
+.btn.btn-sport-danger:focus,
+.btn.btn-sport-danger:focus-visible,
+.btn.btn-sport-danger:active,
+.btn.btn-sport-danger.active,
+.show > .btn.btn-sport-danger.dropdown-toggle {
+    color: #c62839 !important;
+    background-color: #ffffff !important;
+    border-color: #c62839 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.2) !important;
+    transform: none;
+}

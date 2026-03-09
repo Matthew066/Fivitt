@@ -10,6 +10,13 @@ require_once 'includes/profile_image.php';
 ensure_users_profile_image_schema($pdo);
 
 $userId = (int) ($_SESSION['user_id'] ?? 0);
+$userRole = strtolower(trim((string)($_SESSION['user_role'] ?? 'user')));
+$canteenLink = 'foodselection.php';
+if ($userRole === 'cooker') {
+    $canteenLink = 'healthy_canteen.php';
+} elseif ($userRole === 'admin') {
+    $canteenLink = 'admin/healthy_canteen.php';
+}
 $profileImage = null;
 if ($userId > 0) {
     $stmt = $pdo->prepare("SELECT profile_image FROM users WHERE id_users = ? LIMIT 1");
@@ -129,7 +136,7 @@ include 'includes/header.php';
                     <div class="tracking-icon icon-purple"><i class="fa-solid fa-dumbbell"></i></div>
                     <p>Fitness and Sport</p>
                 </a>
-                <a class="tracking-card link-card" href="foodselection.php">
+                <a class="tracking-card link-card" href="<?php echo htmlspecialchars($canteenLink, ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="tracking-icon icon-cream"><i class="fa-solid fa-utensils"></i></div>
                     <p>Healthy Canteen</p>
                 </a>

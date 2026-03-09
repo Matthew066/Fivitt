@@ -2,6 +2,8 @@
 $pageTitle = $pageTitle ?? 'FIVIT';
 $bodyClass = $bodyClass ?? '';
 $extraStyles = $extraStyles ?? [];
+$sessionRole = strtolower(trim((string)($_SESSION['user_role'] ?? 'user')));
+$canManageCanteen = $sessionRole === 'cooker';
 if (is_string($extraStyles)) {
     $extraStyles = [$extraStyles];
 }
@@ -55,6 +57,9 @@ if (is_string($extraStyles)) {
 
         <div class="drawer-section">Canteen</div>
         <a class="drawer-link sub" href="foodselection.php">Food Selection</a>
+        <?php if ($canManageCanteen): ?>
+            <a class="drawer-link sub" href="healthy_canteen.php">Healthy Canteen</a>
+        <?php endif; ?>
 
         <div class="drawer-section">Event</div>
         <a class="drawer-link sub" href="education.php">Education</a>

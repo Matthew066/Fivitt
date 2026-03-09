@@ -30,6 +30,9 @@ function isActive(array $pages, string $currentPage): string
 		<li class="<?php echo isActive(['sporteventadmin.php'], $currentPage); ?>">
 			<a href="sporteventadmin.php">Sport Events</a>
 		</li>
+		<li class="<?php echo isActive(['healthy_canteen_admin.php'], $currentPage); ?>">
+			<a href="healthy_canteen_admin.php">Healthy Canteen</a>
+		</li>
 		<!-- Logout Button -->
 		<li class="<?php echo isActive(['logout.php'], $currentPage); ?>">
 			<a href="logout.php">

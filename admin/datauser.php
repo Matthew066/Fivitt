@@ -25,25 +25,25 @@ $result = $pdo->query($query);
     <?php include 'includes/header.php'; ?>
 
     <div class="page-wrapper">
-      <div class="page-content">
+      <div class="page-content crud-page">
         <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
           <div class="breadcrumb-title pe-3">Users Management</div>
         </div>
 
         <h6 class="mb-0 text-uppercase">Manage Users</h6>
-        <hr/>
+        <hr class="mt-2 mb-4"/>
 
         <?php if ($status !== '' && $message !== ''): ?>
-          <div class="alert alert-<?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?> border-0 bg-<?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?> alert-dismissible fade show">
+          <div class="alert alert-<?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?> border-0 bg-<?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?> alert-dismissible fade show mb-4">
             <div class="text-white"><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></div>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
         <?php endif; ?>
 
         <div class="card mb-4">
-          <div class="card-body">
+          <div class="card-body p-4">
             <h6 class="mb-3">Add User</h6>
-            <form action="create-user.php" method="POST" class="row g-3">
+            <form action="create-user.php" method="POST" class="row g-3 align-items-end">
               <div class="col-md-3">
                 <label for="name" class="form-label">Name</label>
                 <input type="text" id="name" name="name" class="form-control" required>
@@ -60,6 +60,7 @@ $result = $pdo->query($query);
                 <label for="role" class="form-label">Role</label>
                 <select id="role" name="role" class="form-select">
                   <option value="user">User</option>
+                  <option value="cooker">Cooker</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
@@ -74,14 +75,14 @@ $result = $pdo->query($query);
                 </select>
               </div>
               <div class="col-12">
-                <button type="submit" class="btn btn-primary">Add User</button>
+                <button type="submit" class="btn btn-primary btn-sport-primary btn-action">Add User</button>
               </div>
             </form>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-body">
+          <div class="card-body p-4">
             <div class="table-responsive">
               <table id="example" class="table table-striped table-bordered datauser-table">
                 <thead>
@@ -105,7 +106,7 @@ $result = $pdo->query($query);
                         <span class="badge bg-primary"><?php echo htmlspecialchars(strtoupper((string)$row['role']), ENT_QUOTES, 'UTF-8'); ?></span>
                       </td>
                       <td>
-                        <form action="update-user.php" method="POST" class="d-flex gap-2 align-items-center">
+                        <form action="update-user.php" method="POST" class="d-flex gap-2 align-items-center" onsubmit="return confirm('Yakin ingin update data user ini?');">
                           <input type="hidden" name="user_id" value="<?php echo (int)$row['id_users']; ?>">
                           <select class="form-select" name="department">
                             <?php foreach ($departmentOptions as $dept): ?>
@@ -116,12 +117,12 @@ $result = $pdo->query($query);
                           </select>
                       </td>
                       <td>
-                          <button type="submit" class="btn btn-warning btn-sm">Update</button>
+                          <button type="submit" class="btn btn-primary btn-sport-primary btn-action btn-sm">Update</button>
                         </form>
 
-                        <form action="delete-user.php" method="POST" class="d-inline-block mt-2" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                        <form action="delete-user.php" method="POST" class="d-inline-block mt-2" onsubmit="return confirm('Yakin ingin menghapus user ini?');">
                           <input type="hidden" name="user_id" value="<?php echo (int)$row['id_users']; ?>">
-                          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                          <button type="submit" class="btn btn-danger btn-sport-danger btn-action btn-sm">Delete</button>
                         </form>
                       </td>
                     </tr>

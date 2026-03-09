@@ -17,7 +17,7 @@ $email = strtolower(trim((string)($_POST['email'] ?? '')));
 $password = (string)($_POST['password'] ?? '');
 $role = strtolower(trim((string)($_POST['role'] ?? 'user')));
 $department = trim((string)($_POST['department'] ?? 'General'));
-$validRoles = ['user', 'admin'];
+$validRoles = ['user', 'admin', 'cooker'];
 
 if ($name === '' || $email === '' || $password === '') {
     redirect_with_status('danger', 'Nama, email, dan password wajib diisi.');

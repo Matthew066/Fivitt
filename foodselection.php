@@ -1,5 +1,6 @@
 <?php
-session_start();if (!isset($_SESSION['user_id'])) {
+session_start();
+if (!isset($_SESSION['user_id'])) {
     if (
         $_SERVER['REQUEST_METHOD'] === 'POST' &&
         isset($_SERVER['CONTENT_TYPE']) &&
@@ -48,8 +49,6 @@ if (
         $pdo->beginTransaction();
 
         $findFoodByIdStmt = $pdo->prepare("SELECT id_foods FROM foods WHERE id_foods = ? LIMIT 1");
-        $findFoodByNameStmt = $pdo->prepare("SELECT id_foods FROM foods WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) LIMIT 1");
-        $insertFoodStmt = $pdo->prepare("INSERT INTO foods (name, calories, created_by) VALUES (?, ?, ?)");
         $insertLogStmt = $pdo->prepare("INSERT INTO food_logs (user_id, food_id, consumed_at) VALUES (?, ?, ?)");
 
         foreach ($items as $item) {
@@ -59,13 +58,6 @@ if (
             }
 
             $foodId = (int)($item['id'] ?? 0);
-            $foodName = trim((string)($item['name'] ?? ''));
-            $calories = (int)($item['calories'] ?? 0);
-
-            if ($foodName === '') {
-                continue;
-            }
-
             if ($foodId > 0) {
                 $findFoodByIdStmt->execute([$foodId]);
                 $existing = $findFoodByIdStmt->fetch(PDO::FETCH_ASSOC);
@@ -75,16 +67,7 @@ if (
             }
 
             if ($foodId <= 0) {
-                $findFoodByNameStmt->execute([$foodName]);
-                $foundByName = $findFoodByNameStmt->fetch(PDO::FETCH_ASSOC);
-                if ($foundByName && isset($foundByName['id_foods'])) {
-                    $foodId = (int)$foundByName['id_foods'];
-                }
-            }
-
-            if ($foodId <= 0) {
-                $insertFoodStmt->execute([$foodName, $calories, $userId]);
-                $foodId = (int)$pdo->lastInsertId();
+                continue;
             }
 
             for ($i = 0; $i < $qty; $i++) {
@@ -120,30 +103,24 @@ if (
 
 $menu = [];
 try {
-    $menuStmt = $pdo->query("SELECT id_foods, name, COALESCE(calories, 0) AS calories FROM foods ORDER BY id_foods ASC LIMIT 50");
+    $menuStmt = $pdo->query("SELECT id_foods, name, COALESCE(calories, 0) AS calories, image_path FROM foods ORDER BY id_foods ASC LIMIT 50");
     $menu = $menuStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
     $menu = [];
 }
 
-if ($menu === []) {
-    $menu = [
-        ['id_foods' => 1, 'name' => 'Veggie Burger', 'calories' => 100],
-        ['id_foods' => 2, 'name' => 'Hamburger', 'calories' => 100],
-        ['id_foods' => 3, 'name' => 'Cheeseburger', 'calories' => 100],
-        ['id_foods' => 4, 'name' => 'Chicken Burger', 'calories' => 100],
-        ['id_foods' => 5, 'name' => 'Salad Bowl', 'calories' => 120],
-        ['id_foods' => 6, 'name' => 'Fruit Mix', 'calories' => 90],
-        ['id_foods' => 7, 'name' => 'Grilled Chicken', 'calories' => 150],
-        ['id_foods' => 8, 'name' => 'Oatmeal', 'calories' => 110],
-    ];
-}
-
 $menuPayload = array_map(static function (array $row): array {
+    $imagePath = trim((string)($row['image_path'] ?? ''));
+    $imageUrl = '';
+    if ($imagePath !== '' && preg_match('/^[a-zA-Z0-9_\/\.\-]+$/', $imagePath)) {
+        $imageUrl = $imagePath;
+    }
+
     return [
         'id' => (int)($row['id_foods'] ?? 0),
         'name' => (string)($row['name'] ?? ''),
         'calories' => (int)($row['calories'] ?? 0),
+        'image_url' => $imageUrl,
         'qty' => 0,
     ];
 }, $menu);
@@ -216,15 +193,28 @@ require 'includes/header.php';
         if (isOrderMode && items.length === 0) {
             grid.innerHTML = `
                 <article class="empty-order">
-                    Belum ada makanan yang ditambahkan.
+                    Belum ada makanan yang ditambahkan ke keranjang.
                 </article>
             `;
             return;
         }
 
-        grid.innerHTML = items.map(item => `
+        if (!isOrderMode && items.length === 0) {
+            grid.innerHTML = `
+                <article class="empty-order">
+                    Menu belum tersedia. Silakan tunggu cooker menambahkan menu di Healthy Canteen.
+                </article>
+            `;
+            return;
+        }
+
+        grid.innerHTML = items.map(item => {
+            const safeImageUrl = item.image_url ? String(item.image_url).replace(/'/g, "\\'") : '';
+            const imageStyle = safeImageUrl ? ` style="background-image:url('${safeImageUrl}')"` : '';
+
+            return `
             <article class="food-card">
-                <div class="food-image"></div>
+                <div class="food-image"${imageStyle}></div>
                 <h3 class="food-name">${item.name}</h3>
                 <p class="food-meta">
                     <span>${item.calories} calories</span>
@@ -237,7 +227,8 @@ require 'includes/header.php';
                     </button>
                 </p>
             </article>
-        `).join('');
+        `;
+        }).join('');
     }
 
     grid.addEventListener('click', (event) => {

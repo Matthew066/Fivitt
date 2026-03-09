@@ -13,6 +13,7 @@ $totalGymToolTypes = 0;
 $totalArticles = 0;
 $topEquipmentRows = [];
 $topUserRows = [];
+$topFoodRows = [];
 $busiestDayLabel = '-';
 $busiestDayCount = 0;
 
@@ -48,6 +49,21 @@ try {
 	$totalArticles = toInt($pdo->query("SELECT COUNT(*) FROM articles")->fetchColumn());
 } catch (Throwable $e) {
 	$totalArticles = 0;
+}
+
+try {
+	$topFoodRows = $pdo->query("
+		SELECT
+			COALESCE(NULLIF(TRIM(f.name), ''), CONCAT('Food #', fl.food_id)) AS food_name,
+			COUNT(*) AS total_orders
+		FROM food_logs fl
+		LEFT JOIN foods f ON f.id_foods = fl.food_id
+		GROUP BY fl.food_id, f.name
+		ORDER BY total_orders DESC, food_name ASC
+		LIMIT 7
+	")->fetchAll();
+} catch (Throwable $e) {
+	$topFoodRows = [];
 }
 
 try {
@@ -112,6 +128,13 @@ $userCounts = [];
 foreach ($topUserRows as $row) {
 	$userLabels[] = (string) ($row['user_name'] ?? '-');
 	$userCounts[] = toInt($row['total_bookings'] ?? 0);
+}
+
+$foodLabels = [];
+$foodCounts = [];
+foreach ($topFoodRows as $row) {
+	$foodLabels[] = (string) ($row['food_name'] ?? '-');
+	$foodCounts[] = toInt($row['total_orders'] ?? 0);
 }
 ?>
 
@@ -198,6 +221,17 @@ foreach ($topUserRows as $row) {
 							</div>
 						</div>
 					</div>
+					<div class="col-12">
+						<div class="card radius-10">
+							<div class="card-body">
+								<div class="d-flex align-items-center justify-content-between mb-3">
+									<h6 class="mb-0">Menu Makanan Paling Banyak Dipesan</h6>
+									<small class="text-muted">Top 7 Menu Makanan</small>
+								</div>
+								<div id="foodOrderChart" style="min-height: 320px;"></div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -212,11 +246,15 @@ foreach ($topUserRows as $row) {
 				const equipmentCounts = <?php echo json_encode($equipmentCounts, JSON_UNESCAPED_UNICODE); ?>;
 				const userLabels = <?php echo json_encode($userLabels, JSON_UNESCAPED_UNICODE); ?>;
 				const userCounts = <?php echo json_encode($userCounts, JSON_UNESCAPED_UNICODE); ?>;
+				const foodLabels = <?php echo json_encode($foodLabels, JSON_UNESCAPED_UNICODE); ?>;
+				const foodCounts = <?php echo json_encode($foodCounts, JSON_UNESCAPED_UNICODE); ?>;
 
 				const safeEquipmentLabels = equipmentLabels.length ? equipmentLabels : ['Belum ada booking'];
 				const safeEquipmentCounts = equipmentCounts.length ? equipmentCounts : [0];
 				const safeUserLabels = userLabels.length ? userLabels : ['Belum ada booking'];
 				const safeUserCounts = userCounts.length ? userCounts : [0];
+				const safeFoodLabels = foodLabels.length ? foodLabels : ['Belum ada pesanan'];
+				const safeFoodCounts = foodCounts.length ? foodCounts : [0];
 
 				new ApexCharts(document.querySelector('#equipmentBookingChart'), {
 					chart: { type: 'bar', height: 320, toolbar: { show: false } },
@@ -252,6 +290,24 @@ foreach ($topUserRows as $row) {
 						categories: safeUserLabels,
 						title: { text: 'Jumlah Booking' }
 					}
+				}).render();
+
+				new ApexCharts(document.querySelector('#foodOrderChart'), {
+					chart: { type: 'bar', height: 320, toolbar: { show: false } },
+					series: [{ name: 'Jumlah Pesanan', data: safeFoodCounts }],
+					xaxis: {
+						categories: safeFoodLabels,
+						title: { text: 'Jumlah Pesanan' }
+					},
+					colors: ['#F59E0B'],
+					dataLabels: { enabled: false },
+					plotOptions: {
+						bar: {
+							borderRadius: 4,
+							horizontal: true
+						}
+					},
+					grid: { borderColor: 'rgba(0,0,0,0.08)', strokeDashArray: 4 }
 				}).render();
 			})();
 		</script>
