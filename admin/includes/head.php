@@ -22,6 +22,24 @@
 	<link rel="stylesheet" href="assets/css/semi-dark.css?v=20260223" />
 	<link rel="stylesheet" href="assets/css/header-color.css?v=20260223" />
 	<style>
+		body,
+		h1, h2, h3, h4, h5, h6,
+		p, span, small, label,
+		div, a, li, td, th,
+		input, select, textarea, button,
+		.form-control, .form-select, .btn,
+		.card, .table, .dropdown-menu,
+		.sidebar-wrapper, .top-header, .page-wrapper,
+		.apexcharts-canvas text,
+		.apexcharts-title-text,
+		.apexcharts-xaxis-label,
+		.apexcharts-yaxis-label,
+		.apexcharts-legend-text,
+		.apexcharts-datalabel,
+		.apexcharts-tooltip,
+		.apexcharts-tooltip-text {
+			font-family: 'Poppins', sans-serif !important;
+		}
 		:root {
 			--bs-primary: #32C7D8;
 			--bs-primary-rgb: 50, 199, 216;
