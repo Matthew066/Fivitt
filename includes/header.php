@@ -6,9 +6,19 @@ $pageTitle = $pageTitle ?? 'FIVIT';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= htmlspecialchars($pageTitle) ?> - FIVIT</title>
-    <link rel="stylesheet" href="assets/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Fivit - Login</title>
+
+    <link rel="icon" href="assets/images/favicon/icon-fivit.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/media-query.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/style.css?v=1">
+    <?php foreach ($extraStyles as $stylePath): ?>
+        <link rel="stylesheet" href="<?= htmlspecialchars($stylePath, ENT_QUOTES, 'UTF-8') ?>">
+    <?php endforeach; ?>
 </head>
 <body>
 
@@ -24,12 +34,12 @@ $pageTitle = $pageTitle ?? 'FIVIT';
         <button class="menu drawer-close" aria-label="Tutup Menu" data-drawer-close>&#9776;</button>
     </div>
     <nav class="drawer-nav">
-        <a class="drawer-link" href="#">Home</a>
+        <a class="drawer-link" href="homescreen5vit.php">Home</a>
 
         <div class="drawer-section">Daily</div>
         <a class="drawer-link sub" href="health.php">Basic Health Monitoring</a>
         <a class="drawer-link sub" href="sleep.php">Sleep Tracking</a>
-        <a class="drawer-link sub" href="mens_fivit.php">Lunar Harmony Insight</a>
+        <a class="drawer-link sub" href="mens_fivit.php">Menstruation Tracking</a>
 
         <div class="drawer-section">Fitness</div>
         <a class="drawer-link sub" href="sportevent.php">Sport Events</a>
@@ -37,7 +47,7 @@ $pageTitle = $pageTitle ?? 'FIVIT';
         <a class="drawer-link sub" href="gym.php">Gym booking</a>
 
         <div class="drawer-section">Canteen</div>
-        <a class="drawer-link sub" href="#">Food Selection</a>
+        <a class="drawer-link sub" href="">Food Selection</a>
 
         <div class="drawer-section">Event</div>
         <a class="drawer-link sub" href="#">Education</a>
