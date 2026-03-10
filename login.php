@@ -1,125 +1,138 @@
-<?php
+﻿<?php
 session_start();
 require 'includes/db.php';
 
 $error = "";
+$success = (string)($_SESSION['register_success'] ?? '');
+unset($_SESSION['register_success']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
 
-    if (!$email || !$password) {
-        $error = "Email dan password wajib diisi.";
+    if (empty($email) || empty($password)) {
+        $error = "Semua field wajib diisi.";
     } else {
 
-        // Cek apakah user sudah ada
         $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
         if ($user) {
 
-            // Login
             if (password_verify($password, $user['password_hash'])) {
 
                 $_SESSION['user_id'] = $user['id_users'];
                 $_SESSION['user_name'] = $user['name'];
 
-                header("Location: health.php");
+                header("Location: homescreen5vit.php");
                 exit;
 
             } else {
-                $error = "Password salah.";
+                $error = "Email atau password salah.";
             }
 
         } else {
-
-            // Auto register kalau belum ada
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-
-            $insert = $pdo->prepare("
-                INSERT INTO users 
-                (name, email, password_hash, role, department, is_active, created_at)
-                VALUES (?, ?, ?, 'user', 'General', 1, NOW())
-            ");
-
-            $insert->execute([
-                explode("@", $email)[0],
-                $email,
-                $hash
-            ]);
-
-            $_SESSION['user_id'] = $pdo->lastInsertId();
-            $_SESSION['user_name'] = explode("@", $email)[0];
-
-            header("Location: sleep.php");
-            exit;
+            $error = "Akun belum terdaftar. Silakan register terlebih dahulu.";
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Login - Fivit</title>
-<style>
-body{
-    font-family:Arial;
-    background:#f5f7fa;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-.card{
-    background:white;
-    padding:30px;
-    border-radius:12px;
-    width:320px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.1);
-}
-input{
-    width:100%;
-    padding:10px;
-    margin-bottom:15px;
-}
-button{
-    width:100%;
-    padding:10px;
-    background:#2ec4cc;
-    border:none;
-    color:white;
-    border-radius:8px;
-    cursor:pointer;
-}
-.error{
-    color:red;
-    margin-bottom:10px;
-}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fivit - Login</title>
+
+<link rel="icon" href="assets/images/favicon/icon-fivit.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/all.min.css">
+<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20260301-login-clean3">
+<link rel="stylesheet" href="assets/css/media-query.css">
+
 </head>
-<body>
 
-<div class="card">
-    <h2>Login / Register</h2>
+<body class="login-page">
+    <div class="site-content">
+        <div class="preloader">
+            <img src="assets/images/splashscreen/logofivit.png" alt="Loading Fivit">
+        </div>
 
-    <?php if($error): ?>
-        <div class="error"><?= $error ?></div>
-    <?php endif; ?>
+        <main class="login-main" id="sign-in-main">
+            <div class="login-hero">
+                <img src="assets/images/splashscreen/logofivit.png" class="login-logo" alt="Fivit Logo">
+                <h1>WELCOME BACK</h1>
+                <p>
+                    Login now to access your personalized fitness dashboard and stay on track.
+                </p>
+            </div>
 
-    <form method="POST">
-        <input type="email" name="email" placeholder="Email" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Masuk</button>
-    </form>
+<form class="mt-32" method="POST">
 
-    <p style="font-size:12px;color:gray;margin-top:10px;">
-        Jika email belum terdaftar, akun akan dibuat otomatis.
-    </p>
+<div class="form-details-sign-in border">
+<span><img src="assets/svg/mail-icon.svg" alt="mail"></span>
+<input 
+    type="email" 
+    name="email"
+    placeholder="Email Address" 
+    class="sign-in-custom-input md-font-sans fw-400"
+    required>
 </div>
+
+<div class="form-details-sign-in border mt-8">
+<span><img src="assets/svg/password-icon.svg" alt="password"></span>
+<input 
+    type="password" 
+    name="password"
+    id="password"
+    placeholder="Password" 
+    class="sign-in-custom-input md-font-sans fw-400"
+    required>
+<i class="fas fa-eye-slash" id="eye"></i>
+</div>
+
+                <?php if ($error !== ""): ?>
+                <p class="error-msg">
+                    <?php echo htmlspecialchars($error); ?>
+                </p>
+                <?php endif; ?>
+
+                <?php if ($success !== ""): ?>
+                <p class="success-msg">
+                    <?php echo htmlspecialchars($success); ?>
+                </p>
+                <?php endif; ?>
+
+                <div class="password-btn">
+                    <button type="submit" class="custom-login-btn">
+                        Login
+                    </button>
+                </div>
+                <p class="register-now-link">
+                    Didn't have account?
+                    <a href="register.php">Register</a>
+                </p>
+            </form>
+        </main>
+    </div>
+
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/custom.js"></script>
+
+<script>
+document.getElementById("eye").addEventListener("click", function () {
+    const pass = document.getElementById("password");
+    pass.type = pass.type === "password" ? "text" : "password";
+    this.classList.toggle("fa-eye");
+    this.classList.toggle("fa-eye-slash");
+});
+</script>
 
 </body>
 </html>
+
+
