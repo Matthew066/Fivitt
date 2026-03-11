@@ -220,6 +220,40 @@ CREATE TABLE `food_logs` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `food_orders`
+--
+
+CREATE TABLE `food_orders` (
+  `id_food_orders` bigint(20) NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) DEFAULT NULL,
+  `status` varchar(100) DEFAULT 'processing',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_food_orders`),
+  KEY `food_orders_user_id` (`user_id`),
+  CONSTRAINT `food_orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id_users`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `food_order_items`
+--
+
+CREATE TABLE `food_order_items` (
+  `id_food_order_items` bigint(20) NOT NULL AUTO_INCREMENT,
+  `food_order_id` bigint(20) DEFAULT NULL,
+  `food_id` bigint(20) DEFAULT NULL,
+  `quantity` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id_food_order_items`),
+  KEY `food_order_items_order_id` (`food_order_id`),
+  KEY `food_order_items_food_id` (`food_id`),
+  CONSTRAINT `food_order_items_ibfk_1` FOREIGN KEY (`food_order_id`) REFERENCES `food_orders` (`id_food_orders`) ON DELETE CASCADE,
+  CONSTRAINT `food_order_items_ibfk_2` FOREIGN KEY (`food_id`) REFERENCES `foods` (`id_foods`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `gyms`
 --
 

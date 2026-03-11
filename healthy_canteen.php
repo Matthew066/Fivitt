@@ -45,6 +45,23 @@ function redirect_with_status(string $status, string $message): void
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = trim((string)($_POST['action'] ?? 'add'));
 
+    if ($action === 'complete_order') {
+        $orderId = (int)($_POST['order_id'] ?? 0);
+        if ($orderId <= 0) {
+            redirect_with_status('danger', 'Pesanan tidak valid.');
+        }
+
+        $updateOrderStmt = $pdo->prepare(
+            "UPDATE food_orders SET status = 'completed' WHERE id_food_orders = ? AND status = 'processing'"
+        );
+        $updateOrderStmt->execute([$orderId]);
+
+        if ($updateOrderStmt->rowCount() > 0) {
+            redirect_with_status('success', 'Pesanan berhasil diselesaikan.');
+        }
+        redirect_with_status('warning', 'Pesanan sudah selesai atau tidak ditemukan.');
+    }
+
     if ($action === 'update') {
         $foodId = (int)($_POST['food_id'] ?? 0);
         $name = trim((string)($_POST['name'] ?? ''));
@@ -235,6 +252,86 @@ $foodsStmt = $pdo->query(
 );
 $foods = $foodsStmt->fetchAll(PDO::FETCH_ASSOC);
 
+$processingOrders = [];
+$processingOrderItems = [];
+$completedOrders = [];
+$completedOrderItems = [];
+try {
+    $ordersStmt = $pdo->query(
+        "SELECT fo.id_food_orders, fo.user_id, fo.status, fo.created_at,
+                COALESCE(u.name, 'Unknown') AS user_name
+         FROM food_orders fo
+         LEFT JOIN users u ON u.id_users = fo.user_id
+         WHERE fo.status = 'processing'
+         ORDER BY fo.created_at DESC"
+    );
+    $processingOrders = $ordersStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if ($processingOrders !== []) {
+        $orderIds = array_map(static fn(array $row): int => (int)$row['id_food_orders'], $processingOrders);
+        $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
+        $itemsStmt = $pdo->prepare(
+            "SELECT foi.food_order_id, foi.quantity, f.name, f.image_path
+             FROM food_order_items foi
+             JOIN foods f ON f.id_foods = foi.food_id
+             WHERE foi.food_order_id IN ($placeholders)
+             ORDER BY foi.food_order_id DESC"
+        );
+        $itemsStmt->execute($orderIds);
+        $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($items as $item) {
+            $orderId = (int)($item['food_order_id'] ?? 0);
+            if (!isset($processingOrderItems[$orderId])) {
+                $processingOrderItems[$orderId] = [];
+            }
+            $processingOrderItems[$orderId][] = $item;
+        }
+    }
+
+    $todayStart = date('Y-m-d 00:00:00');
+    $todayEnd = date('Y-m-d 23:59:59');
+    $completedStmt = $pdo->prepare(
+        "SELECT fo.id_food_orders, fo.user_id, fo.status, fo.created_at,
+                COALESCE(u.name, 'Unknown') AS user_name
+         FROM food_orders fo
+         LEFT JOIN users u ON u.id_users = fo.user_id
+         WHERE fo.status = 'completed'
+           AND fo.created_at BETWEEN ? AND ?
+         ORDER BY fo.created_at DESC
+         LIMIT 10"
+    );
+    $completedStmt->execute([$todayStart, $todayEnd]);
+    $completedOrders = $completedStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if ($completedOrders !== []) {
+        $completedIds = array_map(static fn(array $row): int => (int)$row['id_food_orders'], $completedOrders);
+        $completedPlaceholders = implode(',', array_fill(0, count($completedIds), '?'));
+        $completedItemsStmt = $pdo->prepare(
+            "SELECT foi.food_order_id, foi.quantity, f.name, f.image_path
+             FROM food_order_items foi
+             JOIN foods f ON f.id_foods = foi.food_id
+             WHERE foi.food_order_id IN ($completedPlaceholders)
+             ORDER BY foi.food_order_id DESC"
+        );
+        $completedItemsStmt->execute($completedIds);
+        $completedItems = $completedItemsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($completedItems as $item) {
+            $orderId = (int)($item['food_order_id'] ?? 0);
+            if (!isset($completedOrderItems[$orderId])) {
+                $completedOrderItems[$orderId] = [];
+            }
+            $completedOrderItems[$orderId][] = $item;
+        }
+    }
+} catch (Throwable $e) {
+    $processingOrders = [];
+    $processingOrderItems = [];
+    $completedOrders = [];
+    $completedOrderItems = [];
+}
+
 $editFood = null;
 if ($editId > 0) {
     foreach ($foods as $foodRow) {
@@ -327,6 +424,128 @@ require 'includes/header.php';
                 </div>
             </div>
         <?php endif; ?>
+
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h5 mb-0">Pesanan</h2>
+                        <span class="badge bg-warning text-dark"><?php echo count($processingOrders); ?> pesanan</span>
+                    </div>
+                    <?php if ($processingOrders === []): ?>
+                        <div class="alert alert-info mb-0">Belum ada pesanan yang sedang diproses.</div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Customer</th>
+                                        <th>Waktu</th>
+                                        <th>Items</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($processingOrders as $order): ?>
+                                        <?php
+                                        $orderId = (int)($order['id_food_orders'] ?? 0);
+                                        $orderItems = $processingOrderItems[$orderId] ?? [];
+                                        ?>
+                                        <tr>
+                                            <td>#<?php echo $orderId; ?></td>
+                                            <td><?php echo htmlspecialchars((string)($order['user_name'] ?? 'Unknown'), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars((string)($order['created_at'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td>
+                                                <?php if ($orderItems === []): ?>
+                                                    <span class="text-muted small">-</span>
+                                                <?php else: ?>
+                                                    <ul class="list-unstyled mb-0">
+                                                        <?php foreach ($orderItems as $orderItem): ?>
+                                                            <li class="d-flex align-items-center gap-2 mb-1">
+                                                                <?php if (!empty($orderItem['image_path'])): ?>
+                                                                    <img src="<?php echo htmlspecialchars((string)$orderItem['image_path'], ENT_QUOTES, 'UTF-8'); ?>" alt="Menu" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">
+                                                                <?php endif; ?>
+                                                                <span><?php echo htmlspecialchars((string)($orderItem['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></span>
+                                                                <span class="badge bg-light text-dark">x<?php echo (int)($orderItem['quantity'] ?? 0); ?></span>
+                                                            </li>
+                                                        <?php endforeach; ?>
+                                                    </ul>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-nowrap">
+                                                <form method="post" class="d-inline-block" onsubmit="return confirm('Selesaikan pesanan ini?');">
+                                                    <input type="hidden" name="action" value="complete_order">
+                                                    <input type="hidden" name="order_id" value="<?php echo $orderId; ?>">
+                                                    <button type="submit" class="btn btn-success btn-sm">Selesai</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h5 mb-0">Pesanan Selesai (Hari Ini)</h2>
+                        <span class="badge bg-success"><?php echo count($completedOrders); ?> pesanan</span>
+                    </div>
+                    <?php if ($completedOrders === []): ?>
+                        <div class="alert alert-info mb-0">Belum ada pesanan selesai.</div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Customer</th>
+                                        <th>Waktu</th>
+                                        <th>Items</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($completedOrders as $order): ?>
+                                        <?php
+                                        $orderId = (int)($order['id_food_orders'] ?? 0);
+                                        $orderItems = $completedOrderItems[$orderId] ?? [];
+                                        ?>
+                                        <tr>
+                                            <td>#<?php echo $orderId; ?></td>
+                                            <td><?php echo htmlspecialchars((string)($order['user_name'] ?? 'Unknown'), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars((string)($order['created_at'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td>
+                                                <?php if ($orderItems === []): ?>
+                                                    <span class="text-muted small">-</span>
+                                                <?php else: ?>
+                                                    <ul class="list-unstyled mb-0">
+                                                        <?php foreach ($orderItems as $orderItem): ?>
+                                                            <li class="d-flex align-items-center gap-2 mb-1">
+                                                                <?php if (!empty($orderItem['image_path'])): ?>
+                                                                    <img src="<?php echo htmlspecialchars((string)$orderItem['image_path'], ENT_QUOTES, 'UTF-8'); ?>" alt="Menu" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">
+                                                                <?php endif; ?>
+                                                                <span><?php echo htmlspecialchars((string)($orderItem['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></span>
+                                                                <span class="badge bg-light text-dark">x<?php echo (int)($orderItem['quantity'] ?? 0); ?></span>
+                                                            </li>
+                                                        <?php endforeach; ?>
+                                                    </ul>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
 
         <div class="col-12 col-lg-5">
             <div class="card shadow-sm" id="menu-form-card">

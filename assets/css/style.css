@@ -739,6 +739,102 @@ body.foodselection-page {
     display: none;
 }
 
+.order-status {
+    margin-top: 12px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid #dbe7f3;
+}
+
+.order-status.is-hidden {
+    display: none;
+}
+
+.order-status-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.order-status-head h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.order-badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #fbe7cc;
+    color: #8a5a1f;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.order-status-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.order-status-empty {
+    font-size: 13px;
+    color: #4b5563;
+    padding: 4px 2px;
+}
+
+.order-status-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #334155;
+}
+
+.order-item-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.order-item-thumb {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: #e5e7eb;
+    background-size: cover;
+    background-position: center;
+    flex: 0 0 auto;
+}
+
+.order-item-name {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.order-item-qty {
+    font-weight: 700;
+    color: #118a8d;
+}
+
+.order-qty {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #e6f7f8;
+    color: #118a8d;
+    font-weight: 700;
+    font-size: 11px;
+}
+
 .back-btn,
 .confirm-btn {
     border: 0;
