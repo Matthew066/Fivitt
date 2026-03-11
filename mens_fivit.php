@@ -1023,7 +1023,7 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
             </div>
 
             <div class="input-group">
-                <label>Mood Tracker (4 mood)</label>
+                <label style="display:block;">Mood Tracker<br>(4 mood)</label>
                 <div class="mood-grid">
                     <?php foreach ($moodOptions as $key => $mood): ?>
                         <label class="mood-option">
@@ -1264,6 +1264,7 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
     </section>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 function setFlowLevel(level) {
     const drops = document.querySelectorAll('.flow-drop');
@@ -1286,39 +1287,48 @@ function setFlowLevel(level) {
     if (label) label.textContent = labels[level] || 'Normal';
 }
 
-new Chart(document.getElementById('cycleChart'), {
-    type: 'line',
-    data: {
-        labels: <?= json_encode($intervalLabels) ?>,
-        datasets: [{
-            label: 'Cycle Length (days)',
-            data: <?= json_encode($cycleLengthsActual) ?>,
-            borderColor: '#ec4899',
-            backgroundColor: 'rgba(236,72,153,0.16)',
-            fill: true,
-            tension: 0.35,
-            pointRadius: 4
-        }, {
-            label: 'Rata-rata',
-            data: <?= json_encode($avgSeries) ?>,
-            borderColor: '#0ea5e9',
-            borderDash: [6, 6],
-            pointRadius: 0,
-            fill: false,
-            tension: 0
-        }]
-    },
-    options: {
-        plugins: { legend: { display: true } },
-        scales: {
-            y: {
-                min: 20,
-                max: 42,
-                ticks: { stepSize: 2 }
+function initCycleChart() {
+    const canvas = document.getElementById('cycleChart');
+    if (!canvas) return;
+    if (!window.Chart) {
+        console.warn('Chart.js not loaded; cycle chart skipped.');
+        return;
+    }
+
+    new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: <?= json_encode($intervalLabels) ?>,
+            datasets: [{
+                label: 'Cycle Length (days)',
+                data: <?= json_encode($cycleLengthsActual) ?>,
+                borderColor: '#ec4899',
+                backgroundColor: 'rgba(236,72,153,0.16)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 4
+            }, {
+                label: 'Rata-rata',
+                data: <?= json_encode($avgSeries) ?>,
+                borderColor: '#0ea5e9',
+                borderDash: [6, 6],
+                pointRadius: 0,
+                fill: false,
+                tension: 0
+            }]
+        },
+        options: {
+            plugins: { legend: { display: true } },
+            scales: {
+                y: {
+                    min: 20,
+                    max: 42,
+                    ticks: { stepSize: 2 }
+                }
             }
         }
-    }
-});
+    });
+}
 
 const energyDetail = document.getElementById('energyDetail');
 document.querySelectorAll('.cycle-calendar td[data-energy]').forEach((cell) => {
@@ -1338,6 +1348,9 @@ if (defaultFlowInput) {
     const initialLevel = parseInt(defaultFlowInput.value || '3', 10);
     setFlowLevel(isNaN(initialLevel) ? 3 : initialLevel);
 }
+
+document.addEventListener('DOMContentLoaded', initCycleChart, { once: true });
+if (document.readyState !== 'loading') initCycleChart();
 </script>
 
 <?php include 'includes/footer.php'; ?>

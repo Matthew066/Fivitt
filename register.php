@@ -15,12 +15,17 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 $name = '';
 $email = '';
+$department = 'General';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim((string) ($_POST['name'] ?? ''));
     $email = strtolower(trim((string) ($_POST['email'] ?? '')));
     $password = trim((string) ($_POST['password'] ?? ''));
     $confirmPassword = trim((string) ($_POST['confirm_password'] ?? ''));
+    $department = trim((string) ($_POST['department'] ?? 'General'));
+    if ($department === '') {
+        $department = 'General';
+    }
 
     if ($name === '' || $email === '' || $password === '' || $confirmPassword === '') {
         $error = 'Semua field wajib diisi.';
@@ -41,9 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $insert = $pdo->prepare(
                 "INSERT INTO users (name, email, password_hash, role, department, is_active, created_at)
-                 VALUES (?, ?, ?, 'user', 'General', 1, NOW())"
+                 VALUES (?, ?, ?, 'user', ?, 1, NOW())"
             );
-            $insert->execute([$name, $email, $hash]);
+            $insert->execute([$name, $email, $hash, $department]);
 
             $_SESSION['register_success'] = 'Registrasi berhasil. Silakan login.';
             header('Location: login.php');
@@ -115,6 +120,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="field">
+                    <i class="fa-solid fa-building" aria-hidden="true"></i>
+                    <input
+                        type="text"
+                        id="department"
+                        name="department"
+                        value="<?php echo htmlspecialchars($department); ?>"
+                        placeholder="Company / Department (contoh: Company A)"
+                        class="sign-in-custom-input"
+                        required
+                    >
+                </div>
+
+                <div class="field">
                     <i class="fa-solid fa-lock" aria-hidden="true"></i>
                     <input
                         type="password"
@@ -161,4 +179,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="assets/js/custom.js"></script>
 </body>
 </html>
-

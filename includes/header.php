@@ -50,6 +50,8 @@ if (!is_array($extraStyles)) {
         <a class="drawer-link sub" href="sportevent.php">Sport Events</a>
         <a class="drawer-link sub" href="workout.php">Work Out Personalization</a>
         <a class="drawer-link sub" href="gym.php">Gym booking</a>
+        <a class="drawer-link sub" href="coach.php">Coach Directory</a>
+        <a class="drawer-link sub" href="coach_sessions.php">Coach Sessions</a>
 
         <div class="drawer-section">Canteen</div>
         <a class="drawer-link sub" href="">Food Selection</a>

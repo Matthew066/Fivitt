@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $_SESSION['user_id'] = $user['id_users'];
                 $_SESSION['user_name'] = $user['name'];
+                $_SESSION['user_department'] = $user['department'] ?? 'General';
 
                 header("Location: homescreen5vit.php");
                 exit;
@@ -134,5 +135,4 @@ document.getElementById("eye").addEventListener("click", function () {
 
 </body>
 </html>
-
 

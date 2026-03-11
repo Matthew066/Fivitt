@@ -25,7 +25,7 @@
         <button type="button" class="fvai-close" id="fvai-close">x</button>
     </div>
     <div class="fvai-body" id="fvai-body">
-        <div class="fvai-msg bot">Halo, saya FiVit AI. Saya bisa bantu navigasi fitur FiVit, membership gym, partnership, workout, sleep, dan health monitoring.</div>
+        <div class="fvai-msg bot">Halo, saya FiVit AI. Saya bisa bantu navigasi fitur FiVit, coach directory, membership gym, partnership, workout, sleep, dan health monitoring.</div>
     </div>
     <form class="fvai-row" id="fvai-form">
         <input class="fvai-input" id="fvai-input" type="text" placeholder="Ketik pertanyaan...">
@@ -120,6 +120,8 @@
         const t = (text || '').toLowerCase();
         if (t.includes('membership') || t.includes('paket gym')) return 'Info membership gym ada di halaman Gym Booking. Paket dan harga diatur dari database/admin.';
         if (t.includes('partnership') || t.includes('partner gym')) return 'Untuk partnership, buka Gym Booking lalu isi form Ajukan Partnership Perusahaan.';
+        if (t.includes('sesi') && (t.includes('coach') || t.includes('pelatih'))) return 'Untuk request/approve jadwal sesi coach, buka menu Coach Sessions.';
+        if (t.includes('coach') || t.includes('pelatih')) return 'Untuk daftar coach (internal/eksternal) dan undang coach, buka menu Coach Directory.';
         if (t.includes('sleep') || t.includes('tidur')) return 'Untuk data tidur, buka menu Sleep Tracking.';
         if (t.includes('workout') || t.includes('latihan')) return 'Untuk rekomendasi latihan personal, buka menu Work Out Personalization.';
         if (t.includes('health') || t.includes('bmi') || t.includes('air')) return 'Untuk health check, buka Basic Health Monitoring.';
