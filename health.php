@@ -73,7 +73,7 @@ $waterTargetMl = 1500;
 $waterUpperCautionMl = 4000;
 
 $water_glass = (int) round($water_ml / $glassSizeMl);
-$water_glass = max(0, min(12, $water_glass));
+$water_glass = max(0, min(8, $water_glass));
 
 if ($water_ml <= 0) {
     $waterStatus = "Belum Ada Data";
@@ -625,9 +625,6 @@ if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
             <span>&ge;30,0</span>
         </div>
     </div>
-    <div class="sleep-sub" style="margin-top: 10px;">
-        Rumus IMT: Berat Badan (kg) / (Tinggi Badan (m) x Tinggi Badan (m))
-    </div>
 </section>
 
 
@@ -687,9 +684,6 @@ if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
 <section class="card score-card">
 
     <div class="score-header">Skor Total Health</div>
-    <div class="sleep-sub" style="margin-bottom: 10px;">
-        Formula berbobot (0-10): (BMI x 0,35) + (Water x 0,15) + (Workout x 0,25) + (Sleep x 0,25)
-    </div>
 
     <div class="score-wrapper">
 
