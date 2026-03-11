@@ -33,7 +33,9 @@ if (is_string($extraStyles)) {
 <body class="<?= htmlspecialchars($bodyClass, ENT_QUOTES, 'UTF-8') ?>">
 
 <header class="header">
-    <img src="assets/Foto/Logo5vit.png" alt="FIVIT" class="logo" style="width: 50px; height: 50px;">
+    <a href="homescreen5vit.php">
+        <img src="assets/Foto/Logo5vit.png" alt="FIVIT" class="logo" style="width: 50px; height: 50px;">
+    </a>
     <button class="menu" aria-label="Menu" aria-expanded="false" aria-controls="drawer">&#9776;</button>
 </header>
 
