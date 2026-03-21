@@ -23,23 +23,23 @@ CREATE TABLE articles (
   content TEXT,
   category VARCHAR(100),
   created_at TIMESTAMP,
-  created_by BIGINT,
-  FOREIGN KEY (created_by) REFERENCES users(id_users)
+  id_users_created_by BIGINT,
+  FOREIGN KEY (id_users_created_by) REFERENCES users(id_users)
 );
 
 CREATE TABLE bmi_records (
   id_bmi_records BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
+  id_users BIGINT,
   height_cm INT,
   weight_kg DECIMAL(5,2),
   bmi_value DECIMAL(5,2),
   recorded_at DATE,
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE coaches (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
+  id_coaches BIGINT PRIMARY KEY AUTO_INCREMENT,
+  id_users BIGINT,
   coach_name VARCHAR(255),
   coach_email VARCHAR(255),
   coach_phone VARCHAR(50),
@@ -50,17 +50,17 @@ CREATE TABLE coaches (
   rate_text VARCHAR(100),
   visibility VARCHAR(50),
   department_scope VARCHAR(100),
-  created_by BIGINT,
+  id_users_created_by BIGINT,
   is_active TINYINT,
   created_at TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id_users),
-  FOREIGN KEY (created_by) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users),
+  FOREIGN KEY (id_users_created_by) REFERENCES users(id_users)
 );
 
 CREATE TABLE coach_sessions (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  coach_id BIGINT,
-  requester_user_id BIGINT,
+  id_coach_sessions BIGINT PRIMARY KEY AUTO_INCREMENT,
+  id_coaches BIGINT,
+  id_users BIGINT,
   session_date DATE,
   start_time TIME,
   end_time TIME,
@@ -68,18 +68,18 @@ CREATE TABLE coach_sessions (
   notes TEXT,
   status VARCHAR(50),
   created_at TIMESTAMP,
-  FOREIGN KEY (coach_id) REFERENCES coaches(id),
-  FOREIGN KEY (requester_user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_coaches) REFERENCES coaches(id_coaches),
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE daily_checkins (
   id_daily_checkins BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
+  id_users BIGINT,
   activity_minutes INT,
   water_intake_ml INT,
   checkin_date DATE,
   created_at TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE events (
@@ -95,11 +95,11 @@ CREATE TABLE events (
 
 CREATE TABLE event_participants (
   id_event_participants BIGINT PRIMARY KEY AUTO_INCREMENT,
-  event_id BIGINT,
-  user_id BIGINT,
+  id_events BIGINT,
+  id_users BIGINT,
   status VARCHAR(50),
-  FOREIGN KEY (event_id) REFERENCES events(id_events),
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_events) REFERENCES events(id_events),
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE foods (
@@ -110,17 +110,17 @@ CREATE TABLE foods (
   fat DECIMAL(6,2),
   carbs DECIMAL(6,2),
   rating INT,
-  created_by BIGINT,
-  FOREIGN KEY (created_by) REFERENCES users(id_users)
+  id_users_created_by BIGINT,
+  FOREIGN KEY (id_users_created_by) REFERENCES users(id_users)
 );
 
 CREATE TABLE food_logs (
   id_food_logs BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
-  food_id BIGINT,
+  id_users BIGINT,
+  id_foods BIGINT,
   consumed_at DATE,
-  FOREIGN KEY (user_id) REFERENCES users(id_users),
-  FOREIGN KEY (food_id) REFERENCES foods(id_foods)
+  FOREIGN KEY (id_users) REFERENCES users(id_users),
+  FOREIGN KEY (id_foods) REFERENCES foods(id_foods)
 );
 
 CREATE TABLE gyms (
@@ -132,36 +132,36 @@ CREATE TABLE gyms (
 
 CREATE TABLE gym_equipments (
   id_gym_equipments BIGINT PRIMARY KEY AUTO_INCREMENT,
-  gym_id BIGINT,
+  id_gyms BIGINT,
   equipment_name VARCHAR(255),
   quantity INT,
-  FOREIGN KEY (gym_id) REFERENCES gyms(id_gyms)
+  FOREIGN KEY (id_gyms) REFERENCES gyms(id_gyms)
 );
 
 CREATE TABLE gym_bookings (
   id_gym_bookings BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
-  gym_id BIGINT,
+  id_users BIGINT,
+  id_gyms BIGINT,
   booking_date DATE,
   time_slot VARCHAR(50),
   status VARCHAR(50),
-  FOREIGN KEY (user_id) REFERENCES users(id_users),
-  FOREIGN KEY (gym_id) REFERENCES gyms(id_gyms)
+  FOREIGN KEY (id_users) REFERENCES users(id_users),
+  FOREIGN KEY (id_gyms) REFERENCES gyms(id_gyms)
 );
 
 CREATE TABLE mens_user_profiles (
-  user_id BIGINT PRIMARY KEY,
+  id_users BIGINT PRIMARY KEY,
   birth_year INT,
   birth_month INT,
   birth_day INT,
   birth_hour INT,
   updated_at TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE mens_cycle_logs (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
+  id_mens_cycle_logs BIGINT PRIMARY KEY AUTO_INCREMENT,
+  id_users BIGINT,
   period_start_date DATE,
   reported_cycle_length INT,
   period_length INT,
@@ -172,22 +172,22 @@ CREATE TABLE mens_cycle_logs (
   mood_type VARCHAR(50),
   symptom_tags TEXT,
   flow_level VARCHAR(50),
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE point_logs (
   id_point_logs BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
+  id_users BIGINT,
   source VARCHAR(100),
   points INT,
   description VARCHAR(255),
   created_at TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE sleep_logs (
   id_sleep_logs BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
+  id_users BIGINT,
   sleep_date DATE,
   sleep_start TIME,
   sleep_end TIME,
@@ -196,55 +196,55 @@ CREATE TABLE sleep_logs (
   late_night TINYINT,
   note TEXT,
   created_at TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE user_points (
   id_user_points BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
+  id_users BIGINT,
   total_points INT,
   updated_at TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE user_badges (
   id_user_badges BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
-  badge_id BIGINT,
+  id_users BIGINT,
+  id_badges BIGINT,
   earned_at TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id_users),
-  FOREIGN KEY (badge_id) REFERENCES badges(id_badges)
+  FOREIGN KEY (id_users) REFERENCES users(id_users),
+  FOREIGN KEY (id_badges) REFERENCES badges(id_badges)
 );
 
 CREATE TABLE user_sessions (
   id_user_sessions BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
+  id_users BIGINT,
   session_token VARCHAR(255),
   login_at TIMESTAMP,
   logout_at TIMESTAMP,
   ip_address VARCHAR(50),
   user_agent TEXT,
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE user_streaks (
   id_user_streaks BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
+  id_users BIGINT,
   streak_type VARCHAR(50),
   current_streak INT,
   longest_streak INT,
   updated_at TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );
 
 CREATE TABLE workout_personalizations (
-  id_workout BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT,
+  id_workout_personalizations BIGINT PRIMARY KEY AUTO_INCREMENT,
+  id_users BIGINT,
   goal VARCHAR(100),
   fitness_level VARCHAR(100),
   detail_workout TEXT,
   notes TEXT,
   created_at TIMESTAMP,
   name VARCHAR(255),
-  FOREIGN KEY (user_id) REFERENCES users(id_users)
+  FOREIGN KEY (id_users) REFERENCES users(id_users)
 );

@@ -23,7 +23,7 @@ $prevWeekEnd = date('Y-m-d', strtotime('-7 days'));
 $query = mysqli_query($conn,"
     SELECT tanggal, jam_tidur
     FROM sleep
-    WHERE user_id = $user_id
+    WHERE id_users = $user_id
     AND tanggal BETWEEN '$weekAgo' AND '$today'
     ORDER BY tanggal ASC
 ");
@@ -51,7 +51,7 @@ $score = round(min(10, ($average/8)*10),1);
 $queryPrev = mysqli_query($conn,"
     SELECT jam_tidur
     FROM sleep
-    WHERE user_id = $user_id
+    WHERE id_users = $user_id
     AND tanggal BETWEEN '$prevWeekStart' AND '$prevWeekEnd'
 ");
 
@@ -85,7 +85,7 @@ $streak = 0;
 $streakQuery = mysqli_query($conn,"
     SELECT tanggal
     FROM sleep
-    WHERE user_id = $user_id
+    WHERE id_users = $user_id
     ORDER BY tanggal DESC
 ");
 

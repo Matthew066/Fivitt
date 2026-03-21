@@ -11,8 +11,8 @@ $today = date('Y-m-d');
 /* ================= SCHEMA GUARD ================= */
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS mens_cycle_logs (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
+        id_mens_cycle_logs INT AUTO_INCREMENT PRIMARY KEY,
+        id_users INT NOT NULL,
         period_start_date DATE NOT NULL,
         period_end_date DATE NULL,
         mood_type VARCHAR(20) DEFAULT 'calm',
@@ -23,13 +23,13 @@ $pdo->exec("
         symptom_score INT DEFAULT 5,
         mood_score INT DEFAULT 5,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY uniq_user_period (user_id, period_start_date)
+        UNIQUE KEY uniq_user_period (id_users, period_start_date)
     )
 ");
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS mens_user_profiles (
-        user_id INT PRIMARY KEY,
+        id_users INT PRIMARY KEY,
         birth_year INT DEFAULT NULL,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )
@@ -361,7 +361,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $profileStmt = $pdo->prepare("
-        INSERT INTO mens_user_profiles (user_id, birth_year, birth_month, birth_day, birth_hour)
+        INSERT INTO mens_user_profiles (id_users, birth_year, birth_month, birth_day, birth_hour)
         VALUES (?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
             birth_year = VALUES(birth_year),
@@ -373,7 +373,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $logStmt = $pdo->prepare("
         INSERT INTO mens_cycle_logs
-            (user_id, period_start_date, period_end_date, mood_type, symptom_tags, flow_level)
+            (id_users, period_start_date, period_end_date, mood_type, symptom_tags, flow_level)
         VALUES (?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
             period_end_date = VALUES(period_end_date),
@@ -388,7 +388,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 /* ================= LOAD DATA ================= */
-$profile = $pdo->prepare("SELECT birth_year, birth_month, birth_day, birth_hour FROM mens_user_profiles WHERE user_id = ? LIMIT 1");
+$profile = $pdo->prepare("SELECT birth_year, birth_month, birth_day, birth_hour FROM mens_user_profiles WHERE id_users = ? LIMIT 1");
 $profile->execute([$user_id]);
 $profileRow = $profile->fetch(PDO::FETCH_ASSOC) ?: [];
 $birthYear = !empty($profileRow['birth_year']) ? (int)$profileRow['birth_year'] : null;
@@ -399,7 +399,7 @@ $birthHour = isset($profileRow['birth_hour']) ? (int)$profileRow['birth_hour'] :
 $cyclesStmt = $pdo->prepare("
     SELECT period_start_date, period_end_date, mood_type, symptom_tags, flow_level
     FROM mens_cycle_logs
-    WHERE user_id = ?
+    WHERE id_users = ?
     ORDER BY period_start_date ASC
 ");
 $cyclesStmt->execute([$user_id]);

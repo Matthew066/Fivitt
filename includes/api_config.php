@@ -29,5 +29,8 @@ return [
     'ASTRO_BAZI_BIRTH_MONTH' => '6',
     'ASTRO_BAZI_BIRTH_DAY' => '15',
     'ASTRO_BAZI_BIRTH_HOUR' => '12',
-    'ASTRO_BAZI_BIRTH_MINUTE' => '0'
+    'ASTRO_BAZI_BIRTH_MINUTE' => '0',
+
+    // OpenRouteService API key (for Places/Geocoding autocomplete)
+    'ORS_API_KEY' => ''
 ];

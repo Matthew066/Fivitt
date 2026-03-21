@@ -12,7 +12,7 @@ $date = date("Y-m-d");
 $query = mysqli_query($conn, "
     SELECT activity_minutes, water_intake_ml 
     FROM daily_checkins
-    WHERE user_id='$user_id' 
+    WHERE id_users='$user_id' 
     AND checkin_date='$date'
 ");
 

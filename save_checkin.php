@@ -14,7 +14,7 @@ $water = $_POST['water_intake_ml'];
 // cek apakah sudah ada checkin hari ini
 $check = mysqli_query($conn, "
     SELECT * FROM daily_checkins 
-    WHERE user_id='$user_id' AND checkin_date='$date'
+    WHERE id_users='$user_id' AND checkin_date='$date'
 ");
 
 if (mysqli_num_rows($check) > 0) {
@@ -24,7 +24,7 @@ if (mysqli_num_rows($check) > 0) {
         UPDATE daily_checkins 
         SET activity_minutes='$activity',
             water_intake_ml='$water'
-        WHERE user_id='$user_id' 
+        WHERE id_users='$user_id' 
         AND checkin_date='$date'
     ");
 
@@ -33,7 +33,7 @@ if (mysqli_num_rows($check) > 0) {
     // INSERT
     mysqli_query($conn, "
         INSERT INTO daily_checkins 
-        (user_id, activity_minutes, water_intake_ml, checkin_date)
+        (id_users, activity_minutes, water_intake_ml, checkin_date)
         VALUES 
         ('$user_id','$activity','$water','$date')
     ");

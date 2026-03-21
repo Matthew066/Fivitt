@@ -24,8 +24,8 @@ if ($userDepartment === '') {
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS coaches (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        user_id BIGINT(20) NULL,
+        id_coaches INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        id_users BIGINT(20) NULL,
         coach_name VARCHAR(150) NOT NULL,
         coach_email VARCHAR(190) NOT NULL DEFAULT '',
         coach_phone VARCHAR(50) NOT NULL DEFAULT '',
@@ -36,19 +36,67 @@ $pdo->exec("
         rate_text VARCHAR(140) NOT NULL DEFAULT '',
         visibility VARCHAR(12) NOT NULL DEFAULT 'public',
         department_scope VARCHAR(100) NOT NULL DEFAULT '',
-        created_by BIGINT(20) NULL,
+        id_users_created_by BIGINT(20) NULL,
         is_active TINYINT(1) NOT NULL DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY uq_coaches_user_id (user_id),
+        UNIQUE KEY uq_coaches_user_id (id_users),
         KEY idx_coaches_visibility (is_active, visibility, department_scope, created_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ");
 
+function columnExists(PDO $pdo, string $tableName, string $columnName): bool
+{
+    static $dbName = null;
+    if ($dbName === null) {
+        $dbName = (string) $pdo->query("SELECT DATABASE()")->fetchColumn();
+    }
+    if ($dbName === '') return false;
+
+    $stmt = $pdo->prepare("
+        SELECT 1
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = ?
+          AND TABLE_NAME = ?
+          AND COLUMN_NAME = ?
+        LIMIT 1
+    ");
+    $stmt->execute([$dbName, $tableName, $columnName]);
+    return (bool) $stmt->fetchColumn();
+}
+
+function addColumnIfMissing(PDO $pdo, string $tableName, string $columnName, string $ddl): void
+{
+    if (!columnExists($pdo, $tableName, $columnName)) {
+        $pdo->exec("ALTER TABLE {$tableName} ADD COLUMN {$columnName} {$ddl}");
+    }
+}
+
+addColumnIfMissing($pdo, 'coaches', 'is_blacklisted', 'TINYINT(1) NOT NULL DEFAULT 0');
+addColumnIfMissing($pdo, 'coaches', 'is_trusted', 'TINYINT(1) NOT NULL DEFAULT 0');
+addColumnIfMissing($pdo, 'coaches', 'trusted_badge_path', 'VARCHAR(255) NULL');
+
+function autoTrustCoaches(PDO $pdo, int $minSessions = 100): void
+{
+    $stmt = $pdo->prepare("
+        UPDATE coaches c
+        JOIN (
+            SELECT id_coaches, COUNT(*) AS total_sessions
+            FROM coach_sessions
+            GROUP BY id_coaches
+        ) s ON s.id_coaches = c.id_coaches
+        SET c.is_trusted = 1
+        WHERE s.total_sessions >= ?
+    ");
+    $stmt->execute([$minSessions]);
+}
+
+autoTrustCoaches($pdo, 100);
+
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS coach_sessions (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        coach_id INT UNSIGNED NOT NULL,
-        requester_user_id BIGINT(20) NOT NULL,
+        id_coach_sessions INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        id_coaches INT UNSIGNED NOT NULL,
+        id_users BIGINT(20) NOT NULL,
         session_date DATE NOT NULL,
         start_time TIME NOT NULL,
         end_time TIME NOT NULL,
@@ -56,8 +104,8 @@ $pdo->exec("
         notes TEXT NOT NULL,
         status VARCHAR(16) NOT NULL DEFAULT 'requested',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        KEY idx_sessions_coach_status (coach_id, status, created_at),
-        KEY idx_sessions_requester (requester_user_id, created_at)
+        KEY idx_sessions_coach_status (id_coaches, status, created_at),
+        KEY idx_sessions_requester (id_users, created_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ");
 
@@ -78,11 +126,11 @@ function isValidTimeOrder(string $start, string $end): bool {
     return $s !== false && $e !== false && $e > $s;
 }
 
-$coachSelfStmt = $pdo->prepare('SELECT id, coach_name FROM coaches WHERE user_id = ? AND is_active = 1 LIMIT 1');
+$coachSelfStmt = $pdo->prepare('SELECT id_coaches, coach_name FROM coaches WHERE id_users = ? AND is_active = 1 AND is_blacklisted = 0 LIMIT 1');
 $coachSelfStmt->execute([$userId]);
 $selfCoach = $coachSelfStmt->fetch(PDO::FETCH_ASSOC) ?: null;
 $isCoach = (bool) $selfCoach;
-$selfCoachId = $isCoach ? (int) ($selfCoach['id'] ?? 0) : 0;
+$selfCoachId = $isCoach ? (int) ($selfCoach['id_coaches'] ?? 0) : 0;
 
 function canSeeCoach(array $coachRow, string $userDepartment): bool {
     $visibility = strtolower(trim((string) ($coachRow['visibility'] ?? 'public')));
@@ -98,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'request_session') {
         $tab = 'request';
 
-        $coachId = (int) ($_POST['coach_id'] ?? 0);
+        $coachId = (int) ($_POST['id_coaches'] ?? 0);
         $sessionDate = trim((string) ($_POST['session_date'] ?? ''));
         $startTime = trim((string) ($_POST['start_time'] ?? ''));
         $endTime = trim((string) ($_POST['end_time'] ?? ''));
@@ -116,9 +164,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $coachRow = null;
         if (!$errors) {
             $coachStmt = $pdo->prepare("
-                SELECT id, coach_name, visibility, department_scope, is_active
+                SELECT id_coaches, coach_name, visibility, department_scope, is_active, is_blacklisted
                 FROM coaches
-                WHERE id = ? AND is_active = 1
+                WHERE id_coaches = ? AND is_active = 1 AND is_blacklisted = 0
                 LIMIT 1
             ");
             $coachStmt->execute([$coachId]);
@@ -133,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$errors) {
             $insert = $pdo->prepare("
                 INSERT INTO coach_sessions
-                (coach_id, requester_user_id, session_date, start_time, end_time, location_text, notes, status)
+                (id_coaches, id_users, session_date, start_time, end_time, location_text, notes, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, 'requested')
             ");
             $insert->execute([
@@ -159,10 +207,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sess = null;
         if (!$errors) {
             $sessStmt = $pdo->prepare("
-                SELECT s.*, c.user_id AS coach_user_id
+                SELECT s.*, c.id_users AS coach_user_id
                 FROM coach_sessions s
-                JOIN coaches c ON c.id = s.coach_id
-                WHERE s.id = ?
+                JOIN coaches c ON c.id_coaches = s.id_coaches
+                WHERE s.id_coach_sessions = ?
                 LIMIT 1
             ");
             $sessStmt->execute([$sessionId]);
@@ -174,7 +222,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$errors && $sess) {
             $statusNow = normalizeStatus((string) ($sess['status'] ?? 'requested'));
-            $requesterId = (int) ($sess['requester_user_id'] ?? 0);
+            $requesterId = (int) ($sess['id_users'] ?? 0);
             $coachUserId = (int) ($sess['coach_user_id'] ?? 0);
 
             $isRequester = ($requesterId > 0 && $requesterId === $userId);
@@ -200,7 +248,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$allowed) {
                 $errors[] = 'Aksi tidak diizinkan untuk status saat ini.';
             } else {
-                $up = $pdo->prepare('UPDATE coach_sessions SET status = ? WHERE id = ?');
+                $up = $pdo->prepare('UPDATE coach_sessions SET status = ? WHERE id_coach_sessions = ?');
                 $up->execute([$newStatus, $sessionId]);
                 $success = 'Status sesi berhasil diperbarui.';
             }
@@ -209,22 +257,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $coachesStmt = $pdo->prepare("
-    SELECT id, coach_name, rate_type, rate_text, visibility, department_scope
+    SELECT id_coaches, coach_name, rate_type, rate_text, visibility, department_scope, is_trusted
     FROM coaches
-    WHERE is_active = 1
+    WHERE is_active = 1 AND is_blacklisted = 0
       AND (visibility = 'public' OR (visibility = 'private' AND department_scope = ?))
-    ORDER BY created_at DESC, id DESC
+    ORDER BY created_at DESC, id_coaches DESC
 ");
 $coachesStmt->execute([$userDepartment]);
 $availableCoaches = $coachesStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 $mineStmt = $pdo->prepare("
-    SELECT s.id, s.session_date, s.start_time, s.end_time, s.location_text, s.notes, s.status, s.created_at,
-           c.coach_name, c.rate_type, c.rate_text
+    SELECT s.id_coach_sessions, s.session_date, s.start_time, s.end_time, s.location_text, s.notes, s.status, s.created_at,
+           c.coach_name, c.rate_type, c.rate_text, c.is_trusted, c.trusted_badge_path
     FROM coach_sessions s
-    JOIN coaches c ON c.id = s.coach_id
-    WHERE s.requester_user_id = ?
-    ORDER BY s.created_at DESC, s.id DESC
+    JOIN coaches c ON c.id_coaches = s.id_coaches
+    WHERE s.id_users = ?
+    ORDER BY s.created_at DESC, s.id_coach_sessions DESC
 ");
 $mineStmt->execute([$userId]);
 $mySessions = $mineStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -232,12 +280,12 @@ $mySessions = $mineStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 $managedSessions = [];
 if ($isCoach && $selfCoachId > 0) {
     $manageStmt = $pdo->prepare("
-        SELECT s.id, s.session_date, s.start_time, s.end_time, s.location_text, s.notes, s.status, s.created_at,
+        SELECT s.id_coach_sessions, s.session_date, s.start_time, s.end_time, s.location_text, s.notes, s.status, s.created_at,
                u.name AS requester_name, u.email AS requester_email
         FROM coach_sessions s
-        JOIN users u ON u.id_users = s.requester_user_id
-        WHERE s.coach_id = ?
-        ORDER BY s.created_at DESC, s.id DESC
+        JOIN users u ON u.id_users = s.id_users
+        WHERE s.id_coaches = ?
+        ORDER BY s.created_at DESC, s.id_coach_sessions DESC
     ");
     $manageStmt->execute([$selfCoachId]);
     $managedSessions = $manageStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -328,17 +376,20 @@ if ($isCoach && $selfCoachId > 0) {
 
                     <div class="input-grid">
                         <div class="input-group">
-                            <label for="coach_id">Pilih coach</label>
-                            <select id="coach_id" name="coach_id" required>
+                            <label for="id_coaches">Pilih coach</label>
+                            <select id="id_coaches" name="id_coaches" required>
                                 <option value="">-- pilih --</option>
-                                <?php $selCoach = (string) ($_POST['coach_id'] ?? ''); ?>
+                                <?php $selCoach = (string) ($_POST['id_coaches'] ?? ''); ?>
                                 <?php foreach ($availableCoaches as $c): ?>
                                     <?php
-                                        $cid = (int) ($c['id'] ?? 0);
+                                        $cid = (int) ($c['id_coaches'] ?? 0);
                                         $label = (string) ($c['coach_name'] ?? '');
                                         $rateType = strtolower(trim((string) ($c['rate_type'] ?? 'free')));
                                         $rateText = trim((string) ($c['rate_text'] ?? ''));
                                         $suffix = $rateType === 'paid' ? (' — Paid: ' . ($rateText !== '' ? $rateText : 'lihat info')) : ' — Free';
+                                        if (!empty($c['is_trusted'])) {
+                                            $suffix = ' — Trusted' . $suffix;
+                                        }
                                     ?>
                                     <option value="<?= $cid ?>"<?= ((string) $cid) === $selCoach ? ' selected' : '' ?>>
                                         <?= htmlspecialchars($label . $suffix, ENT_QUOTES, 'UTF-8') ?>
@@ -399,6 +450,9 @@ if ($isCoach && $selfCoachId > 0) {
                                 <h3><?= htmlspecialchars((string) ($s['coach_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></h3>
                                 <span class="badge <?= htmlspecialchars($st, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($st, ENT_QUOTES, 'UTF-8') ?></span>
                             </div>
+                            <?php if (!empty($s['is_trusted'])): ?>
+                                <div class="meta"><strong>Trusted Coach</strong></div>
+                            <?php endif; ?>
                             <div class="meta">
                                 Tanggal: <?= htmlspecialchars((string) ($s['session_date'] ?? ''), ENT_QUOTES, 'UTF-8') ?>,
                                 <?= htmlspecialchars((string) ($s['start_time'] ?? ''), ENT_QUOTES, 'UTF-8') ?> - <?= htmlspecialchars((string) ($s['end_time'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
@@ -418,7 +472,7 @@ if ($isCoach && $selfCoachId > 0) {
                                 <form method="POST" class="btn-row">
                                     <input type="hidden" name="action" value="update_session_status">
                                     <input type="hidden" name="return_tab" value="mine">
-                                    <input type="hidden" name="session_id" value="<?= (int) ($s['id'] ?? 0) ?>">
+                                    <input type="hidden" name="session_id" value="<?= (int) ($s['id_coach_sessions'] ?? 0) ?>">
                                     <input type="hidden" name="new_status" value="cancelled">
                                     <button class="btn danger" type="submit">Cancel</button>
                                 </form>
@@ -463,7 +517,7 @@ if ($isCoach && $selfCoachId > 0) {
                             <form method="POST" class="btn-row">
                                 <input type="hidden" name="action" value="update_session_status">
                                 <input type="hidden" name="return_tab" value="manage">
-                                <input type="hidden" name="session_id" value="<?= (int) ($s['id'] ?? 0) ?>">
+                                <input type="hidden" name="session_id" value="<?= (int) ($s['id_coach_sessions'] ?? 0) ?>">
 
                                 <?php if ($canApproveReject): ?>
                                     <button class="btn ok" type="submit" name="new_status" value="approved">Approve</button>

@@ -7,7 +7,7 @@ include 'includes/header.php';
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS gym_membership_plans (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        id_gym_membership_plans INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         plan_name VARCHAR(100) NOT NULL,
         price_text VARCHAR(80) NOT NULL,
         description_text VARCHAR(255) NOT NULL,
@@ -20,9 +20,9 @@ $pdo->exec("
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS gym_partner_gyms (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        id_gym_partner_gyms INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         gym_name VARCHAR(120) NOT NULL,
-        area_name VARCHAR(120) NOT NULL,
+        address_text VARCHAR(255) NOT NULL,
         distance_text VARCHAR(32) NOT NULL,
         rating DECIMAL(2,1) NOT NULL DEFAULT 0.0,
         day_pass_price_text VARCHAR(80) NOT NULL,
@@ -34,9 +34,40 @@ $pdo->exec("
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ");
 
+function columnExists(PDO $pdo, string $tableName, string $columnName): bool
+{
+    static $dbName = null;
+    if ($dbName === null) {
+        $dbName = (string) $pdo->query("SELECT DATABASE()")->fetchColumn();
+    }
+    if ($dbName === '') return false;
+
+    $stmt = $pdo->prepare("
+        SELECT 1
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = ?
+          AND TABLE_NAME = ?
+          AND COLUMN_NAME = ?
+        LIMIT 1
+    ");
+    $stmt->execute([$dbName, $tableName, $columnName]);
+    return (bool) $stmt->fetchColumn();
+}
+
+function addColumnIfMissing(PDO $pdo, string $tableName, string $columnName, string $ddl): void
+{
+    if (!columnExists($pdo, $tableName, $columnName)) {
+        $pdo->exec("ALTER TABLE {$tableName} ADD COLUMN {$columnName} {$ddl}");
+    }
+}
+
+addColumnIfMissing($pdo, 'gym_partner_gyms', 'address_text', 'VARCHAR(255) NULL');
+addColumnIfMissing($pdo, 'gym_partner_gyms', 'latitude', 'DECIMAL(10,7) NULL');
+addColumnIfMissing($pdo, 'gym_partner_gyms', 'longitude', 'DECIMAL(10,7) NULL');
+
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS gym_map_settings (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        id_gym_map_settings INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         map_title VARCHAR(120) NOT NULL DEFAULT 'Peta Partner Gym',
         map_description VARCHAR(255) NOT NULL DEFAULT '',
         map_embed_url TEXT NOT NULL,
@@ -47,7 +78,7 @@ $pdo->exec("
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS gym_partnership_requests (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        id_gym_partnership_requests INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         company_name VARCHAR(150) NOT NULL,
         contact_name VARCHAR(120) NOT NULL,
         email VARCHAR(150) NOT NULL,
@@ -98,7 +129,7 @@ $membershipRows = $pdo->query("
     SELECT plan_name, price_text, description_text, features_text
     FROM gym_membership_plans
     WHERE is_active = 1
-    ORDER BY sort_order ASC, id ASC
+    ORDER BY sort_order ASC, id_gym_membership_plans ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 $memberships = array_map(static function (array $row): array {
@@ -113,18 +144,19 @@ $memberships = array_map(static function (array $row): array {
 }, $membershipRows);
 
 $partnerRows = $pdo->query("
-    SELECT gym_name, area_name, distance_text, rating, day_pass_price_text, member_rate_price_text, tags_text
+    SELECT gym_name, address_text, latitude, longitude, rating, day_pass_price_text, member_rate_price_text, tags_text
     FROM gym_partner_gyms
     WHERE is_active = 1
-    ORDER BY sort_order ASC, id ASC
+    ORDER BY sort_order ASC, id_gym_partner_gyms ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 $partnerGyms = array_map(static function (array $row): array {
     $tags = array_filter(array_map('trim', explode(',', (string) ($row['tags_text'] ?? ''))), static fn($item) => $item !== '');
     return [
         'name' => $row['gym_name'] ?? '',
-        'area' => $row['area_name'] ?? '',
-        'distance' => $row['distance_text'] ?? '',
+        'address' => $row['address_text'] ?? '',
+        'lat' => $row['latitude'] ?? null,
+        'lng' => $row['longitude'] ?? null,
         'rating' => number_format((float) ($row['rating'] ?? 0), 1),
         'day_pass' => $row['day_pass_price_text'] ?? '',
         'member_rate' => $row['member_rate_price_text'] ?? '',
@@ -136,7 +168,7 @@ $mapRow = $pdo->query("
     SELECT map_title, map_description, map_embed_url
     FROM gym_map_settings
     WHERE is_active = 1
-    ORDER BY id DESC
+    ORDER BY id_gym_map_settings DESC
     LIMIT 1
 ")->fetch(PDO::FETCH_ASSOC) ?: [];
 
@@ -231,17 +263,25 @@ $mapEmbedUrl = trim((string) ($mapRow['map_embed_url'] ?? ''));
     <section class="gym-section">
         <h2 class="gym-title">Partner Gym & Harga</h2>
         <p class="gym-sub">Akses gym terdekat dengan harga member FiVit.</p>
+        <div class="cta-row" style="margin-bottom:10px;">
+            <button class="btn btn-outline" id="use-location-btn" type="button">Gunakan lokasi saya</button>
+            <span class="pill" id="location-status">Tolong aktifkan lokasi</span>
+        </div>
         <div class="grid-3">
             <?php if (!$partnerGyms): ?>
                 <article class="mini-card"><div class="empty-data">Belum ada data partner gym di database.</div></article>
             <?php else: ?>
                 <?php foreach ($partnerGyms as $gym): ?>
-                    <article class="mini-card">
+                    <article class="mini-card gym-card" data-lat="<?= htmlspecialchars((string)($gym['lat'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-lng="<?= htmlspecialchars((string)($gym['lng'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                         <div class="gym-head">
                             <h3 class="gym-name"><?= htmlspecialchars($gym['name']) ?></h3>
                             <span class="rating">&#9733; <?= htmlspecialchars($gym['rating']) ?></span>
                         </div>
-                        <p class="meta"><?= htmlspecialchars($gym['area']) ?> &bull; <?= htmlspecialchars($gym['distance']) ?></p>
+                        <p class="meta">
+                            <?= htmlspecialchars($gym['address']) ?>
+                            &bull;
+                            <span class="distance-text">Tolong aktifkan lokasi</span>
+                        </p>
                         <div class="price-box">
                             Day Pass: <strong><?= htmlspecialchars($gym['day_pass']) ?></strong><br>
                             FiVit Member Rate: <strong><?= htmlspecialchars($gym['member_rate']) ?></strong>
@@ -338,6 +378,68 @@ $mapEmbedUrl = trim((string) ($mapRow['map_embed_url'] ?? ''));
     const formWrap = document.getElementById('partnership-form');
     if (!trigger || !formWrap) return;
     trigger.addEventListener('click', () => formWrap.classList.remove('hidden'));
+})();
+
+(() => {
+    const cards = Array.from(document.querySelectorAll('.gym-card'));
+    if (!cards.length) return;
+
+    const statusEl = document.getElementById('location-status');
+    const setFallback = (msg) => {
+        cards.forEach((card) => {
+            const el = card.querySelector('.distance-text');
+            if (el) el.textContent = msg || 'Tolong aktifkan lokasi';
+        });
+        if (statusEl) statusEl.textContent = msg || 'Tolong aktifkan lokasi';
+    };
+
+    if (!navigator.geolocation) {
+        setFallback('Browser tidak mendukung lokasi');
+        return;
+    }
+
+    const toRad = (v) => (v * Math.PI) / 180;
+    const distanceKm = (lat1, lng1, lat2, lng2) => {
+        const R = 6371;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLng / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    };
+
+    const applyLocation = (pos) => {
+        const userLat = pos.coords.latitude;
+        const userLng = pos.coords.longitude;
+        cards.forEach((card) => {
+            const lat = parseFloat(card.dataset.lat || '');
+            const lng = parseFloat(card.dataset.lng || '');
+            const el = card.querySelector('.distance-text');
+            if (!el) return;
+            if (isNaN(lat) || isNaN(lng)) {
+                el.textContent = 'Alamat belum lengkap';
+                return;
+            }
+            const km = distanceKm(userLat, userLng, lat, lng);
+            el.textContent = `${km.toFixed(1)} km dari lokasi kamu`;
+        });
+        if (statusEl) statusEl.textContent = 'Lokasi aktif';
+    };
+
+    const requestLocation = () => {
+        if (statusEl) statusEl.textContent = 'Meminta lokasi...';
+        navigator.geolocation.getCurrentPosition(applyLocation, () => {
+            setFallback('Izin lokasi ditolak');
+        }, { enableHighAccuracy: false, timeout: 5000 });
+    };
+
+    const btn = document.getElementById('use-location-btn');
+    if (btn) btn.addEventListener('click', requestLocation);
+
+    // Auto prompt on load (optional), can be removed if you want button-only.
+    requestLocation();
 })();
 </script>
 

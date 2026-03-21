@@ -25,8 +25,8 @@ if ($userDepartment === '') {
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS coaches (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        user_id BIGINT(20) NULL,
+        id_coaches INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        id_users BIGINT(20) NULL,
         coach_name VARCHAR(150) NOT NULL,
         coach_email VARCHAR(190) NOT NULL DEFAULT '',
         coach_phone VARCHAR(50) NOT NULL DEFAULT '',
@@ -37,13 +37,62 @@ $pdo->exec("
         rate_text VARCHAR(140) NOT NULL DEFAULT '',
         visibility VARCHAR(12) NOT NULL DEFAULT 'public',
         department_scope VARCHAR(100) NOT NULL DEFAULT '',
-        created_by BIGINT(20) NULL,
+        id_users_created_by BIGINT(20) NULL,
         is_active TINYINT(1) NOT NULL DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY uq_coaches_user_id (user_id),
+        UNIQUE KEY uq_coaches_user_id (id_users),
         KEY idx_coaches_visibility (is_active, visibility, department_scope, created_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ");
+
+function columnExists(PDO $pdo, string $tableName, string $columnName): bool
+{
+    static $dbName = null;
+    if ($dbName === null) {
+        $dbName = (string) $pdo->query("SELECT DATABASE()")->fetchColumn();
+    }
+    if ($dbName === '') return false;
+
+    $stmt = $pdo->prepare("
+        SELECT 1
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = ?
+          AND TABLE_NAME = ?
+          AND COLUMN_NAME = ?
+        LIMIT 1
+    ");
+    $stmt->execute([$dbName, $tableName, $columnName]);
+    return (bool) $stmt->fetchColumn();
+}
+
+function addColumnIfMissing(PDO $pdo, string $tableName, string $columnName, string $ddl): void
+{
+    if (!columnExists($pdo, $tableName, $columnName)) {
+        $pdo->exec("ALTER TABLE {$tableName} ADD COLUMN {$columnName} {$ddl}");
+    }
+}
+
+addColumnIfMissing($pdo, 'coaches', 'photo_path', 'VARCHAR(255) NULL');
+addColumnIfMissing($pdo, 'coaches', 'is_blacklisted', 'TINYINT(1) NOT NULL DEFAULT 0');
+addColumnIfMissing($pdo, 'coaches', 'is_trusted', 'TINYINT(1) NOT NULL DEFAULT 0');
+addColumnIfMissing($pdo, 'coaches', 'trusted_badge_path', 'VARCHAR(255) NULL');
+
+function autoTrustCoaches(PDO $pdo, int $minSessions = 100): void
+{
+    $stmt = $pdo->prepare("
+        UPDATE coaches c
+        JOIN (
+            SELECT id_coaches, COUNT(*) AS total_sessions
+            FROM coach_sessions
+            GROUP BY id_coaches
+        ) s ON s.id_coaches = c.id_coaches
+        SET c.is_trusted = 1
+        WHERE s.total_sessions >= ?
+    ");
+    $stmt->execute([$minSessions]);
+}
+
+autoTrustCoaches($pdo, 100);
 
 $tab = (string) ($_GET['tab'] ?? 'directory');
 $tab = in_array($tab, ['directory', 'invite', 'register'], true) ? $tab : 'directory';
@@ -109,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$errors) {
             $insert = $pdo->prepare("
                 INSERT INTO coaches
-                (user_id, coach_name, coach_email, coach_phone, coach_bio, specialties_text, coach_type, rate_type, rate_text, visibility, department_scope, created_by)
+                (id_users, coach_name, coach_email, coach_phone, coach_bio, specialties_text, coach_type, rate_type, rate_text, visibility, department_scope, id_users_created_by)
                 VALUES (NULL, ?, ?, ?, ?, ?, 'external', ?, ?, ?, ?, ?)
             ");
             $insert->execute([
@@ -148,7 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!$errors) {
-            $existing = $pdo->prepare('SELECT id FROM coaches WHERE user_id = ? LIMIT 1');
+            $existing = $pdo->prepare('SELECT id_coaches FROM coaches WHERE id_users = ? LIMIT 1');
             $existing->execute([$userId]);
             $existingRow = $existing->fetch(PDO::FETCH_ASSOC);
 
@@ -157,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     UPDATE coaches
                     SET coach_name = ?, coach_bio = ?, specialties_text = ?, coach_type = 'internal',
                         rate_type = ?, rate_text = ?, visibility = ?, department_scope = ?, is_active = 1
-                    WHERE user_id = ?
+                    WHERE id_users = ?
                 ");
                 $update->execute([
                     $coachName,
@@ -172,10 +221,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $success = 'Profil coach kamu berhasil diperbarui.';
             } else {
                 $insert = $pdo->prepare("
-                    INSERT INTO coaches
-                    (user_id, coach_name, coach_email, coach_phone, coach_bio, specialties_text, coach_type, rate_type, rate_text, visibility, department_scope, created_by)
-                    VALUES (?, ?, '', '', ?, ?, 'internal', ?, ?, ?, ?, ?)
-                ");
+                INSERT INTO coaches
+                (id_users, coach_name, coach_email, coach_phone, coach_bio, specialties_text, coach_type, rate_type, rate_text, visibility, department_scope, id_users_created_by)
+                VALUES (?, ?, '', '', ?, ?, 'internal', ?, ?, ?, ?, ?)
+            ");
                 $insert->execute([
                     $userId,
                     $coachName,
@@ -194,11 +243,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $coachStmt = $pdo->prepare("
-    SELECT id, coach_name, coach_email, coach_phone, coach_bio, specialties_text, coach_type, rate_type, rate_text, visibility, department_scope, created_at
+    SELECT id_coaches, coach_name, coach_email, coach_phone, coach_bio, specialties_text, coach_type, rate_type, rate_text,
+           visibility, department_scope, created_at, photo_path, is_trusted, trusted_badge_path
     FROM coaches
-    WHERE is_active = 1
+    WHERE is_active = 1 AND is_blacklisted = 0
       AND (visibility = 'public' OR (visibility = 'private' AND department_scope = ?))
-    ORDER BY created_at DESC, id DESC
+    ORDER BY created_at DESC, id_coaches DESC
 ");
 $coachStmt->execute([$userDepartment]);
 $coachRows = $coachStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -213,7 +263,7 @@ $coaches = array_map(static function (array $row): array {
     $visibility = normalizeVisibility((string) ($row['visibility'] ?? 'public'));
 
     return [
-        'id' => (int) ($row['id'] ?? 0),
+        'id' => (int) ($row['id_coaches'] ?? 0),
         'name' => (string) ($row['coach_name'] ?? ''),
         'email' => (string) ($row['coach_email'] ?? ''),
         'phone' => (string) ($row['coach_phone'] ?? ''),
@@ -225,6 +275,9 @@ $coaches = array_map(static function (array $row): array {
         'visibility' => $visibility,
         'department_scope' => (string) ($row['department_scope'] ?? ''),
         'created_at' => (string) ($row['created_at'] ?? ''),
+        'photo_path' => (string) ($row['photo_path'] ?? ''),
+        'is_trusted' => (int) ($row['is_trusted'] ?? 0),
+        'trusted_badge_path' => (string) ($row['trusted_badge_path'] ?? ''),
     ];
 }, $coachRows);
 ?>
@@ -246,6 +299,8 @@ $coaches = array_map(static function (array $row): array {
 .grid-2 { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
 .card { background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:14px; }
 .card-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+.trusted-badge { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; border-radius:999px; padding:6px 10px; background:#ecfeff; border:1px solid #a5f3fc; color:#155e75; }
+.trusted-badge img { width:18px; height:18px; border-radius:50%; object-fit:cover; }
 .coach-name { margin:0; font-size:16px; color:#0f172a; }
 .badge { font-size:11px; font-weight:800; border-radius:999px; padding:6px 10px; white-space:nowrap; border:1px solid #e2e8f0; background:#f8fafc; color:#0f172a; }
 .badge.internal { background:#ecfdf5; border-color:#bbf7d0; color:#166534; }
@@ -302,6 +357,14 @@ $coaches = array_map(static function (array $row): array {
                             <div class="card-top">
                                 <h3 class="coach-name"><?= htmlspecialchars($coach['name'], ENT_QUOTES, 'UTF-8') ?></h3>
                                 <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                                    <?php if (!empty($coach['is_trusted'])): ?>
+                                        <span class="trusted-badge">
+                                            <?php if (!empty($coach['trusted_badge_path'])): ?>
+                                                <img src="<?= htmlspecialchars($coach['trusted_badge_path'], ENT_QUOTES, 'UTF-8') ?>" alt="Trusted">
+                                            <?php endif; ?>
+                                            Trusted
+                                        </span>
+                                    <?php endif; ?>
                                     <span class="badge <?= $coach['coach_type'] === 'internal' ? 'internal' : 'external' ?>">
                                         <?= $coach['coach_type'] === 'internal' ? 'Internal' : 'External' ?>
                                     </span>
@@ -453,7 +516,7 @@ $coaches = array_map(static function (array $row): array {
                     <div class="input-group">
                         <label for="self_name">Nama coach</label>
                         <input id="self_name" name="coach_name" type="text" value="<?= htmlspecialchars((string) ($_POST['coach_name'] ?? ($userName !== '' ? $userName : '')), ENT_QUOTES, 'UTF-8') ?>" required>
-                        <div class="hint">Di-link ke akun kamu (user_id: <?= (int) $userId ?>).</div>
+                        <div class="hint">Di-link ke akun kamu (id_users: <?= (int) $userId ?>).</div>
                     </div>
                     <div class="input-group">
                         <label for="self_visibility">Visibility</label>

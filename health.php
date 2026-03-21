@@ -12,14 +12,14 @@ $today = date('Y-m-d');
 
 $check = $pdo->prepare("
     SELECT * FROM daily_checkins
-    WHERE user_id = ? AND checkin_date = ?
+    WHERE id_users = ? AND checkin_date = ?
 ");
 $check->execute([$user_id, $today]);
 $todayData = $check->fetch(PDO::FETCH_ASSOC);
 
 if (!$todayData) {
     $insert = $pdo->prepare("
-        INSERT INTO daily_checkins (user_id, checkin_date, activity_minutes, water_intake_ml)
+        INSERT INTO daily_checkins (id_users, checkin_date, activity_minutes, water_intake_ml)
         VALUES (?, ?, 0, 0)
     ");
     $insert->execute([$user_id, $today]);
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $update = $pdo->prepare("
         UPDATE daily_checkins
         SET activity_minutes = ?, water_intake_ml = ?
-        WHERE user_id = ? AND checkin_date = ?
+        WHERE id_users = ? AND checkin_date = ?
     ");
     $update->execute([$activity, $water, $user_id, $today]);
 
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $insertBMI = $pdo->prepare("
             INSERT INTO bmi_records 
-            (user_id, height_cm, weight_kg, bmi_value, recorded_at)
+            (id_users, height_cm, weight_kg, bmi_value, recorded_at)
             VALUES (?, ?, ?, ?, CURDATE())
         ");
         $insertBMI->execute([$user_id, $height, $weight, $bmi]);
@@ -108,7 +108,7 @@ if ($water_ml <= 0) {
 $bmiStmt = $pdo->prepare("
     SELECT bmi_value, height_cm, weight_kg
     FROM bmi_records
-    WHERE user_id = ?
+    WHERE id_users = ?
     ORDER BY recorded_at DESC
     LIMIT 1
 ");
@@ -155,7 +155,7 @@ if ($bmi == 0) {
 $stmt = $pdo->prepare("
     SELECT activity_minutes, water_intake_ml
     FROM daily_checkins
-    WHERE user_id = ?
+    WHERE id_users = ?
     AND checkin_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
 ");
 $stmt->execute([$user_id]);
@@ -177,7 +177,7 @@ $waterDailyAvgMl = $checkinCount ? ($weeklyWaterMl / $checkinCount) : 0;
 $sleepStmt = $pdo->prepare("
     SELECT sleep_date, sleep_start, sleep_end
     FROM sleep_logs
-    WHERE user_id = ?
+    WHERE id_users = ?
     AND sleep_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
 ");
 $sleepStmt->execute([$user_id]);

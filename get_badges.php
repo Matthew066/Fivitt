@@ -14,8 +14,8 @@ $userId = $_SESSION['user_id'];
 $stmt = $pdo->prepare("
     SELECT b.name, b.icon
     FROM user_badges ub
-    JOIN badges b ON ub.badge_id = b.id_badges
-    WHERE ub.user_id = ?
+    JOIN badges b ON ub.id_badges = b.id_badges
+    WHERE ub.id_users = ?
 ");
 $stmt->execute([$userId]);
 
