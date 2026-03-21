@@ -20,24 +20,13 @@ $isLoggedIn = isset($_SESSION['user_id']);
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/style.css?v=1">
+    <link rel="stylesheet" href="assets/style.css">
     <link rel="stylesheet" href="assets/css/style.css?v=1">
     <link rel="stylesheet" href="assets/css/media-query.css">
     <?php foreach ($extraStyles as $stylePath): ?>
         <?php if (!is_string($stylePath) || trim($stylePath) === '') continue; ?>
         <link rel="stylesheet" href="<?= htmlspecialchars($stylePath, ENT_QUOTES, 'UTF-8') ?>">
     <?php endforeach; ?>
-    <style>
-        body.has-fivit-cursor{cursor:none}
-        .fivit-cursor{position:fixed;top:0;left:0;width:14px;height:14px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.18);pointer-events:none;z-index:10000;transform:translate(-50%,-50%);transition:transform .15s ease,background .2s ease,box-shadow .2s ease,opacity .2s ease;opacity:0}
-        .fivit-cursor-ring{position:fixed;top:0;left:0;width:34px;height:34px;border-radius:50%;border:2px solid rgba(79,172,254,.65);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .18s ease,border-color .2s ease,opacity .2s ease;opacity:0}
-        .fivit-cursor.is-active,.fivit-cursor-ring.is-active{opacity:1}
-        .fivit-cursor.is-hover{transform:translate(-50%,-50%) scale(1.35);background:#4facfe;box-shadow:0 0 0 6px rgba(79,172,254,.2)}
-        .fivit-cursor-ring.is-hover{transform:translate(-50%,-50%) scale(1.15);border-color:rgba(34,197,94,.7)}
-        .fivit-cursor.is-click{transform:translate(-50%,-50%) scale(.85)}
-        .fivit-cursor-ring.is-click{transform:translate(-50%,-50%) scale(.9)}
-        @media (max-width:768px){body.has-fivit-cursor{cursor:auto}.fivit-cursor,.fivit-cursor-ring{display:none}}
-    </style>
 </head>
 <body<?= $bodyClass !== '' ? ' class="' . htmlspecialchars((string) $bodyClass, ENT_QUOTES, 'UTF-8') . '"' : '' ?>>
 
