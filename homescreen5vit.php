@@ -1,5 +1,7 @@
 ﻿<?php
 session_start();
+require_once 'includes/auth_guard.php';
+require_login();
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;

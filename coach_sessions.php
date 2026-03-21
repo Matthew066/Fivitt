@@ -3,13 +3,14 @@ session_start();
 require_once 'includes/db.php';
 
 $pageTitle = 'Coach Sessions';
+$isLoggedIn = isset($_SESSION['user_id']);
 include 'includes/header.php';
 
-$userId = (int) ($_SESSION['user_id'] ?? 1);
+$userId = (int) ($_SESSION['user_id'] ?? 0);
 $userName = trim((string) ($_SESSION['user_name'] ?? ''));
 $userDepartment = trim((string) ($_SESSION['user_department'] ?? ''));
 
-if ($userDepartment === '' && $userId > 0) {
+if ($isLoggedIn && $userDepartment === '' && $userId > 0) {
     $userStmt = $pdo->prepare('SELECT name, department FROM users WHERE id_users = ? LIMIT 1');
     $userStmt->execute([$userId]);
     $userRow = $userStmt->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -18,9 +19,7 @@ if ($userDepartment === '' && $userId > 0) {
     }
     $userDepartment = trim((string) ($userRow['department'] ?? ''));
 }
-if ($userDepartment === '') {
-    $userDepartment = 'General';
-}
+if ($userDepartment === '') $userDepartment = 'General';
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS coaches (
@@ -126,11 +125,16 @@ function isValidTimeOrder(string $start, string $end): bool {
     return $s !== false && $e !== false && $e > $s;
 }
 
-$coachSelfStmt = $pdo->prepare('SELECT id_coaches, coach_name FROM coaches WHERE id_users = ? AND is_active = 1 AND is_blacklisted = 0 LIMIT 1');
-$coachSelfStmt->execute([$userId]);
-$selfCoach = $coachSelfStmt->fetch(PDO::FETCH_ASSOC) ?: null;
-$isCoach = (bool) $selfCoach;
-$selfCoachId = $isCoach ? (int) ($selfCoach['id_coaches'] ?? 0) : 0;
+$selfCoach = null;
+$isCoach = false;
+$selfCoachId = 0;
+if ($isLoggedIn) {
+    $coachSelfStmt = $pdo->prepare('SELECT id_coaches, coach_name FROM coaches WHERE id_users = ? AND is_active = 1 AND is_blacklisted = 0 LIMIT 1');
+    $coachSelfStmt->execute([$userId]);
+    $selfCoach = $coachSelfStmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    $isCoach = (bool) $selfCoach;
+    $selfCoachId = $isCoach ? (int) ($selfCoach['id_coaches'] ?? 0) : 0;
+}
 
 function canSeeCoach(array $coachRow, string $userDepartment): bool {
     $visibility = strtolower(trim((string) ($coachRow['visibility'] ?? 'public')));
@@ -144,6 +148,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
 
     if ($action === 'request_session') {
+        if (!$isLoggedIn) {
+            $errors[] = 'Silakan login dulu untuk request sesi.';
+        } else {
         $tab = 'request';
 
         $coachId = (int) ($_POST['id_coaches'] ?? 0);
@@ -179,6 +186,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!$errors) {
+            $limit = 2;
+            $paidMember = false; // TODO: integrate payment/plan.
+            if (!$paidMember) {
+                $countStmt = $pdo->prepare("SELECT COUNT(*) FROM coach_sessions WHERE id_users = ?");
+                $countStmt->execute([$userId]);
+                $totalSessions = (int) $countStmt->fetchColumn();
+                if ($totalSessions >= $limit) {
+                    $errors[] = 'Free tier habis. Silakan upgrade membership.';
+                }
+            }
+        }
+
+        if (!$errors) {
             $insert = $pdo->prepare("
                 INSERT INTO coach_sessions
                 (id_coaches, id_users, session_date, start_time, end_time, location_text, notes, status)
@@ -195,7 +215,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             $success = 'Request sesi berhasil dibuat. Tunggu coach approve.';
         }
+        }
     } elseif ($action === 'update_session_status') {
+        if (!$isLoggedIn) {
+            $errors[] = 'Silakan login dulu.';
+        } else {
         $targetTab = (string) ($_POST['return_tab'] ?? 'mine');
         $tab = in_array($targetTab, ['mine', 'manage'], true) ? $targetTab : 'mine';
 
@@ -253,6 +277,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $success = 'Status sesi berhasil diperbarui.';
             }
         }
+        }
     }
 }
 
@@ -260,10 +285,10 @@ $coachesStmt = $pdo->prepare("
     SELECT id_coaches, coach_name, rate_type, rate_text, visibility, department_scope, is_trusted
     FROM coaches
     WHERE is_active = 1 AND is_blacklisted = 0
-      AND (visibility = 'public' OR (visibility = 'private' AND department_scope = ?))
+      AND (visibility = 'public' OR (? = 1 AND visibility = 'private' AND department_scope = ?))
     ORDER BY created_at DESC, id_coaches DESC
 ");
-$coachesStmt->execute([$userDepartment]);
+$coachesStmt->execute([$isLoggedIn ? 1 : 0, $userDepartment]);
 $availableCoaches = $coachesStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 $mineStmt = $pdo->prepare("
@@ -320,6 +345,7 @@ if ($isCoach && $selfCoachId > 0) {
 .btn.danger { color:#991b1b; background:#fef2f2; border-color:#fecaca; }
 .btn.ok { color:#166534; background:#ecfdf5; border-color:#bbf7d0; }
 .btn.warn { color:#9a3412; background:#fff7ed; border-color:#fed7aa; }
+.btn.full { width:100%; }
 .list { display:grid; grid-template-columns: 1fr; gap:12px; }
 .card { background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:14px; }
 .card-top { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:flex-start; }
@@ -368,7 +394,10 @@ if ($isCoach && $selfCoachId > 0) {
             <h2 class="title">Buat request sesi</h2>
             <p class="sub">Coach yang muncul di sini adalah coach public + coach private yang scope-nya sama dengan department kamu (<?= htmlspecialchars($userDepartment, ENT_QUOTES, 'UTF-8') ?>).</p>
 
-            <?php if (!$availableCoaches): ?>
+            <?php if (!$isLoggedIn): ?>
+                <div class="hint">Silakan login untuk request sesi.</div>
+                <a class="btn primary full" href="login.php" style="text-decoration:none;">Login</a>
+            <?php elseif (!$availableCoaches): ?>
                 <div class="hint">Belum ada coach. Tambahkan dulu dari halaman Coach Directory.</div>
             <?php else: ?>
                 <form method="POST">
@@ -425,7 +454,10 @@ if ($isCoach && $selfCoachId > 0) {
                         <div class="hint">Contoh: goal fat loss 8 minggu, fokus mobility, riwayat cedera, dsb.</div>
                     </div>
 
-                    <button class="btn primary" type="submit">Kirim Request</button>
+                    <div class="btn-row">
+                        <button class="btn primary" type="submit">Kirim Request</button>
+                        <a class="btn warn" href="payment.php" style="text-decoration:none;">Upgrade Membership</a>
+                    </div>
                 </form>
             <?php endif; ?>
         </section>
@@ -436,7 +468,10 @@ if ($isCoach && $selfCoachId > 0) {
             <h2 class="title">Sesi saya</h2>
             <p class="sub">Riwayat request kamu ke coach.</p>
 
-            <?php if (!$mySessions): ?>
+            <?php if (!$isLoggedIn): ?>
+                <div class="hint">Silakan login untuk melihat sesi kamu.</div>
+                <a class="btn primary full" href="login.php" style="text-decoration:none;">Login</a>
+            <?php elseif (!$mySessions): ?>
                 <div class="hint">Belum ada request sesi. Buat dari tab <b>Request Sesi</b>.</div>
             <?php else: ?>
                 <div class="list">
@@ -537,8 +572,13 @@ if ($isCoach && $selfCoachId > 0) {
     <?php if ($tab === 'manage' && !$isCoach): ?>
         <section class="section">
             <h2 class="title">Kelola request</h2>
-            <p class="sub">Menu ini hanya muncul kalau akun kamu terdaftar sebagai coach internal.</p>
-            <a class="btn primary" href="coach.php?tab=register" style="text-decoration:none;">Daftar jadi coach</a>
+            <?php if (!$isLoggedIn): ?>
+                <p class="sub">Silakan login dulu untuk mengakses menu ini.</p>
+                <a class="btn primary full" href="login.php" style="text-decoration:none;">Login</a>
+            <?php else: ?>
+                <p class="sub">Menu ini hanya muncul kalau akun kamu terdaftar sebagai coach internal.</p>
+                <a class="btn primary" href="coach.php?tab=register" style="text-decoration:none;">Daftar jadi coach</a>
+            <?php endif; ?>
         </section>
     <?php endif; ?>
 </main>

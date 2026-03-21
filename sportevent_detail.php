@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once 'includes/db.php';
+require_once 'includes/auth_guard.php';
+require_login();
 
 $pageTitle = 'Detail Event';
 include 'includes/header.php';

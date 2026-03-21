@@ -5,11 +5,12 @@ require_once 'includes/db.php';
 $pageTitle = 'Coach Directory';
 include 'includes/header.php';
 
-$userId = (int) ($_SESSION['user_id'] ?? 1);
+$isLoggedIn = isset($_SESSION['user_id']);
+$userId = (int) ($_SESSION['user_id'] ?? 0);
 $userName = trim((string) ($_SESSION['user_name'] ?? ''));
 $userDepartment = trim((string) ($_SESSION['user_department'] ?? ''));
 
-if ($userDepartment === '' && $userId > 0) {
+if ($isLoggedIn && $userDepartment === '' && $userId > 0) {
     $userStmt = $pdo->prepare('SELECT name, department FROM users WHERE id_users = ? LIMIT 1');
     $userStmt->execute([$userId]);
     $userRow = $userStmt->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -19,9 +20,7 @@ if ($userDepartment === '' && $userId > 0) {
     $userDepartment = trim((string) ($userRow['department'] ?? ''));
 }
 
-if ($userDepartment === '') {
-    $userDepartment = 'General';
-}
+if ($userDepartment === '') $userDepartment = 'General';
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS coaches (
@@ -126,6 +125,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
 
     if ($action === 'invite_coach') {
+        if (!$isLoggedIn) {
+            $errors[] = 'Silakan login untuk mengundang coach.';
+            $tab = 'directory';
+        } else {
         $tab = 'invite';
 
         $coachName = trim((string) ($_POST['coach_name'] ?? ''));
@@ -175,7 +178,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             $success = 'Coach berhasil diundang/ditambahkan ke directory.';
         }
+        }
     } elseif ($action === 'register_self') {
+        if (!$isLoggedIn) {
+            $errors[] = 'Silakan login untuk mendaftar sebagai coach.';
+            $tab = 'directory';
+        } else {
         $tab = 'register';
 
         $coachName = trim((string) ($_POST['coach_name'] ?? $userName));
@@ -239,6 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $success = 'Kamu berhasil terdaftar sebagai coach.';
             }
         }
+        }
     }
 }
 
@@ -247,10 +256,10 @@ $coachStmt = $pdo->prepare("
            visibility, department_scope, created_at, photo_path, is_trusted, trusted_badge_path
     FROM coaches
     WHERE is_active = 1 AND is_blacklisted = 0
-      AND (visibility = 'public' OR (visibility = 'private' AND department_scope = ?))
+      AND (visibility = 'public' OR (? = 1 AND visibility = 'private' AND department_scope = ?))
     ORDER BY created_at DESC, id_coaches DESC
 ");
-$coachStmt->execute([$userDepartment]);
+$coachStmt->execute([$isLoggedIn ? 1 : 0, $userDepartment]);
 $coachRows = $coachStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 $coaches = array_map(static function (array $row): array {
@@ -331,22 +340,26 @@ $coaches = array_map(static function (array $row): array {
 <main class="coach-app">
     <section class="coach-hero">
         <h1>Coach Directory</h1>
-        <p>Karyawan bisa undang coach (eksternal), atau daftar jadi coach (internal). Kamu bisa set coach ini <b>public</b> (lintas perusahaan) atau <b>private</b> (hanya terlihat di perusahaan/department kamu).</p>
+        <p>Karyawan bisa undang coach (eksternal), atau daftar jadi coach (internal). Coach bisa <b>public</b> (lintas perusahaan) atau <b>private</b> (hanya terlihat di perusahaan/department kamu).</p>
         <div class="dept-pill">Scope kamu: <?= htmlspecialchars($userDepartment, ENT_QUOTES, 'UTF-8') ?></div>
         <div class="pill-row" style="margin-top:12px;">
             <a class="tab" href="coach_sessions.php" style="border-color:rgba(255,255,255,.35);">Buat / Kelola Sesi Coach</a>
         </div>
         <nav class="tabs" aria-label="Coach menu">
             <a class="tab <?= $tab === 'directory' ? 'active' : '' ?>" href="coach.php?tab=directory">Directory</a>
-            <a class="tab <?= $tab === 'invite' ? 'active' : '' ?>" href="coach.php?tab=invite">Undang Coach</a>
-            <a class="tab <?= $tab === 'register' ? 'active' : '' ?>" href="coach.php?tab=register">Daftar Jadi Coach</a>
+            <?php if ($isLoggedIn): ?>
+                <a class="tab <?= $tab === 'invite' ? 'active' : '' ?>" href="coach.php?tab=invite">Undang Coach</a>
+                <a class="tab <?= $tab === 'register' ? 'active' : '' ?>" href="coach.php?tab=register">Daftar Jadi Coach</a>
+            <?php endif; ?>
         </nav>
     </section>
 
     <?php if ($tab === 'directory'): ?>
         <section class="coach-section">
             <h2 class="coach-title">Coach tersedia</h2>
-            <p class="coach-sub">Menampilkan coach public + coach private yang scope-nya sama dengan department kamu.</p>
+            <p class="coach-sub">
+                <?= $isLoggedIn ? 'Menampilkan coach public + coach private yang scope-nya sama dengan department kamu.' : 'Menampilkan coach public. Login untuk melihat coach private.' ?>
+            </p>
 
             <?php if (!$coaches): ?>
                 <div class="empty">Belum ada coach. Mulai dari tab <b>Undang Coach</b> atau <b>Daftar Jadi Coach</b>.</div>
@@ -412,6 +425,13 @@ $coaches = array_map(static function (array $row): array {
     <?php endif; ?>
 
     <?php if ($tab === 'invite'): ?>
+        <?php if (!$isLoggedIn): ?>
+            <section class="coach-section">
+                <h2 class="coach-title">Undang / input coach</h2>
+                <p class="coach-sub">Silakan login dulu untuk mengundang coach.</p>
+                <a class="btn btn-primary" href="login.php">Login</a>
+            </section>
+        <?php else: ?>
         <section class="coach-section">
             <h2 class="coach-title">Undang / input coach</h2>
             <p class="coach-sub">Dipakai karyawan untuk input coach eksternal. Setelah diinput, coach muncul di Directory sesuai visibility.</p>
@@ -491,9 +511,17 @@ $coaches = array_map(static function (array $row): array {
                 <button class="btn btn-primary" type="submit">Simpan Coach</button>
             </form>
         </section>
+        <?php endif; ?>
     <?php endif; ?>
 
     <?php if ($tab === 'register'): ?>
+        <?php if (!$isLoggedIn): ?>
+            <section class="coach-section">
+                <h2 class="coach-title">Daftar jadi coach (internal)</h2>
+                <p class="coach-sub">Silakan login dulu untuk mendaftar.</p>
+                <a class="btn btn-primary" href="login.php">Login</a>
+            </section>
+        <?php else: ?>
         <section class="coach-section">
             <h2 class="coach-title">Daftar jadi coach (internal)</h2>
             <p class="coach-sub">Kalau kamu karyawan dan mau jadi coach, profil kamu akan tampil di Directory. Default-nya private (scope: <?= htmlspecialchars($userDepartment, ENT_QUOTES, 'UTF-8') ?>).</p>
@@ -556,6 +584,7 @@ $coaches = array_map(static function (array $row): array {
                 <button class="btn btn-primary" type="submit">Simpan Profil Coach</button>
             </form>
         </section>
+        <?php endif; ?>
     <?php endif; ?>
 </main>
 
