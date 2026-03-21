@@ -33,7 +33,7 @@
     </form>
 </section>
 
-<script src="assets/js/fivit-cursor.js"></script>
+<script src="assets/js/fivit-cursor.js" defer></script>
 <script>
 (() => {
     const menuBtn = document.querySelector('.menu');
@@ -122,6 +122,7 @@
         if (t.includes('membership') || t.includes('paket gym')) return 'Info membership gym ada di halaman Gym Booking. Paket dan harga diatur dari database/admin.';
         if (t.includes('partnership') || t.includes('partner gym')) return 'Untuk partnership, buka Gym Booking lalu isi form Ajukan Partnership Perusahaan.';
         if (t.includes('sesi') && (t.includes('coach') || t.includes('pelatih'))) return 'Untuk request/approve jadwal sesi coach, buka menu Coach Sessions.';
+        if (t.includes('komunitas') || t.includes('community') || t.includes('chat')) return 'Untuk chat global/private dan undangan sesi/membership, buka menu Community Hub.';
         if (t.includes('coach') || t.includes('pelatih')) return 'Untuk daftar coach (internal/eksternal) dan undang coach, buka menu Coach Directory.';
         if (t.includes('sleep') || t.includes('tidur')) return 'Untuk data tidur, buka menu Sleep Tracking.';
         if (t.includes('workout') || t.includes('latihan')) return 'Untuk rekomendasi latihan personal, buka menu Work Out Personalization.';

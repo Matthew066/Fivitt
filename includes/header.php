@@ -55,6 +55,7 @@ $isLoggedIn = isset($_SESSION['user_id']);
         <a class="drawer-link sub" href="gym.php">Gym booking</a>
         <a class="drawer-link sub" href="coach.php">Coach Directory</a>
         <a class="drawer-link sub" href="coach_sessions.php">Coach Sessions</a>
+        <a class="drawer-link sub" href="community.php">Community Hub</a>
 
         <div class="drawer-section">Canteen</div>
         <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? 'foodselection.php' : 'login.php' ?>">Food Selection</a>
