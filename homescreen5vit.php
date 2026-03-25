@@ -25,6 +25,7 @@ if ($userId > 0) {
 }
  
 $pageTitle = 'Home';
+$bodyClass = 'home-page';
 $extraStyles = [
     'assets/css/all.min.css',
     'assets/css/homsescreen.css'
@@ -33,6 +34,61 @@ include 'includes/header.php';
 ?>
 
 <div class="preloader">
+<style>
+.preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(ellipse at center, rgb(0, 0, 0) 0%, rgba(8, 10, 15, 0.98) 100%),
+        repeating-linear-gradient(90deg, rgb(0, 0, 0) 0 1px, transparent 1px 56px);
+}
+
+.preloader img {
+    width: min(240px, 62vw);
+    animation: preloadPulse 1.4s ease-in-out infinite;
+}
+
+.avatar-upload-form {
+    position: relative;
+}
+
+.avatar-upload-btn {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 0;
+    color: #fff;
+    background: #1ca9a1;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+    
+@keyframes preloadPulse {
+    0% { opacity: 0.7; transform: scale(0.96); }
+    50% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0.7; transform: scale(0.96); }
+}
+</style>
+
+<div class="preloader manual-preloader">
     <img src="assets/images/splashscreen/logofivit.png" alt="Loading Fivit">
 </div>
 
@@ -83,6 +139,7 @@ include 'includes/header.php';
                     <p>Fitness and Sport</p>
                 </a>
                 <a class="tracking-card link-card" href="<?php echo htmlspecialchars($canteenLink, ENT_QUOTES, 'UTF-8'); ?>">
+                <a class="tracking-card link-card" href="foodselection.php">
                     <div class="tracking-icon icon-cream"><i class="fa-solid fa-utensils"></i></div>
                     <p>Healthy Canteen</p>
                 </a>
@@ -145,19 +202,33 @@ include 'includes/header.php';
 <?php include 'includes/footer.php'; ?>
 
 <script>
-window.addEventListener("load", function () {
+(() => {
     const loader = document.querySelector(".preloader");
-    if (loader) {
-        loader.style.transition = "opacity 1s ease";
+    if (!loader) return;
+    const startedAt = Date.now();
+    const minDuration = 4000;
+    const fadeDuration = 450;
 
-        setTimeout(() => {
-            loader.style.opacity = "0";
-            setTimeout(() => {
-                loader.style.display = "none";
-            }, 1000);
-        }, 2000);
-    }
-});
+    let hidden = false;
+    const hideLoader = () => {
+        if (hidden) return;
+        hidden = true;
+        loader.classList.add("is-hiding");
+        setTimeout(() => loader.classList.add("is-hidden"), fadeDuration);
+    };
+    const hideWithMinDelay = () => {
+        const elapsed = Date.now() - startedAt;
+        const remaining = Math.max(0, minDuration - elapsed);
+        setTimeout(hideLoader, remaining);
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        hideWithMinDelay();
+    }, { once: true });
+
+    window.addEventListener("load", hideWithMinDelay, { once: true });
+    setTimeout(hideLoader, minDuration + 3000);
+})();
 
 document.getElementById('userProfileImageInput')?.addEventListener('change', function () {
     if (this.files && this.files.length > 0) {

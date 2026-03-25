@@ -1,0 +1,344 @@
+<?php
+session_start();
+require_once 'includes/db.php';
+
+$pageTitle = 'Gym Network';
+include 'includes/header.php';
+
+$pdo->exec("
+    CREATE TABLE IF NOT EXISTS gym_membership_plans (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        plan_name VARCHAR(100) NOT NULL,
+        price_text VARCHAR(80) NOT NULL,
+        description_text VARCHAR(255) NOT NULL,
+        features_text TEXT NOT NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+");
+
+$pdo->exec("
+    CREATE TABLE IF NOT EXISTS gym_partner_gyms (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        gym_name VARCHAR(120) NOT NULL,
+        area_name VARCHAR(120) NOT NULL,
+        distance_text VARCHAR(32) NOT NULL,
+        rating DECIMAL(2,1) NOT NULL DEFAULT 0.0,
+        day_pass_price_text VARCHAR(80) NOT NULL,
+        member_rate_price_text VARCHAR(80) NOT NULL,
+        tags_text TEXT NOT NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+");
+
+$pdo->exec("
+    CREATE TABLE IF NOT EXISTS gym_map_settings (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        map_title VARCHAR(120) NOT NULL DEFAULT 'Peta Partner Gym',
+        map_description VARCHAR(255) NOT NULL DEFAULT '',
+        map_embed_url TEXT NOT NULL,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+");
+
+$pdo->exec("
+    CREATE TABLE IF NOT EXISTS gym_partnership_requests (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        company_name VARCHAR(150) NOT NULL,
+        contact_name VARCHAR(120) NOT NULL,
+        email VARCHAR(150) NOT NULL,
+        phone VARCHAR(40) NOT NULL,
+        employee_count INT UNSIGNED NOT NULL DEFAULT 0,
+        city VARCHAR(120) NOT NULL,
+        notes TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+");
+
+$partnershipErrors = [];
+$partnershipSuccess = '';
+$showPartnershipForm = isset($_GET['show_partnership']);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submit_partnership') {
+    $showPartnershipForm = true;
+
+    $companyName = trim((string) ($_POST['company_name'] ?? ''));
+    $contactName = trim((string) ($_POST['contact_name'] ?? ''));
+    $email = trim((string) ($_POST['email'] ?? ''));
+    $phone = trim((string) ($_POST['phone'] ?? ''));
+    $employeeCount = (int) ($_POST['employee_count'] ?? 0);
+    $city = trim((string) ($_POST['city'] ?? ''));
+    $notes = trim((string) ($_POST['notes'] ?? ''));
+
+    if ($companyName === '') { $partnershipErrors[] = 'Nama perusahaan wajib diisi.'; }
+    if ($contactName === '') { $partnershipErrors[] = 'Nama PIC wajib diisi.'; }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $partnershipErrors[] = 'Email belum valid.'; }
+    if ($phone === '') { $partnershipErrors[] = 'Nomor telepon wajib diisi.'; }
+    if ($employeeCount <= 0) { $partnershipErrors[] = 'Jumlah karyawan harus lebih dari 0.'; }
+    if ($city === '') { $partnershipErrors[] = 'Kota wajib diisi.'; }
+
+    if (!$partnershipErrors) {
+        $insertRequest = $pdo->prepare("
+            INSERT INTO gym_partnership_requests
+            (company_name, contact_name, email, phone, employee_count, city, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+        $insertRequest->execute([
+            $companyName, $contactName, $email, $phone, $employeeCount, $city, $notes
+        ]);
+        $partnershipSuccess = 'Pengajuan partnership berhasil dikirim. Tim FiVit akan menghubungi kamu.';
+    }
+}
+
+$membershipRows = $pdo->query("
+    SELECT plan_name, price_text, description_text, features_text
+    FROM gym_membership_plans
+    WHERE is_active = 1
+    ORDER BY sort_order ASC, id ASC
+")->fetchAll(PDO::FETCH_ASSOC);
+
+$memberships = array_map(static function (array $row): array {
+    $features = preg_split('/\r\n|\r|\n/', (string) ($row['features_text'] ?? '')) ?: [];
+    $features = array_values(array_filter(array_map('trim', $features), static fn($item) => $item !== ''));
+    return [
+        'name' => $row['plan_name'] ?? '',
+        'price' => $row['price_text'] ?? '',
+        'description' => $row['description_text'] ?? '',
+        'features' => $features,
+    ];
+}, $membershipRows);
+
+$partnerRows = $pdo->query("
+    SELECT gym_name, area_name, distance_text, rating, day_pass_price_text, member_rate_price_text, tags_text
+    FROM gym_partner_gyms
+    WHERE is_active = 1
+    ORDER BY sort_order ASC, id ASC
+")->fetchAll(PDO::FETCH_ASSOC);
+
+$partnerGyms = array_map(static function (array $row): array {
+    $tags = array_filter(array_map('trim', explode(',', (string) ($row['tags_text'] ?? ''))), static fn($item) => $item !== '');
+    return [
+        'name' => $row['gym_name'] ?? '',
+        'area' => $row['area_name'] ?? '',
+        'distance' => $row['distance_text'] ?? '',
+        'rating' => number_format((float) ($row['rating'] ?? 0), 1),
+        'day_pass' => $row['day_pass_price_text'] ?? '',
+        'member_rate' => $row['member_rate_price_text'] ?? '',
+        'tags' => array_values($tags),
+    ];
+}, $partnerRows);
+
+$mapRow = $pdo->query("
+    SELECT map_title, map_description, map_embed_url
+    FROM gym_map_settings
+    WHERE is_active = 1
+    ORDER BY id DESC
+    LIMIT 1
+")->fetch(PDO::FETCH_ASSOC) ?: [];
+
+$mapTitle = trim((string) ($mapRow['map_title'] ?? 'Peta Partner Gym'));
+$mapDescription = trim((string) ($mapRow['map_description'] ?? 'Sebaran partner gym dari data admin.'));
+$mapEmbedUrl = trim((string) ($mapRow['map_embed_url'] ?? ''));
+?>
+
+<style>
+.gym-app { width: min(980px, 92%); margin: 18px auto 0; padding-bottom: 90px; }
+.gym-hero {
+    background: linear-gradient(140deg, #0f766e 0%, #22c55e 55%, #7dd3fc 100%);
+    color: #fff; border-radius: 24px; padding: 26px 22px; box-shadow: 0 16px 32px rgba(15,118,110,.28);
+}
+.gym-hero h1 { margin: 0 0 8px; font-size: 28px; }
+.gym-hero p { margin: 0; font-size: 14px; max-width: 680px; opacity: .95; }
+.pill-row { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 600; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.26); }
+.gym-section { margin-top: 16px; background: rgba(255,255,255,.9); border: 1px solid rgba(125,211,252,.3); border-radius: 20px; padding: 18px; box-shadow: 0 8px 22px rgba(15,23,42,.07); }
+.gym-title { margin: 0 0 8px; font-size: 20px; color: #134e4a; }
+.gym-sub { margin: 0 0 14px; color: #4b5563; font-size: 13px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.mini-card { background:#fff; border:1px solid #dff3ff; border-radius:16px; padding:14px; }
+.plan-name { margin:0; font-size:17px; color:#0f172a; }
+.plan-price { margin:7px 0 8px; color:#047857; font-size:14px; font-weight:700; }
+.plan-desc { margin:0 0 9px; color:#4b5563; font-size:13px; }
+.feature-list { margin:0; padding-left:18px; font-size:13px; }
+.gym-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.gym-name { margin:0; font-size:16px; }
+.rating { font-size:12px; font-weight:700; color:#0f766e; background:#ecfeff; border-radius:999px; padding:6px 10px; white-space:nowrap; }
+.meta { margin:0 0 8px; font-size:13px; color:#475569; }
+.price-box { background:#f0fdf4; border:1px dashed #86efac; border-radius:14px; padding:10px 12px; font-size:13px; color:#14532d; }
+.tag-row { margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; }
+.tag { font-size:11px; font-weight:600; color:#0f766e; background:#ecfeff; border-radius:999px; padding:6px 9px; }
+.flow-list { margin:0; padding-left:18px; font-size:13px; color:#1f2937; }
+.flow-list li { margin-bottom:8px; }
+.map-wrap iframe { width:100%; height:280px; border:0; border-radius:16px; }
+.empty-data { font-size:13px; color:#64748b; }
+.cta-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border-radius:999px; padding:10px 16px; font-size:13px; font-weight:700; border:none; cursor:pointer; width:290px; max-width:100%; min-height:44px; text-align:center; }
+.btn-primary { color:#fff; background:linear-gradient(135deg,#0f766e,#22c55e); }
+.btn-outline { color:#0f766e; border:1px solid #5eead4; background:#f0fdfa; }
+.partnership-form-wrap { margin-top: 12px; }
+.partnership-form-wrap.hidden { display:none; }
+.input-grid { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:12px; }
+.input-group { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+.input-group label { font-size:13px; font-weight:600; color:#0f766e; }
+.input-group input,.input-group textarea { width:100%; min-height:44px; border:1px solid #d7e3ef; border-radius:12px; padding:10px 12px; font-size:13px; }
+.input-group textarea { min-height:96px; resize:vertical; }
+.form-message { margin-bottom:12px; border-radius:12px; padding:10px 12px; font-size:13px; }
+.form-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+.form-success { background:#ecfdf5; color:#166534; border:1px solid #bbf7d0; }
+
+@media (max-width: 900px) { .grid-3,.grid-2,.input-grid { grid-template-columns:1fr; } .btn { width:100%; } }
+</style>
+
+<main class="gym-app">
+    <section class="gym-hero">
+        <h1>FiVit Gym Network</h1>
+        <p>Sekarang FiVit bukan hanya gym booking. Platform ini menghubungkan karyawan ke partner gym agar benefit kebugaran tetap merata walau perusahaan tidak punya gym sendiri.</p>
+        <div class="pill-row">
+            <span class="pill">Membership lintas partner</span>
+            <span class="pill">Corporate partnership ready</span>
+            <span class="pill">Harga transparan</span>
+        </div>
+    </section>
+
+    <section class="gym-section">
+        <h2 class="gym-title">Membership Plan</h2>
+        <p class="gym-sub">Pilih plan sesuai frekuensi latihan tim kamu.</p>
+        <div class="grid-3">
+            <?php if (!$memberships): ?>
+                <article class="mini-card"><div class="empty-data">Belum ada data membership di database.</div></article>
+            <?php else: ?>
+                <?php foreach ($memberships as $plan): ?>
+                    <article class="mini-card">
+                        <h3 class="plan-name"><?= htmlspecialchars($plan['name']) ?></h3>
+                        <p class="plan-price"><?= htmlspecialchars($plan['price']) ?></p>
+                        <p class="plan-desc"><?= htmlspecialchars($plan['description']) ?></p>
+                        <ul class="feature-list">
+                            <?php foreach ($plan['features'] as $feature): ?>
+                                <li><?= htmlspecialchars($feature) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </article>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <section class="gym-section">
+        <h2 class="gym-title">Partner Gym & Harga</h2>
+        <p class="gym-sub">Akses gym terdekat dengan harga member FiVit.</p>
+        <div class="grid-3">
+            <?php if (!$partnerGyms): ?>
+                <article class="mini-card"><div class="empty-data">Belum ada data partner gym di database.</div></article>
+            <?php else: ?>
+                <?php foreach ($partnerGyms as $gym): ?>
+                    <article class="mini-card">
+                        <div class="gym-head">
+                            <h3 class="gym-name"><?= htmlspecialchars($gym['name']) ?></h3>
+                            <span class="rating">&#9733; <?= htmlspecialchars($gym['rating']) ?></span>
+                        </div>
+                        <p class="meta"><?= htmlspecialchars($gym['area']) ?> &bull; <?= htmlspecialchars($gym['distance']) ?></p>
+                        <div class="price-box">
+                            Day Pass: <strong><?= htmlspecialchars($gym['day_pass']) ?></strong><br>
+                            FiVit Member Rate: <strong><?= htmlspecialchars($gym['member_rate']) ?></strong>
+                        </div>
+                        <div class="tag-row">
+                            <?php foreach ($gym['tags'] as $tag): ?>
+                                <span class="tag"><?= htmlspecialchars($tag) ?></span>
+                            <?php endforeach; ?>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <section class="gym-section grid-2">
+        <article class="mini-card">
+            <h2 class="gym-title">Partnership Model</h2>
+            <p class="gym-sub">Skema kolaborasi perusahaan, FiVit, dan partner gym.</p>
+            <ol class="flow-list">
+                <li>Perusahaan pilih budget benefit per karyawan (monthly pass atau per-visit).</li>
+                <li>FiVit integrasikan akun karyawan dengan jaringan partner gym terdekat.</li>
+                <li>Partner gym terima check-in digital dan laporan utilization otomatis.</li>
+                <li>HR dapat dashboard pemakaian dan tren aktivitas karyawan.</li>
+            </ol>
+            <div class="cta-row">
+                <a class="btn btn-primary" href="#">Mulai Membership</a>
+                <a class="btn btn-outline" href="#partnership-form" id="show-partnership-form">Ajukan Partnership Perusahaan</a>
+            </div>
+        </article>
+
+        <article class="mini-card map-wrap">
+            <h2 class="gym-title"><?= htmlspecialchars($mapTitle) ?></h2>
+            <p class="gym-sub"><?= htmlspecialchars($mapDescription) ?></p>
+            <?php if ($mapEmbedUrl !== ''): ?>
+                <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="<?= htmlspecialchars($mapEmbedUrl) ?>" title="Peta Partner Gym FiVit"></iframe>
+            <?php else: ?>
+                <div class="empty-data">Peta belum diatur. Isi `map_embed_url` lewat admin.</div>
+            <?php endif; ?>
+        </article>
+    </section>
+
+    <section id="partnership-form" class="gym-section partnership-form-wrap <?= $showPartnershipForm ? '' : 'hidden' ?>">
+        <h2 class="gym-title">Form Pengajuan Partnership</h2>
+        <p class="gym-sub">Isi data perusahaan, nanti tim FiVit follow up untuk skema kerja sama gym network.</p>
+
+        <?php if ($partnershipErrors): ?>
+            <div class="form-message form-error"><?= htmlspecialchars(implode(' ', $partnershipErrors)) ?></div>
+        <?php endif; ?>
+        <?php if ($partnershipSuccess): ?>
+            <div class="form-message form-success"><?= htmlspecialchars($partnershipSuccess) ?></div>
+        <?php endif; ?>
+
+        <form method="POST">
+            <input type="hidden" name="action" value="submit_partnership">
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="company_name">Nama Perusahaan</label>
+                    <input id="company_name" type="text" name="company_name" value="<?= htmlspecialchars((string) ($_POST['company_name'] ?? '')) ?>" required>
+                </div>
+                <div class="input-group">
+                    <label for="contact_name">Nama PIC</label>
+                    <input id="contact_name" type="text" name="contact_name" value="<?= htmlspecialchars((string) ($_POST['contact_name'] ?? '')) ?>" required>
+                </div>
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" name="email" value="<?= htmlspecialchars((string) ($_POST['email'] ?? '')) ?>" required>
+                </div>
+                <div class="input-group">
+                    <label for="phone">No. Telepon</label>
+                    <input id="phone" type="text" name="phone" value="<?= htmlspecialchars((string) ($_POST['phone'] ?? '')) ?>" required>
+                </div>
+                <div class="input-group">
+                    <label for="employee_count">Jumlah Karyawan</label>
+                    <input id="employee_count" type="number" min="1" name="employee_count" value="<?= htmlspecialchars((string) ($_POST['employee_count'] ?? '')) ?>" required>
+                </div>
+                <div class="input-group">
+                    <label for="city">Kota</label>
+                    <input id="city" type="text" name="city" value="<?= htmlspecialchars((string) ($_POST['city'] ?? '')) ?>" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="notes">Kebutuhan / Catatan</label>
+                <textarea id="notes" name="notes" placeholder="Contoh: target 80 karyawan aktif, 3 area kantor utama"><?= htmlspecialchars((string) ($_POST['notes'] ?? '')) ?></textarea>
+            </div>
+            <button class="btn btn-primary" type="submit">Kirim Pengajuan Partnership</button>
+        </form>
+    </section>
+</main>
+
+<script>
+(() => {
+    const trigger = document.getElementById('show-partnership-form');
+    const formWrap = document.getElementById('partnership-form');
+    if (!trigger || !formWrap) return;
+    trigger.addEventListener('click', () => formWrap.classList.remove('hidden'));
+})();
+</script>
+
+<?php include 'includes/footer.php'; ?>

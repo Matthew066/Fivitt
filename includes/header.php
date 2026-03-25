@@ -6,6 +6,9 @@ $sessionRole = strtolower(trim((string)($_SESSION['user_role'] ?? 'user')));
 $canManageCanteen = $sessionRole === 'cooker';
 if (is_string($extraStyles)) {
     $extraStyles = [$extraStyles];
+
+if (!is_array($extraStyles)) {
+    $extraStyles = [];
 }
 ?>
 <!DOCTYPE html>
@@ -17,6 +20,7 @@ if (is_string($extraStyles)) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fivit - Login</title>
+    <title><?= htmlspecialchars((string) $pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
 
     <link rel="icon" href="assets/images/favicon/icon-fivit.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -31,6 +35,14 @@ if (is_string($extraStyles)) {
     <?php endforeach; ?>
 </head>
 <body class="<?= htmlspecialchars($bodyClass, ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="assets/css/style.css?v=1">
+    <link rel="stylesheet" href="assets/css/media-query.css">
+    <?php foreach ($extraStyles as $stylePath): ?>
+        <?php if (!is_string($stylePath) || trim($stylePath) === '') continue; ?>
+        <link rel="stylesheet" href="<?= htmlspecialchars($stylePath, ENT_QUOTES, 'UTF-8') ?>">
+    <?php endforeach; ?>
+</head>
+<body<?= $bodyClass !== '' ? ' class="' . htmlspecialchars((string) $bodyClass, ENT_QUOTES, 'UTF-8') . '"' : '' ?>>
 
 <header class="header">
     <a href="homescreen5vit.php">
@@ -47,10 +59,12 @@ if (is_string($extraStyles)) {
     </div>
     <nav class="drawer-nav">
         <a class="drawer-link" href="homescreen.php">Home</a>
+        <a class="drawer-link" href="homescreen5vit.php">Home</a>
 
         <div class="drawer-section">Daily</div>
         <a class="drawer-link sub" href="health.php">Basic Health Monitoring</a>
         <a class="drawer-link sub" href="sleep.php">Sleep Tracking</a>
+        <a class="drawer-link sub" href="mens_fivit.php">Menstruation Tracking</a>
 
         <div class="drawer-section">Fitness</div>
         <a class="drawer-link sub" href="sportevent.php">Sport Events</a>
@@ -62,6 +76,10 @@ if (is_string($extraStyles)) {
         <?php if ($canManageCanteen): ?>
             <a class="drawer-link sub" href="healthy_canteen.php">Healthy Canteen</a>
         <?php endif; ?>
+        <a class="drawer-link sub" href="gym.php">Gym booking</a>
+
+        <div class="drawer-section">Canteen</div>
+        <a class="drawer-link sub" href="">Food Selection</a>
 
         <div class="drawer-section">Event</div>
         <a class="drawer-link sub" href="education.php">Education</a>
@@ -70,4 +88,3 @@ if (is_string($extraStyles)) {
         <a class="drawer-link drawer-link-logout" href="logout.php">Logout</a>
     </nav>
 </aside>
-
