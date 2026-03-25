@@ -6,6 +6,12 @@ $status = strtolower(trim((string)($_GET['status'] ?? '')));
 $message = trim((string)($_GET['message'] ?? ''));
 $allowedStatus = ['success', 'danger', 'warning', 'info'];
 $departmentOptions = ['General', 'HR', 'Finance', 'IT', 'Marketing', 'Operations'];
+$roleOptions = [
+    'manajerial' => 'Manajerial',
+    'hr' => 'HR',
+    'cooker' => 'Cooker',
+    'user' => 'User',
+];
 
 if (!in_array($status, $allowedStatus, true)) {
     $status = '';
@@ -98,16 +104,28 @@ $result = $pdo->query($query);
                 <tbody>
                   <?php while ($row = $result->fetch()): ?>
                     <?php $currentDepartment = trim((string)$row['department']); ?>
+                    <?php $currentRole = strtolower(trim((string)$row['role'])); ?>
+                    <?php $isAdminRole = $currentRole === 'admin'; ?>
                     <tr>
                       <td><?php echo (int)$row['id_users']; ?></td>
                       <td><?php echo htmlspecialchars((string)$row['name'], ENT_QUOTES, 'UTF-8'); ?></td>
                       <td><?php echo htmlspecialchars((string)$row['email'], ENT_QUOTES, 'UTF-8'); ?></td>
                       <td>
-                        <span class="badge bg-primary"><?php echo htmlspecialchars(strtoupper((string)$row['role']), ENT_QUOTES, 'UTF-8'); ?></span>
-                      </td>
-                      <td>
                         <form action="update-user.php" method="POST" class="d-flex gap-2 align-items-center" onsubmit="return confirm('Yakin ingin update data user ini?');">
                           <input type="hidden" name="user_id" value="<?php echo (int)$row['id_users']; ?>">
+                          <?php if ($isAdminRole): ?>
+                            <span class="badge bg-dark">ADMIN</span>
+                          <?php else: ?>
+                            <select class="form-select" name="role">
+                              <?php foreach ($roleOptions as $roleValue => $roleLabel): ?>
+                                <option value="<?php echo htmlspecialchars($roleValue, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $currentRole === $roleValue ? 'selected' : ''; ?>>
+                                  <?php echo htmlspecialchars($roleLabel, ENT_QUOTES, 'UTF-8'); ?>
+                                </option>
+                              <?php endforeach; ?>
+                            </select>
+                          <?php endif; ?>
+                      </td>
+                      <td>
                           <select class="form-select" name="department">
                             <?php foreach ($departmentOptions as $dept): ?>
                               <option value="<?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $currentDepartment === $dept ? 'selected' : ''; ?>>

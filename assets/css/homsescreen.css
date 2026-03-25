@@ -5,7 +5,7 @@
 body {
     margin: 0;
     font-family: "Poppins", sans-serif;
-    background: #efefef;
+    background: #ffffff;
     color: #1f2733;
 }
 
@@ -13,7 +13,7 @@ body {
     max-width: 390px;
     margin: 0 auto;
     min-height: 100vh;
-    background: #efefef;
+    background: #ffffff;
 }
 
 .home-header {
@@ -43,14 +43,16 @@ body {
 }
 
 .home-main {
-    padding: 14px 14px 20px;
+    padding: 16px 16px 24px;
 }
 
 .hero-card {
     background: #ffffff;
-    border-radius: 0 0 0 0;
-    padding: 14px 12px 26px;
-    margin-bottom: 14px;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 0;
+    box-shadow: 0 12px 26px rgba(31, 39, 51, 0.18);
 }
 
 .hero-top {
@@ -72,8 +74,8 @@ body {
 }
 
 .hero-text h1 {
-    margin: 0 0 2px;
-    font-size: 31px;
+    margin: 0 0 4px;
+    font-size: 28px;
     font-weight: 800;
     line-height: 1.1;
 }
@@ -85,7 +87,7 @@ body {
 }
 
 .hero-progress {
-    margin-top: 24px;
+    margin-top: 18px;
 }
 
 .progress-labels {
@@ -104,8 +106,8 @@ body {
 
 .progress-track {
     width: 72%;
-    height: 26px;
-    margin: 18px auto 0;
+    height: 22px;
+    margin: 14px auto 0;
     border-radius: 20px;
     background: #d6d5d1;
     overflow: hidden;
@@ -120,22 +122,22 @@ body {
 .tracking-section {
     background: linear-gradient(145deg, #47c8c0, #2aacaa);
     border-radius: 16px;
-    padding: 14px 12px 12px;
+    padding: 16px 14px 14px;
     box-shadow: 0 10px 20px rgba(39, 131, 130, 0.24);
 }
 
 .tracking-section h2 {
-    margin: 2px 0 12px;
+    margin: 0 0 12px;
     color: #ffffff;
     text-align: center;
-    font-size: 30px;
+    font-size: 26px;
     font-weight: 700;
 }
 
 .tracking-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 12px;
 }
 
 .tracking-card {
@@ -144,18 +146,19 @@ body {
     color: #1f2733;
     background: #f4f7f7;
     border-radius: 13px;
-    padding: 12px 8px 10px;
-    min-height: 108px;
+    padding: 12px 10px;
+    min-height: 104px;
     text-align: center;
     box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
-    border: 1px solid transparent;
+    border: 0;
+    box-shadow: 0 10px 20px rgba(31, 39, 51, 0.18);
     transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
 }
 
 .tracking-icon {
-    width: 45px;
-    height: 45px;
-    margin: 0 auto 8px;
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 6px;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -167,7 +170,7 @@ body {
 
 .tracking-card p {
     margin: 0;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
     line-height: 1.35;
     transition: color 0.22s ease;
@@ -230,11 +233,12 @@ body {
 }
 
 .chart-section {
-    margin: 14px 0;
+    margin: 16px 0;
     background: #f7f7f7;
     border-radius: 12px;
-    padding: 10px 10px 12px;
-    border: 1px solid #e6e6e6;
+    padding: 12px;
+    border: 0;
+    box-shadow: 0 10px 22px rgba(31, 39, 51, 0.16);
 }
 
 .bars {
@@ -242,8 +246,8 @@ body {
     border-bottom: 1px solid #e4e4e4;
     display: flex;
     align-items: flex-end;
-    gap: 6px;
-    padding: 0 2px 12px;
+    gap: 8px;
+    padding: 0 4px 12px;
 }
 
 .bar {
@@ -312,15 +316,15 @@ body {
 }
 
 .other-section h3 {
-    margin: 6px 0 10px;
-    font-size: 22px;
+    margin: 4px 0 12px;
+    font-size: 20px;
     font-weight: 700;
 }
 
 .other-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 12px;
 }
 
 .other-card {
@@ -329,17 +333,17 @@ body {
     color: #ffffff;
     background: linear-gradient(145deg, #82bb48, #66a233);
     border-radius: 12px;
-    padding: 10px 8px;
+    padding: 12px 10px;
     text-align: center;
     box-shadow: 0 7px 14px rgba(78, 125, 41, 0.24);
-    border: 1px solid transparent;
+    border: 1px solid rgba(255, 255, 255, 0.35);
     transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, filter 0.22s ease;
 }
 
 .other-icon {
-    width: 40px;
-    height: 36px;
-    margin: 0 auto 6px;
+    width: 38px;
+    height: 34px;
+    margin: 0 auto 8px;
     border-radius: 9px;
     background: rgba(255, 255, 255, 0.23);
     display: flex;
@@ -351,7 +355,7 @@ body {
 
 .other-card p {
     margin: 0;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     transition: transform 0.22s ease;
 }
@@ -387,7 +391,7 @@ body {
     text-align: center;
     color: #8d96a1;
     font-size: 11px;
-    padding: 10px 0 16px;
+    padding: 12px 0 18px;
 }
 
 .footer {
@@ -396,7 +400,7 @@ body {
 
 @media (min-width: 1024px) {
     body {
-        background: linear-gradient(180deg, #f5f8fb 0%, #eef3f8 100%);
+        background: #ffffff;
     }
 
     .homescreen-wrapper {
@@ -422,8 +426,8 @@ body {
     }
 
     .hero-card {
-        padding: 20px 20px 26px;
-        margin-bottom: 22px;
+        padding: 22px;
+        margin-bottom: 24px;
         box-shadow: 0 12px 28px rgba(21, 42, 68, 0.08);
     }
 
@@ -437,34 +441,34 @@ body {
 
     .progress-track {
         width: 78%;
-        height: 24px;
-        margin-top: 14px;
+        height: 22px;
+        margin-top: 12px;
     }
 
     .tracking-section {
-        padding: 20px 18px 18px;
-        margin-bottom: 22px;
+        padding: 22px 20px 18px;
+        margin-bottom: 24px;
         box-shadow: 0 14px 28px rgba(39, 131, 130, 0.2);
     }
 
     .tracking-section h2 {
-        margin: 2px 0 16px;
+        margin: 0 0 16px;
         font-size: clamp(30px, 2.7vw, 44px);
     }
 
     .tracking-grid {
-        gap: 14px;
+        gap: 16px;
     }
 
     .tracking-card {
         min-height: 150px;
-        padding: 18px 12px 14px;
+        padding: 18px 14px 16px;
     }
 
     .tracking-icon {
         width: 56px;
         height: 56px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         font-size: 24px;
     }
 
@@ -475,16 +479,16 @@ body {
 
     .chart-section {
         min-height: 390px;
-        padding: 16px 16px 14px;
-        margin-bottom: 22px;
+        padding: 18px 18px 16px;
+        margin-bottom: 24px;
         background: #ffffff;
         box-shadow: 0 12px 28px rgba(21, 42, 68, 0.08);
     }
 
     .bars {
         height: 248px;
-        gap: 10px;
-        padding: 0 8px 14px;
+        gap: 12px;
+        padding: 0 10px 14px;
     }
 
     .bar {
@@ -498,30 +502,30 @@ body {
     }
 
     .other-section {
-        padding: 16px;
+        padding: 18px;
         background: #ffffff;
         box-shadow: 0 12px 28px rgba(21, 42, 68, 0.08);
     }
 
     .other-section h3 {
-        margin: 0 0 14px;
+        margin: 0 0 16px;
         font-size: 28px;
     }
 
     .other-grid {
-        gap: 12px;
+        gap: 14px;
     }
 
     .other-card {
         min-height: 118px;
-        padding: 14px 10px;
+        padding: 16px 12px;
         border-radius: 14px;
     }
 
     .other-icon {
         width: 52px;
         height: 44px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         font-size: 21px;
     }
 
