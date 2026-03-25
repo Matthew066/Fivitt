@@ -6,6 +6,7 @@ $sessionRole = strtolower(trim((string)($_SESSION['user_role'] ?? 'user')));
 $canManageCanteen = $sessionRole === 'cooker';
 if (is_string($extraStyles)) {
     $extraStyles = [$extraStyles];
+}
 
 if (!is_array($extraStyles)) {
     $extraStyles = [];
@@ -15,26 +16,12 @@ if (!is_array($extraStyles)) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title><?= $pageTitle ?? 'Fivit' ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Fivit - Login</title>
     <title><?= htmlspecialchars((string) $pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
-
     <link rel="icon" href="assets/images/favicon/icon-fivit.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/media-query.css">
-    <!-- CSS -->
-    <link rel="stylesheet" href="assets/css/style.css?v=1">
-    <?php foreach ($extraStyles as $stylePath): ?>
-        <link rel="stylesheet" href="<?= htmlspecialchars($stylePath, ENT_QUOTES, 'UTF-8') ?>">
-    <?php endforeach; ?>
-</head>
-<body class="<?= htmlspecialchars($bodyClass, ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="assets/css/style.css?v=1">
     <link rel="stylesheet" href="assets/css/media-query.css">
     <?php foreach ($extraStyles as $stylePath): ?>
