@@ -1,13 +1,10 @@
 <?php
 session_start();
 require_once 'includes/db.php';
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
+require_once 'includes/auth_guard.php';
+require_login();
 
 $pageTitle = 'Sleep & Recovery';
-$bodyClass = 'sleep-page';
 include 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;
@@ -41,6 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $start = $_POST['sleep_start'];
     $end   = $_POST['sleep_end'];
+    $ageGroup = $_POST['age_group'] ?? 'adult';
+    $sleepLatency = isset($_POST['sleep_latency_min']) ? (int) $_POST['sleep_latency_min'] : 20;
+    $nightAwakenings = isset($_POST['night_awakenings']) ? (int) $_POST['night_awakenings'] : 0;
+
+    $_SESSION['sleep_age_group'] = in_array($ageGroup, ['teen_12_14', 'adult'], true) ? $ageGroup : 'adult';
+    $_SESSION['sleep_latency_min'] = max(0, min(180, $sleepLatency));
+    $_SESSION['night_awakenings'] = max(0, min(10, $nightAwakenings));
 
     $update = $pdo->prepare("
         UPDATE sleep_logs
@@ -53,12 +57,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+/* ================= SLEEP TARGET PROFILE ================= */
+$ageGroup = $_SESSION['sleep_age_group'] ?? 'adult';
+$sleepLatency = (int) ($_SESSION['sleep_latency_min'] ?? 20);
+$nightAwakenings = (int) ($_SESSION['night_awakenings'] ?? 0);
+
+if ($ageGroup === 'teen_12_14') {
+    $sleepTargetMin = 8.0;
+    $sleepTargetMax = 10.0;
+    $sleepTargetLabel = '8-10 jam (usia 12-14)';
+} else {
+    $sleepTargetMin = 7.0;
+    $sleepTargetMax = 9.0;
+    $sleepTargetLabel = '7-9 jam (dewasa)';
+}
+
+$sleepTargetMid = ($sleepTargetMin + $sleepTargetMax) / 2;
+
 /* ================= WEEKLY CALCULATION ================= */
 
 $hours   = [];   // ini sekarang berisi SKOR
 $dates   = [];
 $totalScore = 0;
 $count   = 0;
+$totalDuration = 0;
 
 $stmt = $pdo->prepare("
     SELECT sleep_date, sleep_start, sleep_end
@@ -83,48 +105,63 @@ foreach ($rows as $row) {
 
     $duration = ($endTime - $startTime) / 3600;
 
-    /* ===== SMART SCORE (OPTIMAL 8 JAM) ===== */
-    $dailyScore = 10 - (abs($duration - 8) * 1.5);
+    /* ===== SMART SCORE BERBASIS TARGET USIA ===== */
+    $dailyScore = 10 - (abs($duration - $sleepTargetMid) * 1.6);
     $dailyScore = max(0, min(10, $dailyScore));
     $dailyScore = round($dailyScore, 1);
 
     $hours[] = $dailyScore;
     $dates[] = date("d M", strtotime($date));
 
+    $totalDuration += $duration;
     $totalScore += $dailyScore;
     $count++;
 }
 
 $averageScore = $count ? round($totalScore / $count, 1) : 0;
+$average = $count ? round($totalDuration / $count, 2) : 0;
 
-$user_id = $_SESSION['user_id'] ?? 1;
+/* ================= QUALITY PROXY (PSQI RINGAN) ================= */
+$qualityScore = 0;
 
-$stmt = $pdo->prepare("
-    SELECT sleep_date, sleep_start, sleep_end
-    FROM sleep_logs
-    WHERE id_users = ?
-    AND sleep_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-");
-$stmt->execute([$user_id]);
-$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$total = 0;
-$count = 0;
-
-foreach ($rows as $row) {
-
-    $start = strtotime($row['sleep_date'] . ' ' . $row['sleep_start']);
-    $end   = strtotime($row['sleep_date'] . ' ' . $row['sleep_end']);
-
-    if ($end <= $start) {
-        $end = strtotime("+1 day", $end);
-    }
-
-    $total += ($end - $start) / 3600;
-    $count++;
+if ($sleepLatency < 30) {
+    $qualityScore += 4;
+} elseif ($sleepLatency <= 45) {
+    $qualityScore += 2;
 }
 
-$average = $count ? round($total / $count, 2) : 0;
+if ($nightAwakenings <= 1) {
+    $qualityScore += 3;
+} elseif ($nightAwakenings === 2) {
+    $qualityScore += 2;
+} elseif ($nightAwakenings === 3) {
+    $qualityScore += 1;
+}
+
+if ($average >= $sleepTargetMin && $average <= $sleepTargetMax) {
+    $qualityScore += 3;
+} elseif ($average >= ($sleepTargetMin - 1) && $average <= ($sleepTargetMax + 1)) {
+    $qualityScore += 1;
+}
+
+$qualityScore = max(0, min(10, $qualityScore));
+$combinedSleepScore = round(($averageScore * 0.7) + ($qualityScore * 0.3), 1);
+
+if ($sleepLatency < 30 && $nightAwakenings <= 1) {
+    $qualityStatus = "Kualitas Baik";
+} elseif ($sleepLatency <= 45 && $nightAwakenings <= 2) {
+    $qualityStatus = "Kualitas Cukup";
+} else {
+    $qualityStatus = "Kualitas Perlu Perbaikan";
+}
+
+if ($average < $sleepTargetMin) {
+    $durationStatus = "Durasi Kurang";
+} elseif ($average > $sleepTargetMax) {
+    $durationStatus = "Durasi Berlebih";
+} else {
+    $durationStatus = "Durasi Sesuai Target";
+}
 
 function formatAverage($avg) {
     $m = round($avg * 60);
@@ -136,9 +173,9 @@ function formatAverage($avg) {
 
 /* ================= STATUS ================= */
 
-if ($averageScore < 6) {
-    $status = "Kurang";
-} elseif ($averageScore < 8) {
+if ($combinedSleepScore < 6) {
+    $status = "Perlu Perbaikan";
+} elseif ($combinedSleepScore < 8) {
     $status = "Cukup";
 } else {
     $status = "Optimal";
@@ -168,10 +205,32 @@ if ($averageScore < 6) {
             </div>
 
         </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label>Kelompok Usia</label>
+                <select name="age_group" required>
+                    <option value="adult" <?= $ageGroup === 'adult' ? 'selected' : '' ?>>Dewasa (7-9 jam)</option>
+                    <option value="teen_12_14" <?= $ageGroup === 'teen_12_14' ? 'selected' : '' ?>>Remaja 12-14 (8-10 jam)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Latensi Tidur (menit)</label>
+                <input type="number" name="sleep_latency_min" min="0" max="180"
+                       value="<?= (int) $sleepLatency ?>" placeholder="Contoh: 20">
+            </div>
+            <div class="input-group">
+                <label>Terbangun Malam (kali)</label>
+                <input type="number" name="night_awakenings" min="0" max="10"
+                       value="<?= (int) $nightAwakenings ?>" placeholder="Contoh: 1">
+            </div>
+        </div>
 
         <button class="btn-primary" type="submit">
             Update Tidur
         </button>
+        <div class="sleep-sub" style="margin-top: 10px;">
+            Catatan: indikator kualitas ini adalah skrining harian ringan (bukan PSQI lengkap).
+        </div>
     </form>
 </section>
 
@@ -184,6 +243,9 @@ if ($averageScore < 6) {
             <div class="sleep-title"><?= $status ?></div>
             <div class="sleep-sub">
                 Tidur rata-rata <?= formatAverage($average) ?>
+            </div>
+            <div class="sleep-sub">
+                Target aktif: <?= htmlspecialchars($sleepTargetLabel) ?>
             </div>
         </div>
     </div>
@@ -204,6 +266,12 @@ if ($averageScore < 6) {
     <div class="summary-pill">
         Skor Mingguan <?= $averageScore ?>/10
     </div>
+    <div class="sleep-sub" style="margin-top: 10px;">
+        <?= htmlspecialchars($durationStatus) ?> | <?= htmlspecialchars($qualityStatus) ?>
+    </div>
+    <div class="sleep-sub">
+        Latensi <?= (int) $sleepLatency ?> menit, terbangun malam <?= (int) $nightAwakenings ?> kali.
+    </div>
 </section>
 
 
@@ -213,11 +281,11 @@ if ($averageScore < 6) {
 
     <div class="score-wrapper">
         <div class="score-number">
-            <?= number_format($averageScore,1) ?> <small>/10.0</small>
+            <?= number_format($combinedSleepScore,1) ?> <small>/10.0</small>
         </div>
 
         <?php 
-            $rotation = 180 + ($averageScore / 10) * 180; 
+            $rotation = 180 + ($combinedSleepScore / 10) * 180; 
         ?>
 
         <div class="gauge">

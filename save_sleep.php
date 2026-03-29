@@ -1,10 +1,6 @@
 <?php
 session_start();
-require_once 'includes/db.php';
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
+require_once 'include.php';
 
 $pageTitle = 'Sleep & Recovery';
 include 'includes/header.php';
