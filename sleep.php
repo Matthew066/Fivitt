@@ -7,6 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $pageTitle = 'Sleep & Recovery';
+$bodyClass = 'sleep-page';
 include 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;

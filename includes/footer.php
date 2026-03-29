@@ -2,22 +2,6 @@
     &copy; FIVIT <?= date('Y') ?>
 </footer>
 
-<style>
-.fvai-trigger{position:fixed;right:16px;bottom:18px;z-index:95;width:56px;height:56px;border:none;border-radius:50%;color:#fff;background:linear-gradient(135deg,#0f766e,#22c55e);box-shadow:0 10px 20px rgba(15,118,110,.3);cursor:pointer;font-weight:700}
-.fvai-box{position:fixed;right:16px;bottom:82px;z-index:96;width:min(350px,calc(100vw - 24px));background:#fff;border:1px solid #ccfbf1;border-radius:16px;box-shadow:0 14px 26px rgba(15,23,42,.18);overflow:hidden}
-.fvai-box.hidden{display:none}
-.fvai-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;color:#fff;background:linear-gradient(135deg,#0f766e,#22c55e)}
-.fvai-body{max-height:280px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(180deg,#f8fffe 0%,#fff 100%)}
-.fvai-msg{max-width:88%;font-size:13px;line-height:1.4;padding:9px 11px;border-radius:12px}
-.fvai-msg.bot{align-self:flex-start;background:#ecfeff;color:#155e75;border:1px solid #a5f3fc}
-.fvai-msg.user{align-self:flex-end;background:#dcfce7;color:#166534;border:1px solid #86efac}
-.fvai-row{display:flex;gap:8px;padding:10px 12px 12px;border-top:1px solid #e2e8f0}
-.fvai-input{flex:1;min-height:40px;border:1px solid #cbd5e1;border-radius:10px;padding:9px 10px;font-size:13px}
-.fvai-send,.fvai-close{border:none;border-radius:10px;cursor:pointer;font-weight:700}
-.fvai-send{min-width:80px;color:#fff;background:linear-gradient(135deg,#0f766e,#22c55e)}
-.fvai-close{width:28px;height:28px;color:#0f766e;background:#ecfdf5}
-</style>
-
 <button type="button" class="fvai-trigger" id="fvai-trigger" aria-label="Buka AI FiVit">AI</button>
 <section class="fvai-box hidden" id="fvai-box" aria-live="polite">
     <div class="fvai-head">
@@ -142,37 +126,6 @@
         input.value = '';
         input.focus();
     });
-})();
-</script>
-
-<script>
-(() => {
-    const menuBtn = document.querySelector('.menu');
-    const drawer = document.querySelector('.drawer');
-    const backdrop = document.querySelector('.drawer-backdrop');
-    const closeTargets = document.querySelectorAll('[data-drawer-close]');
-
-    if (!menuBtn || !drawer || !backdrop) return;
-
-    function openDrawer() {
-        drawer.classList.add('open');
-        backdrop.classList.add('show');
-        menuBtn.setAttribute('aria-expanded', 'true');
-        drawer.setAttribute('aria-hidden', 'false');
-        document.body.classList.add('no-scroll');
-    }
-
-    function closeDrawer() {
-        drawer.classList.remove('open');
-        backdrop.classList.remove('show');
-        menuBtn.setAttribute('aria-expanded', 'false');
-        drawer.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('no-scroll');
-    }
-
-    menuBtn.addEventListener('click', openDrawer);
-    closeTargets.forEach(target => target.addEventListener('click', closeDrawer));
-    drawer.querySelectorAll('a').forEach(link => link.addEventListener('click', closeDrawer));
 })();
 </script>
 
