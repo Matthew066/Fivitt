@@ -2,6 +2,12 @@
 require_once __DIR__ . '/auth.php';
 require_once '../includes/db.php';
 
+try {
+	$pdo->query("ALTER TABLE gym_bookings ADD COLUMN equipment_id bigint(20) DEFAULT NULL");
+} catch (Throwable $e) {
+	// ignore if column already exists
+}
+
 function toInt(mixed $value): int
 {
 	return (int) $value;
@@ -54,11 +60,11 @@ try {
 try {
 	$topFoodRows = $pdo->query("
 		SELECT
-			COALESCE(NULLIF(TRIM(f.name), ''), CONCAT('Food #', fl.food_id)) AS food_name,
+			COALESCE(NULLIF(TRIM(f.name), ''), CONCAT('Food #', fl.id_foods)) AS food_name,
 			COUNT(*) AS total_orders
 		FROM food_logs fl
-		LEFT JOIN foods f ON f.id_foods = fl.food_id
-		GROUP BY fl.food_id, f.name
+		LEFT JOIN foods f ON f.id_foods = fl.id_foods
+		GROUP BY fl.id_foods, f.name
 		ORDER BY total_orders DESC, food_name ASC
 		LIMIT 7
 	")->fetchAll();
@@ -84,11 +90,11 @@ try {
 try {
 	$topUserRows = $pdo->query("
 		SELECT
-			COALESCE(NULLIF(TRIM(u.name), ''), CONCAT('User #', gb.user_id)) AS user_name,
+			COALESCE(NULLIF(TRIM(u.name), ''), CONCAT('User #', gb.id_users)) AS user_name,
 			COUNT(*) AS total_bookings
 		FROM gym_bookings gb
-		LEFT JOIN users u ON u.id_users = gb.user_id
-		GROUP BY gb.user_id, u.name
+		LEFT JOIN users u ON u.id_users = gb.id_users
+		GROUP BY gb.id_users, u.name
 		ORDER BY total_bookings DESC, user_name ASC
 		LIMIT 7
 	")->fetchAll();

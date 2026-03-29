@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$title, $summary, $content, $category, $author, $publishedAt, ($sourceUrl !== '' ? $sourceUrl : null), $isActive, ($imagePath !== '' ? $imagePath : null), $id]);
             } else {
                 $stmt = $pdo->prepare("
-                    INSERT INTO articles (title, summary, content, category, author_name, published_at, source_url, is_active, image_path, created_by)
+                    INSERT INTO articles (title, summary, content, category, author_name, published_at, source_url, is_active, image_path, id_users_created_by)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmt->execute([$title, $summary, $content, $category, $author, $publishedAt, ($sourceUrl !== '' ? $sourceUrl : null), $isActive, ($imagePath !== '' ? $imagePath : null), $creatorId]);

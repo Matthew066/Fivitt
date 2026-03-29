@@ -1,6 +1,10 @@
 <?php
 session_start();
 require_once 'includes/db.php';
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
 
 $pageTitle = 'Workout Plan';
 include 'includes/header.php';
@@ -211,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$errors) {
             $insertWorkout = $pdo->prepare("
                 INSERT INTO workout_personalizations
-                (user_id, goal, fitness_level, detail_workout, notes)
+                (id_users, goal, fitness_level, detail_workout, notes)
                 VALUES (?, ?, ?, ?, ?)
             ");
             $insertWorkout->execute([
@@ -231,7 +235,7 @@ if (isset($_GET['saved'])) {
 $workoutStmt = $pdo->prepare("
     SELECT *
     FROM workout_personalizations
-    WHERE user_id = ?
+    WHERE id_users = ?
     ORDER BY created_at DESC
     LIMIT 1
 ");

@@ -1,6 +1,10 @@
 <?php
 session_start();
 require_once 'includes/db.php';
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
 
 $pageTitle = 'Sleep & Recovery';
 include 'includes/header.php';
@@ -12,14 +16,14 @@ $today = date('Y-m-d');
 
 $check = $pdo->prepare("
     SELECT * FROM sleep_logs
-    WHERE user_id = ? AND sleep_date = ?
+    WHERE id_users = ? AND sleep_date = ?
 ");
 $check->execute([$user_id, $today]);
 $todayLog = $check->fetch(PDO::FETCH_ASSOC);
 
 if (!$todayLog) {
     $insert = $pdo->prepare("
-        INSERT INTO sleep_logs (user_id, sleep_date, sleep_start, sleep_end)
+        INSERT INTO sleep_logs (id_users, sleep_date, sleep_start, sleep_end)
         VALUES (?, ?, '22:00', '06:00')
     ");
     $insert->execute([$user_id, $today]);
@@ -40,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $update = $pdo->prepare("
         UPDATE sleep_logs
         SET sleep_start = ?, sleep_end = ?
-        WHERE user_id = ? AND sleep_date = ?
+        WHERE id_users = ? AND sleep_date = ?
     ");
     $update->execute([$start, $end, $user_id, $today]);
 
@@ -58,7 +62,7 @@ $count   = 0;
 $stmt = $pdo->prepare("
     SELECT sleep_date, sleep_start, sleep_end
     FROM sleep_logs
-    WHERE user_id = ?
+    WHERE id_users = ?
     AND sleep_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
     ORDER BY sleep_date ASC
 ");
@@ -97,7 +101,7 @@ $user_id = $_SESSION['user_id'] ?? 1;
 $stmt = $pdo->prepare("
     SELECT sleep_date, sleep_start, sleep_end
     FROM sleep_logs
-    WHERE user_id = ?
+    WHERE id_users = ?
     AND sleep_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
 ");
 $stmt->execute([$user_id]);

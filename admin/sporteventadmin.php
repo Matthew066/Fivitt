@@ -161,7 +161,7 @@ $sql = "
         e.*,
         COUNT(ep.id_event_participants) AS total_participants
     FROM events e
-    LEFT JOIN event_participants ep ON ep.event_id = e.id_events
+    LEFT JOIN event_participants ep ON ep.id_events = e.id_events
 ";
 if ($where) {
     $sql .= " WHERE " . implode(' AND ', $where);

@@ -1,6 +1,10 @@
 <?php
 session_start();
 require_once 'includes/db.php';
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
 
 try {
     $pdo->query("ALTER TABLE events ADD COLUMN image_path varchar(255) DEFAULT NULL");
@@ -41,14 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $check = $pdo->prepare("
                 SELECT id_event_participants
                 FROM event_participants
-                WHERE event_id = ? AND user_id = ?
+                WHERE id_events = ? AND id_users = ?
                 LIMIT 1
             ");
             $check->execute([$event_id, $user_id]);
 
             if (!$check->fetch()) {
                 $join = $pdo->prepare("
-                    INSERT INTO event_participants (event_id, user_id, status)
+                    INSERT INTO event_participants (id_events, id_users, status)
                     VALUES (?, ?, 'registered')
                 ");
                 $join->execute([$event_id, $user_id]);

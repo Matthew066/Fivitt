@@ -1,6 +1,10 @@
 <?php
 session_start();
 require_once 'includes/db.php';
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
 
 // ensure equipment_id column exists in gym_bookings table
 try {
@@ -24,7 +28,7 @@ $end_time = '';
 equipment:
 $equipment = null;
 if ($equipment_id > 0) {
-    $stmt = $pdo->prepare("\n        SELECT ge.*, g.name AS gym_name\n        FROM gym_equipments ge\n        LEFT JOIN gyms g ON ge.gym_id = g.id_gyms\n        WHERE ge.id_gym_equipments = ?\n        LIMIT 1\n    ");
+    $stmt = $pdo->prepare("\n        SELECT ge.*, g.name AS gym_name\n        FROM gym_equipments ge\n        LEFT JOIN gyms g ON ge.id_gyms = g.id_gyms\n        WHERE ge.id_gym_equipments = ?\n        LIMIT 1\n    ");
     $stmt->execute([$equipment_id]);
     $equipment = $stmt->fetch();
 }
@@ -39,10 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'book_
     } elseif ($date === '' || $start_time === '' || $end_time === '') {
         $error = 'Semua field waktu harus diisi.';
     } else {
-        $gym_id = $equipment['gym_id'];
+        $gym_id = $equipment['id_gyms'];
         $timeslot = $start_time . '-' . $end_time;
         // include equipment_id in booking data
-        $stmt = $pdo->prepare("INSERT INTO gym_bookings (user_id, gym_id, equipment_id, booking_date, time_slot, status) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO gym_bookings (id_users, id_gyms, equipment_id, booking_date, time_slot, status) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$user_id, $gym_id, $equipment_id, $date, $timeslot, 'confirmed']);
         // decrement available quantity for equipment
         $upd = $pdo->prepare("UPDATE gym_equipments SET quantity = quantity - 1 WHERE id_gym_equipments = ? AND quantity > 0");

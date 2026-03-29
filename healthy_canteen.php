@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = substr($name, 0, 255);
 
         $currentStmt = $pdo->prepare(
-            'SELECT id_foods, created_by, name, calories, protein, fat, carbs, rating, image_path
+            'SELECT id_foods, id_users_created_by, name, calories, protein, fat, carbs, rating, image_path
              FROM foods
              WHERE id_foods = ?
              LIMIT 1'
@@ -226,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $insertStmt = $pdo->prepare(
-        'INSERT INTO foods (name, calories, protein, fat, carbs, rating, image_path, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO foods (name, calories, protein, fat, carbs, rating, image_path, id_users_created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $insertStmt->execute([$name, $calories, $protein, $fat, $carbs, $rating, ($imagePath !== '' ? $imagePath : null), $userId]);
 
@@ -245,9 +245,9 @@ $foodsStmt = $pdo->query(
     "SELECT f.id_foods, f.name, COALESCE(f.calories, 0) AS calories,
             COALESCE(f.protein, 0) AS protein, COALESCE(f.fat, 0) AS fat,
             COALESCE(f.carbs, 0) AS carbs, COALESCE(f.rating, 0) AS rating, f.image_path,
-            f.created_by, COALESCE(u.name, 'Unknown') AS creator_name
+            f.id_users_created_by, COALESCE(u.name, 'Unknown') AS creator_name
      FROM foods f
-     LEFT JOIN users u ON u.id_users = f.created_by
+     LEFT JOIN users u ON u.id_users = f.id_users_created_by
      ORDER BY f.id_foods DESC"
 );
 $foods = $foodsStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -357,11 +357,11 @@ try {
 
 try {
     $topFoodTodayStmt = $pdo->prepare(
-        "SELECT COALESCE(NULLIF(TRIM(f.name), ''), CONCAT('Food #', fl.food_id)) AS food_name, COUNT(*) AS total_orders
+        "SELECT COALESCE(NULLIF(TRIM(f.name), ''), CONCAT('Food #', fl.id_foods)) AS food_name, COUNT(*) AS total_orders
          FROM food_logs fl
-         LEFT JOIN foods f ON f.id_foods = fl.food_id
+         LEFT JOIN foods f ON f.id_foods = fl.id_foods
          WHERE fl.consumed_at = ?
-         GROUP BY fl.food_id, f.name
+         GROUP BY fl.id_foods, f.name
          ORDER BY total_orders DESC, food_name ASC
          LIMIT 1"
     );

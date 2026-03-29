@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $update->execute([$equipmentName, $quantity, $description, ($imagePath !== '' ? $imagePath : null), $equipmentId]);
             } else {
                 $insert = $pdo->prepare("
-                    INSERT INTO gym_equipments (gym_id, equipment_name, quantity, description, image_path)
+                    INSERT INTO gym_equipments (id_gyms, equipment_name, quantity, description, image_path)
                     VALUES (NULL, ?, ?, ?, ?)
                 ");
                 $insert->execute([$equipmentName, $quantity, $description, ($imagePath !== '' ? $imagePath : null)]);
@@ -212,7 +212,7 @@ if ($editBookingId > 0) {
 $equipmentsStmt = $pdo->query("
     SELECT ge.*, g.name AS gym_name
     FROM gym_equipments ge
-    LEFT JOIN gyms g ON ge.gym_id = g.id_gyms
+    LEFT JOIN gyms g ON ge.id_gyms = g.id_gyms
     ORDER BY ge.id_gym_equipments DESC
 ");
 $equipments = $equipmentsStmt->fetchAll();
@@ -224,7 +224,7 @@ $bookingsStmt = $pdo->query("
         u.email AS user_email,
         ge.equipment_name
     FROM gym_bookings gb
-    LEFT JOIN users u ON u.id_users = gb.user_id
+    LEFT JOIN users u ON u.id_users = gb.id_users
     LEFT JOIN gym_equipments ge ON ge.id_gym_equipments = gb.equipment_id
     ORDER BY gb.booking_date DESC, gb.id_gym_bookings DESC
 ");
@@ -433,7 +433,7 @@ $bookings = $bookingsStmt->fetchAll();
                                                 <tr>
                                                     <td><?php echo (int) $booking['id_gym_bookings']; ?></td>
                                                     <td>
-                                                        <?php echo h($booking['user_name'] ?: 'User #' . (int) $booking['user_id']); ?>
+                                                        <?php echo h($booking['user_name'] ?: 'User #' . (int) $booking['id_users']); ?>
                                                         <div class="text-muted small"><?php echo h($booking['user_email']); ?></div>
                                                     </td>
                                                     <td><?php echo h($booking['equipment_name'] ?: 'Alat tidak ditemukan'); ?></td>

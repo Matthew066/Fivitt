@@ -72,8 +72,8 @@ if (isset($_FILES['food_image']) && (int)($_FILES['food_image']['error'] ?? UPLO
 }
 
 $insertStmt = $pdo->prepare(
-    "INSERT INTO foods (name, calories, protein, fat, carbs, rating, image_path, created_by)
-     VALUES (:name, :calories, :protein, :fat, :carbs, :rating, :image_path, :created_by)"
+    "INSERT INTO foods (name, calories, protein, fat, carbs, rating, image_path, id_users_created_by)
+     VALUES (:name, :calories, :protein, :fat, :carbs, :rating, :image_path, :id_users_created_by)"
 );
 $insertStmt->execute([
     ':name' => $name,
@@ -83,7 +83,7 @@ $insertStmt->execute([
     ':carbs' => $carbs,
     ':rating' => $rating,
     ':image_path' => $imagePath,
-    ':created_by' => $createdBy,
+    ':id_users_created_by' => $createdBy,
 ]);
 
 redirect_with_status('success', 'Menu baru berhasil ditambahkan.');

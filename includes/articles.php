@@ -28,7 +28,7 @@ function seed_default_articles(PDO $pdo): void
     }
 
     $insert = $pdo->prepare("
-        INSERT INTO articles (title, summary, content, category, author_name, published_at, is_active, created_by)
+        INSERT INTO articles (title, summary, content, category, author_name, published_at, is_active, id_users_created_by)
         VALUES (?, ?, ?, ?, ?, ?, 1, NULL)
     ");
 

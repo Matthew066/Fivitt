@@ -49,7 +49,7 @@ if (
         $pdo->beginTransaction();
 
         $findFoodByIdStmt = $pdo->prepare("SELECT id_foods FROM foods WHERE id_foods = ? LIMIT 1");
-        $insertLogStmt = $pdo->prepare("INSERT INTO food_logs (user_id, food_id, consumed_at) VALUES (?, ?, ?)");
+        $insertLogStmt = $pdo->prepare("INSERT INTO food_logs (id_users, id_foods, consumed_at) VALUES (?, ?, ?)");
         $validItems = [];
 
         foreach ($items as $item) {

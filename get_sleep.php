@@ -2,103 +2,116 @@
 session_start();
 header('Content-Type: application/json');
 
-if(!isset($_SESSION['user_id'])){
-    echo json_encode(["error"=>"Unauthorized"]);
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
     exit;
 }
 
-include "includes/db.php";
+require_once "includes/db.php";
 
-$user_id = intval($_SESSION['user_id']);
+$user_id = (int) $_SESSION['user_id'];
 
 $today = date('Y-m-d');
 $weekAgo = date('Y-m-d', strtotime('-6 days'));
 $prevWeekStart = date('Y-m-d', strtotime('-13 days'));
 $prevWeekEnd = date('Y-m-d', strtotime('-7 days'));
 
+function sleepHours(string $date, ?string $start, ?string $end): float
+{
+    if ($start === null || $end === null || $start === '' || $end === '') {
+        return 0.0;
+    }
 
-// =========================
-// AMBIL DATA MINGGU INI
-// =========================
-$query = mysqli_query($conn,"
-    SELECT tanggal, jam_tidur
-    FROM sleep
-    WHERE user_id = $user_id
-    AND tanggal BETWEEN '$weekAgo' AND '$today'
-    ORDER BY tanggal ASC
+    $startTs = strtotime($date . ' ' . $start);
+    $endTs = strtotime($date . ' ' . $end);
+    if ($startTs === false || $endTs === false) {
+        return 0.0;
+    }
+
+    if ($endTs <= $startTs) {
+        $endTs = strtotime('+1 day', $endTs);
+    }
+
+    return max(0.0, ($endTs - $startTs) / 3600);
+}
+
+$weekStmt = $pdo->prepare("
+    SELECT sleep_date, sleep_start, sleep_end
+    FROM sleep_logs
+    WHERE id_users = ?
+      AND sleep_date BETWEEN ? AND ?
+    ORDER BY sleep_date ASC
 ");
+$weekStmt->execute([$user_id, $weekAgo, $today]);
+$weekRows = $weekStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $dates = [];
 $hours = [];
-$total = 0;
+$total = 0.0;
 $count = 0;
 
-while($row = mysqli_fetch_assoc($query)){
-    $dates[] = $row['tanggal'];
-    $jam = floatval($row['jam_tidur']);
-    $hours[] = $jam;
+foreach ($weekRows as $row) {
+    $date = (string) ($row['sleep_date'] ?? '');
+    $jam = sleepHours($date, $row['sleep_start'] ?? null, $row['sleep_end'] ?? null);
+
+    $dates[] = $date;
+    $hours[] = round($jam, 2);
     $total += $jam;
     $count++;
 }
 
-$average = $count ? round($total / $count,1) : 0;
-$score = round(min(10, ($average/8)*10),1);
+$average = $count ? round($total / $count, 1) : 0.0;
+$score = round(min(10, ($average / 8) * 10), 1);
 
-
-// =========================
-// AMBIL DATA MINGGU LALU
-// =========================
-$queryPrev = mysqli_query($conn,"
-    SELECT jam_tidur
-    FROM sleep
-    WHERE user_id = $user_id
-    AND tanggal BETWEEN '$prevWeekStart' AND '$prevWeekEnd'
+$prevStmt = $pdo->prepare("
+    SELECT sleep_date, sleep_start, sleep_end
+    FROM sleep_logs
+    WHERE id_users = ?
+      AND sleep_date BETWEEN ? AND ?
 ");
+$prevStmt->execute([$user_id, $prevWeekStart, $prevWeekEnd]);
+$prevRows = $prevStmt->fetchAll(PDO::FETCH_ASSOC);
 
-$totalPrev = 0;
+$totalPrev = 0.0;
 $countPrev = 0;
-
-while($row = mysqli_fetch_assoc($queryPrev)){
-    $totalPrev += floatval($row['jam_tidur']);
+foreach ($prevRows as $row) {
+    $date = (string) ($row['sleep_date'] ?? '');
+    $totalPrev += sleepHours($date, $row['sleep_start'] ?? null, $row['sleep_end'] ?? null);
     $countPrev++;
 }
 
-$prev_average = $countPrev ? round($totalPrev / $countPrev,1) : 0;
-$prev_score = round(min(10, ($prev_average/8)*10),1);
+$prev_average = $countPrev ? round($totalPrev / $countPrev, 1) : 0.0;
+$prev_score = round(min(10, ($prev_average / 8) * 10), 1);
 
-
-// =========================
-// STATUS
-// =========================
 $status = "Kurang Tidur";
-if($average >= 8){
+if ($average >= 8) {
     $status = "Tidur Optimal";
-} elseif($average >= 6){
+} elseif ($average >= 6) {
     $status = "Tidur Cukup";
 }
 
-
-// =========================
-// HITUNG STREAK
-// =========================
-$streak = 0;
-$streakQuery = mysqli_query($conn,"
-    SELECT tanggal
-    FROM sleep
-    WHERE user_id = $user_id
-    ORDER BY tanggal DESC
+$streakStmt = $pdo->prepare("
+    SELECT DISTINCT sleep_date
+    FROM sleep_logs
+    WHERE id_users = ?
+    ORDER BY sleep_date DESC
 ");
+$streakStmt->execute([$user_id]);
+$streakRows = $streakStmt->fetchAll(PDO::FETCH_ASSOC);
 
+$streak = 0;
 $prevDate = null;
+foreach ($streakRows as $row) {
+    $currentDate = (string) ($row['sleep_date'] ?? '');
+    if ($currentDate === '') {
+        continue;
+    }
 
-while($row = mysqli_fetch_assoc($streakQuery)){
-    $currentDate = $row['tanggal'];
-
-    if($prevDate === null){
+    if ($prevDate === null) {
         $streak++;
     } else {
         $diff = (strtotime($prevDate) - strtotime($currentDate)) / 86400;
-        if($diff == 1){
+        if ($diff == 1) {
             $streak++;
         } else {
             break;
@@ -108,10 +121,6 @@ while($row = mysqli_fetch_assoc($streakQuery)){
     $prevDate = $currentDate;
 }
 
-
-// =========================
-// RESPONSE
-// =========================
 echo json_encode([
     "dates" => $dates,
     "hours" => $hours,

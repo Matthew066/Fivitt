@@ -1,6 +1,10 @@
 <?php
 session_start();
 require_once 'includes/db.php';
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
 
 $pageTitle = 'Gym Booking';
 include 'includes/header.php';
@@ -22,13 +26,13 @@ try {
 $countStmt = $pdo->query("SELECT COUNT(*) FROM gym_equipments");
 $totalEquip = (int) $countStmt->fetchColumn();
 if ($totalEquip === 0) {
-    $pdo->exec("INSERT INTO gym_equipments (gym_id, equipment_name, quantity, description, image_path) VALUES
+    $pdo->exec("INSERT INTO gym_equipments (id_gyms, equipment_name, quantity, description, image_path) VALUES
         (NULL,'Barang 01',5,'Detail singkat barang 01',NULL),
         (NULL,'Barang 02',3,'Detail singkat barang 02',NULL),
         (NULL,'Barang 03',2,'Detail singkat barang 03',NULL)");
 }
 
-$stmt = $pdo->prepare("\n    SELECT ge.*, g.name AS gym_name\n    FROM gym_equipments ge\n    LEFT JOIN gyms g ON ge.gym_id = g.id_gyms\n    WHERE g.is_active = 1 OR g.is_active IS NULL\n");
+$stmt = $pdo->prepare("\n    SELECT ge.*, g.name AS gym_name\n    FROM gym_equipments ge\n    LEFT JOIN gyms g ON ge.id_gyms = g.id_gyms\n    WHERE g.is_active = 1 OR g.is_active IS NULL\n");
 $stmt->execute();
 $equipments = $stmt->fetchAll();
 ?>

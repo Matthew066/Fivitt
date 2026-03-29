@@ -27,10 +27,10 @@ $query = "
         COALESCE(f.carbs, 0) AS carbs,
         COALESCE(f.rating, 0) AS rating,
         f.image_path,
-        f.created_by,
+        f.id_users_created_by,
         COALESCE(u.name, 'Unknown') AS creator_name
     FROM foods f
-    LEFT JOIN users u ON u.id_users = f.created_by
+    LEFT JOIN users u ON u.id_users = f.id_users_created_by
     ORDER BY f.id_foods DESC
 ";
 $foods = $pdo->query($query);
