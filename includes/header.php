@@ -20,7 +20,8 @@ $isLoggedIn = isset($_SESSION['user_id']);
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=2">
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=1">
     <link rel="stylesheet" href="assets/css/media-query.css">
     <?php foreach ($extraStyles as $stylePath): ?>
         <?php if (!is_string($stylePath) || trim($stylePath) === '') continue; ?>
@@ -30,14 +31,14 @@ $isLoggedIn = isset($_SESSION['user_id']);
 <body<?= $bodyClass !== '' ? ' class="' . htmlspecialchars((string) $bodyClass, ENT_QUOTES, 'UTF-8') . '"' : '' ?>>
 
 <header class="header">
-    <img src="assets/Foto/Logo5vit.png" alt="FIVIT" class="logo">
+    <img src="assets/Foto/Logo5vit.png" alt="FIVIT" class="logo" style="width: 50px; height: 50px;">
     <button class="menu" aria-label="Menu" aria-expanded="false" aria-controls="drawer">&#9776;</button>
 </header>
 
 <div class="drawer-backdrop" data-drawer-close></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
     <div class="drawer-header">
-        <img src="assets/Foto/Logo5vit.png" alt="FIVIT" class="logo">
+        <img src="assets/Foto/Logo5vit.png" alt="FIVIT" class="logo" style="width: 50px; height: 50px;">
         <button class="menu drawer-close" aria-label="Tutup Menu" data-drawer-close>&#9776;</button>
     </div>
     <nav class="drawer-nav">
@@ -63,3 +64,9 @@ $isLoggedIn = isset($_SESSION['user_id']);
         <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? 'education.php' : 'login.php' ?>">Education</a>
     </nav>
 </aside>
+
+<style>
+.drawer-link.is-disabled {
+    opacity: 0.55;
+}
+</style>
