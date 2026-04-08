@@ -63,6 +63,14 @@ $isLoggedIn = isset($_SESSION['user_id']);
         <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? 'education.php' : 'login.php' ?>">Education</a>
         <div class="drawer-section">Community</div>
         <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? 'community.php' : 'login.php'?>"> Community Hub</a>
+
+        <?php if ($isLoggedIn): ?>
+            <div class="drawer-section">Account</div>
+            <a class="drawer-link drawer-link-logout" href="logout.php">
+                <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+                <span>Logout</span>
+            </a>
+        <?php endif; ?>
     </nav>
 </aside>
 

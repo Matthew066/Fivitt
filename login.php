@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <link rel="stylesheet" href="assets/css/media-query.css">
 </head>
 
-<body class="auth-screen login-screen">
+<body class="login-page auth-screen login-screen">
     <div class="site-content">
         <div class="preloader">
             <img src="assets/images/splashscreen/logofivit.png" alt="Loading Fivit">
