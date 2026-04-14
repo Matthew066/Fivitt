@@ -319,33 +319,108 @@ body.healthy-canteen-page .card:hover {
 }
 
 /* ===== HERO ===== */
-.sleep-hero {
-    background: linear-gradient(135deg, #4facfe, #43e97b);
+.app .card.sleep-hero,
+.app .card.mens-hero,
+.app .card.hero {
+    background: linear-gradient(135deg, #0f766e 0%, #22c55e 52%, #67c6f5 100%);
     color: white;
     border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 20px 38px rgba(16, 122, 110, 0.18);
+    overflow: hidden;
+}
+
+.app .card.sleep-hero .sleep-title,
+.app .card.mens-hero .sleep-title,
+.app .card.hero .sleep-title,
+.app .card.sleep-hero .sleep-sub,
+.app .card.mens-hero .sleep-sub,
+.app .card.hero .sleep-sub,
+.app .card.sleep-hero .hero-badge,
+.app .card.mens-hero .hero-badge,
+.app .card.hero .hero-badge {
+    color: #ffffff;
 }
 
 .sleep-hero-inner {
     display: flex;
-    align-items: center;
-    gap: 20px;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
 }
 
 .emoji-bubble {
     font-size: 40px;
-    background: rgba(255, 255, 255, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    min-height: 80px;
+    background: rgba(255, 255, 255, 0.18);
     padding: 20px;
     border-radius: 50%;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.hero-copy {
+    flex: 1 1 320px;
+    min-width: 0;
 }
 
 .sleep-title {
-    font-size: 24px;
-    font-weight: 600;
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    line-height: 1.15;
 }
 
 .sleep-sub {
-    opacity: 0.9;
+    margin-top: 8px;
+    opacity: 0.95;
     font-size: 14px;
+    line-height: 1.6;
+    max-width: 720px;
+}
+
+.hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    backdrop-filter: blur(8px);
+}
+
+@media (max-width: 640px) {
+    .app .card.sleep-hero,
+    .app .card.mens-hero,
+    .app .card.hero {
+        padding: 22px 20px;
+    }
+
+    .emoji-bubble {
+        min-width: 68px;
+        min-height: 68px;
+        font-size: 32px;
+        padding: 16px;
+    }
+
+    .hero-badge {
+        width: 100%;
+        justify-content: flex-start;
+    }
 }
 
 /* ===== FORM ===== */

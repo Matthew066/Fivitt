@@ -592,7 +592,7 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
 
 <style>
 .mens-hero {
-    background: linear-gradient(135deg, #f472b6, #fb7185 50%, #f59e0b);
+    background: linear-gradient(135deg, #0f766e 0%, #22c55e 52%, #67c6f5 100%);
     color: #fff;
 }
 
@@ -624,6 +624,31 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
     display: grid;
     grid-template-columns: 1fr;
     gap: 12px;
+    margin-bottom: 4px;
+}
+
+.mens-profile-form {
+    display: grid;
+    gap: 16px;
+}
+
+.mens-profile-form .input-group {
+    margin-bottom: 0;
+}
+
+.mens-profile-form .input-group > label {
+    display: block;
+    margin-bottom: 10px;
+    line-height: 1.45;
+}
+
+.mens-profile-form .mood-grid,
+.mens-profile-form .symptom-grid {
+    margin-top: 2px;
+}
+
+.mens-profile-form .symptom-item span {
+    line-height: 1.35;
 }
 
 .period-date-field label {
@@ -994,10 +1019,15 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
     <section class="card mens-hero">
         <div class="sleep-hero-inner">
             <div class="emoji-bubble">&#127769;</div>
-            <div>
+            <div class="hero-copy">
                 <div class="sleep-title">Lunar Harmony Insight</div>
                 <div class="sleep-sub">
-                    Local cycle prediction + BaZi and lunar rhythm layer
+                    Ringkasan siklus, prediksi fase berikutnya, dan ritme energi personal kamu dalam satu tampilan.
+                </div>
+                <div class="hero-badges">
+                    <span class="hero-badge">Next period <?= date('d M', strtotime($nextPeriodDate)) ?></span>
+                    <span class="hero-badge">Siklus rata-rata <?= number_format($averageCycleLength, 1) ?> hari</span>
+                    <span class="hero-badge"><?= htmlspecialchars($cycleStability) ?></span>
                 </div>
             </div>
         </div>
@@ -1005,7 +1035,7 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
 
     <section class="card">
         <div class="summary-title">Input Siklus & Profil Energi</div>
-        <form method="POST">
+        <form method="POST" class="mens-profile-form">
             <div class="period-dates-grid">
                 <div class="period-date-field">
                     <label>Tanggal mulai haid</label>
@@ -1025,7 +1055,7 @@ $avgSeries = array_fill(0, count($cycleLengthsActual), $averageCycleLength);
             </div>
 
             <div class="input-group">
-                <label style="display:block;">Mood Tracker<br>(4 mood)</label>
+                <label>Mood Tracker<br>(4 mood)</label>
                 <div class="mood-grid">
                     <?php foreach ($moodOptions as $key => $mood): ?>
                         <label class="mood-option">

@@ -298,22 +298,16 @@ $planText = implode("\n", $planLines);
 }
 
 .hero {
-    background: #2ec4cc;
+    background: linear-gradient(135deg, #0f766e 0%, #22c55e 52%, #67c6f5 100%);
     color: #ffffff;
     border-radius: 22px;
-    padding: 20px;
+    padding: 26px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 20px 38px rgba(16, 122, 110, 0.18);
 }
 
-.hero h2 {
-    margin: 0 0 6px;
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.hero p {
-    margin: 0;
-    font-size: 13px;
-    opacity: 0.9;
+.hero .sleep-sub {
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .tab-row {
@@ -427,8 +421,18 @@ $planText = implode("\n", $planLines);
 
 <main class="app">
     <section class="card hero">
-        <h2>Workout Personalization</h2>
-        <p>Rekomendasi latihan otomatis untuk hari ini</p>
+        <div class="sleep-hero-inner">
+            <div class="emoji-bubble">&#127947;</div>
+            <div class="hero-copy">
+                <div class="sleep-title">Workout Personalization</div>
+                <div class="sleep-sub">Rekomendasi latihan otomatis untuk hari ini yang menyesuaikan goal, level fitness, dan plan yang tersedia.</div>
+                <div class="hero-badges">
+                    <span class="hero-badge"><?= $lastGoal !== '' ? htmlspecialchars($lastGoal) : 'Goal belum diisi' ?></span>
+                    <span class="hero-badge"><?= $lastFitness !== '' ? htmlspecialchars($lastFitness) : 'Level belum diisi' ?></span>
+                    <span class="hero-badge"><?= count($planLines) ?> rekomendasi latihan</span>
+                </div>
+            </div>
+        </div>
     </section>
 
     <div class="tab-row">

@@ -509,13 +509,15 @@ if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
 <section class="card sleep-hero">
     <div class="sleep-hero-inner">
         <div class="emoji-bubble">&#128170;</div>
-        <div>
+        <div class="hero-copy">
             <div class="sleep-title"><?= $status ?></div>
             <div class="sleep-sub">
-                Skor rata-rata <?= $averageScore ?>/10 minggu ini
+                Ringkasan kondisi health kamu minggu ini dari check-in otomatis, hidrasi, aktivitas, dan BMI.
             </div>
-            <div class="sleep-sub">
-                Pilar sehat tercapai: <?= (int) $healthyPillarCount ?>/4 (target minimal 3/4)
+            <div class="hero-badges">
+                <span class="hero-badge">Skor <?= $averageScore ?>/10 minggu ini</span>
+                <span class="hero-badge"><?= (int) $healthyPillarCount ?>/4 pilar tercapai</span>
+                <span class="hero-badge">Check-in otomatis aktif</span>
             </div>
         </div>
     </div>

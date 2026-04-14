@@ -185,6 +185,24 @@ if ($combinedSleepScore < 6) {
 
 <main class="app">
 
+<!-- ================= HERO ================= -->
+<section class="card sleep-hero">
+    <div class="sleep-hero-inner">
+        <div class="emoji-bubble">🌙</div>
+        <div class="hero-copy">
+            <div class="sleep-title"><?= $status ?></div>
+            <div class="sleep-sub">
+                Ringkasan kualitas tidur dan recovery kamu minggu ini berdasarkan durasi, latensi tidur, dan frekuensi terbangun malam.
+            </div>
+            <div class="hero-badges">
+                <span class="hero-badge">Rata-rata <?= formatAverage($average) ?></span>
+                <span class="hero-badge">Target <?= htmlspecialchars($sleepTargetLabel) ?></span>
+                <span class="hero-badge"><?= htmlspecialchars($qualityStatus) ?></span>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ================= INPUT ================= -->
 <section class="card">
     <div class="summary-title">Input Tidur Hari Ini</div>
@@ -208,7 +226,7 @@ if ($combinedSleepScore < 6) {
         <div class="input-row">
             <div class="input-group">
                 <label>Kelompok Usia</label>
-                <select name="age_group" required>
+                <select class="select-modern" name="age_group" required>
                     <option value="adult" <?= $ageGroup === 'adult' ? 'selected' : '' ?>>Dewasa (7-9 jam)</option>
                     <option value="teen_12_14" <?= $ageGroup === 'teen_12_14' ? 'selected' : '' ?>>Remaja 12-14 (8-10 jam)</option>
                 </select>
@@ -232,23 +250,6 @@ if ($combinedSleepScore < 6) {
             Catatan: indikator kualitas ini adalah skrining harian ringan (bukan PSQI lengkap).
         </div>
     </form>
-</section>
-
-
-<!-- ================= HERO ================= -->
-<section class="card sleep-hero">
-    <div class="sleep-hero-inner">
-        <div class="emoji-bubble">🌙</div>
-        <div>
-            <div class="sleep-title"><?= $status ?></div>
-            <div class="sleep-sub">
-                Tidur rata-rata <?= formatAverage($average) ?>
-            </div>
-            <div class="sleep-sub">
-                Target aktif: <?= htmlspecialchars($sleepTargetLabel) ?>
-            </div>
-        </div>
-    </div>
 </section>
 
 
