@@ -59,14 +59,14 @@ include 'includes/header.php';
                 </div>
             </div>
 
-            <div class="hero-progress">
+            <div class="hero-progress" style="--goal-progress: 60%;">
                 <div class="progress-labels">
-                    <span>0%</span>
+                    <span class="progress-start">0%</span>
                     <span class="pin"><i class="fa-solid fa-location-dot"></i></span>
-                    <span>100%</span>
+                    <span class="progress-end">100%</span>
                 </div>
                 <div class="progress-track">
-                    <div class="progress-fill" style="width: 60%;"></div>
+                    <div class="progress-fill"></div>
                 </div>
             </div>
         </section>

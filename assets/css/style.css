@@ -1,10 +1,22 @@
 /* ===== GLOBAL ===== */
+:root {
+    --app-font-family: 'Poppins', sans-serif;
+}
+
 body {
     background: linear-gradient(135deg, #f3f9ff, #e8f5f2);
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--app-font-family);
     margin: 0;
     color: #1f2937;
     cursor: default;
+}
+
+button,
+input,
+select,
+textarea,
+optgroup {
+    font-family: inherit;
 }
 
 *,

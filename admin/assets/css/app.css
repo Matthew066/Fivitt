@@ -32,6 +32,9 @@ File: app.css
 
 /* General */
 
+:root {
+	--app-font-family: 'Poppins', sans-serif;
+}
 
 body {
 
@@ -48,9 +51,17 @@ body {
 
     overflow-x: hidden;
 
-	font-family: 'Poppins', sans-serif;
+	font-family: var(--app-font-family);
 
 
+}
+
+button,
+input,
+select,
+textarea,
+optgroup {
+	font-family: inherit;
 }
 
 
