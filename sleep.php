@@ -5,6 +5,7 @@ require_once 'includes/auth_guard.php';
 require_login();
 
 $pageTitle = 'Sleep & Recovery';
+$bodyClass = 'sleep-page';
 include 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;
@@ -301,38 +302,74 @@ if ($combinedSleepScore < 6) {
 
 <!-- ================= CHART (SKOR HARIAN) ================= -->
 <section class="card chart-card">
-    <canvas id="sleepChart"></canvas>
+    <div class="summary-title">Grafik Skor Harian</div>
+    <canvas id="sleepChart" height="320"></canvas>
 </section>
 
 </main>
 
 
+<script src="assets/js/chart.js"></script>
 <script>
-new Chart(document.getElementById('sleepChart'), {
-    type: 'line',
-    data: {
-        labels: <?= json_encode($dates) ?>,
-        datasets: [{
-            label: 'Skor Harian',
-            data: <?= json_encode($hours) ?>,
-            borderColor: '#2ec4cc',
-            backgroundColor: 'rgba(46,196,204,0.2)',
-            tension: 0.4,
-            fill: true,
-            pointRadius: 4
-        }]
-    },
-    options: {
-        plugins: { legend: { display: false }},
-        scales: {
-            y: {
-                min: 0,
-                max: 10,
-                ticks: { stepSize: 2 }
+(() => {
+    const canvas = document.getElementById('sleepChart');
+    if (!canvas || typeof Chart === 'undefined') {
+        return;
+    }
+
+    new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: <?= json_encode($dates) ?>,
+            datasets: [{
+                label: 'Skor Harian',
+                data: <?= json_encode($hours) ?>,
+                borderColor: '#2ec4cc',
+                backgroundColor: 'rgba(46, 196, 204, 0.18)',
+                pointBackgroundColor: '#4facfe',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                borderWidth: 3,
+                tension: 0.35,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#64748b'
+                    }
+                },
+                y: {
+                    min: 0,
+                    max: 10,
+                    ticks: {
+                        stepSize: 2,
+                        color: '#64748b'
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.18)'
+                    }
+                }
             }
         }
-    }
-});
+    });
+})();
 </script>
 
 <?php include 'includes/footer.php'; ?>

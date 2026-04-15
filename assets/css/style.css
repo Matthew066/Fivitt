@@ -950,7 +950,14 @@ body.health-page .app {
 body.sleep-page .chart-card canvas,
 body.health-page .chart-card canvas {
     width: 100% !important;
+    display: block;
+    min-height: 320px;
     max-height: 320px;
+}
+
+body.sleep-page .chart-card,
+body.health-page .chart-card {
+    padding: 22px;
 }
 
 body.health-page .water-card {
