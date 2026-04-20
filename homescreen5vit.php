@@ -84,7 +84,7 @@ include 'includes/header.php';
                 </a>
                 <a class="tracking-card link-card" href="<?php echo htmlspecialchars($canteenLink, ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="tracking-icon icon-cream"><i class="fa-solid fa-utensils"></i></div>
-                    <p>Healthy Canteen</p>
+                    <p><?php echo in_array($userRole, ['cooker', 'admin']) ? 'Healthy Canteen' : 'Food Selection'; ?></p>
                 </a>
                 <a class="tracking-card link-card" href="sleep.php">
                     <div class="tracking-icon icon-mint"><i class="fa-solid fa-bed"></i></div>

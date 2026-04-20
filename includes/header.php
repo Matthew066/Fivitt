@@ -10,6 +10,16 @@ if (!is_array($extraStyles)) {
 }
 
 $isLoggedIn = isset($_SESSION['user_id']);
+
+$canteenLink = 'foodselection.php';
+$canteenLabel = 'Food Selection';
+if ($isLoggedIn) {
+    $userRole = strtolower(trim((string)($_SESSION['user_role'] ?? 'user')));
+    if (in_array($userRole, ['cooker', 'admin'])) {
+        $canteenLink = 'healthy_canteen.php';
+        $canteenLabel = 'Healthy Canteen';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -60,7 +70,7 @@ $isLoggedIn = isset($_SESSION['user_id']);
         <a class="drawer-link sub" href="coach_sessions.php">Coach Sessions</a>
 
         <div class="drawer-section">Canteen</div>
-        <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? 'foodselection.php' : 'login.php' ?>">Food Selection</a>
+        <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? htmlspecialchars($canteenLink, ENT_QUOTES, 'UTF-8') : 'login.php' ?>"><?= htmlspecialchars($canteenLabel, ENT_QUOTES, 'UTF-8') ?></a>
 
         <div class="drawer-section">Event</div>
         <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? 'education.php' : 'login.php' ?>">Education</a>

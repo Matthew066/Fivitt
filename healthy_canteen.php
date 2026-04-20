@@ -19,6 +19,12 @@ try {
     // ignore when column already exists
 }
 
+try {
+    $pdo->query("ALTER TABLE food_orders ADD COLUMN updated_at TIMESTAMP NULL DEFAULT NULL");
+} catch (Throwable $e) {
+    // ignore when column already exists
+}
+
 if (!in_array($role, $allowedRoles, true)) {
     if ($role === 'admin') {
         header('Location: admin/healthy_canteen.php');
@@ -52,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $updateOrderStmt = $pdo->prepare(
-            "UPDATE food_orders SET status = 'completed' WHERE id_food_orders = ? AND status = 'processing'"
+            "UPDATE food_orders SET status = 'completed', updated_at = NOW() WHERE id_food_orders = ? AND status = 'processing'"
         );
         $updateOrderStmt->execute([$orderId]);
 
@@ -297,8 +303,8 @@ try {
          FROM food_orders fo
          LEFT JOIN users u ON u.id_users = fo.user_id
          WHERE fo.status = 'completed'
-           AND fo.created_at BETWEEN ? AND ?
-         ORDER BY fo.created_at DESC
+           AND fo.updated_at BETWEEN ? AND ?
+         ORDER BY fo.updated_at DESC
          LIMIT 10"
     );
     $completedStmt->execute([$todayStart, $todayEnd]);
