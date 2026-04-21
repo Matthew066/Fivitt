@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -137,7 +137,6 @@ include 'includes/header.php';
         </section>
     </main>
 
-    <footer class="home-footer">@Fivit 2026</footer>
 </div>
 
 

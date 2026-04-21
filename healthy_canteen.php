@@ -30,7 +30,7 @@ if (!in_array($role, $allowedRoles, true)) {
         header('Location: admin/healthy_canteen.php');
         exit;
     }
-    header('Location: homescreen5vit.php');
+    header('Location: index.php');
     exit;
 }
 

@@ -35,7 +35,7 @@ function isActive(array $pages, string $currentPage): string
 		</li>
 		<!-- Logout Button -->
 		<li class="<?php echo isActive(['logout.php'], $currentPage); ?>">
-			<a href="logout.php">
+			<a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
 				<i class="bx bx-log-out"></i> Logout
 			</a>
 		</li>

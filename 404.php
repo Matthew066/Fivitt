@@ -4,7 +4,7 @@ session_start();
 $errorData = $_SESSION['__error_redirect'] ?? null;
 $isValid = is_array($errorData) && isset($errorData['time']) && (time() - (int)$errorData['time'] <= 300);
 if (!$isValid) {
-    header('Location: homescreen5vit.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -69,7 +69,7 @@ include 'includes/header.php';
         <div class="error-code">404</div>
         <div class="error-title">Halaman tidak tersedia</div>
         <div class="error-sub">Silakan kembali ke beranda.</div>
-        <a class="error-btn" href="homescreen5vit.php">Kembali ke Home</a>
+        <a class="error-btn" href="index.php">Kembali ke Home</a>
     </section>
 </main>
 

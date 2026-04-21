@@ -11,7 +11,7 @@ require_once 'includes/profile_image.php';
 
 ensure_users_profile_image_schema($pdo);
 
-$redirect = $_SERVER['HTTP_REFERER'] ?? 'homescreen5vit.php';
+$redirect = $_SERVER['HTTP_REFERER'] ?? 'index.php';
 $userId = (int) $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || $userId <= 0) {

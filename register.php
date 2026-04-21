@@ -7,7 +7,7 @@ if (isset($_SESSION['user_id'])) {
     if ($role === 'admin') {
         header('Location: admin/index.php');
     } else {
-        header('Location: homescreen5vit.php');
+        header('Location: index.php');
     }
     exit;
 }
@@ -141,6 +141,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </main>
     </div>
+
+    <footer class="footer" style="text-align: center; padding: 20px 0; font-size: 14px; color: #64748b;">
+        &copy; FIVIT <?= date('Y') ?>
+    </footer>
 
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>

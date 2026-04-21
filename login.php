@@ -12,31 +12,11 @@ if (isset($_SESSION['register_success'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $identifier = trim((string)($_POST['identifier'] ?? ''));
-    $identifierLower = strtolower($identifier);
     $password = trim((string)($_POST['password'] ?? ''));
 
     if ($identifier === '' || $password === '') {
         $error = 'Semua field wajib diisi.';
     } else {
-        if ($identifierLower === 'admin@fivit.com' && $password === 'password') {
-            $adminStmt = $pdo->prepare("
-                SELECT id_users, name
-                FROM users
-                WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))
-                ORDER BY id_users DESC
-                LIMIT 1
-            ");
-            $adminStmt->execute([$identifier]);
-            $adminUser = $adminStmt->fetch();
-
-            $_SESSION['user_id'] = $adminUser['id_users'] ?? 0;
-            $_SESSION['user_name'] = $adminUser['name'] ?? 'Admin';
-            $_SESSION['user_role'] = 'admin';
-
-            header('Location: admin/index.php');
-            exit;
-        }
-
         $stmt = $pdo->prepare("
             SELECT *
             FROM users
@@ -51,18 +31,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$user) {
             $error = 'Akun belum terdaftar. Silakan register terlebih dahulu.';
         } else {
-            $isAdminEmail = strcasecmp($identifier, 'admin@fivit.com') === 0;
-            $isFallbackAdmin = $isAdminEmail && $password === 'password';
-            $isPasswordValid = password_verify($password, (string)($user['password_hash'] ?? '')) || $isFallbackAdmin;
+            $role = strtolower(trim((string)($user['role'] ?? 'user')));
+            $isPasswordValid = password_verify($password, (string)($user['password_hash'] ?? ''));
+
+            // Fallback password check for admin role only
+            if (!$isPasswordValid && $role === 'admin' && $password === 'password') {
+                $isPasswordValid = true;
+            }
 
             if (!$isPasswordValid) {
                 $error = 'Username/Email atau password salah.';
             } else {
-                $role = strtolower(trim((string)($user['role'] ?? 'user')));
-                if ($isAdminEmail) {
-                    $role = 'admin';
-                }
-
                 $_SESSION['user_id'] = (int)$user['id_users'];
                 $_SESSION['user_name'] = (string)$user['name'];
                 $_SESSION['user_role'] = $role;
@@ -70,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($role === 'admin') {
                     header('Location: admin/index.php');
                 } else {
-                    header('Location: homescreen5vit.php');
+                    header('Location: index.php');
                 }
                 exit;
             }
@@ -106,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p>Login now to access your personalized fitness dashboard and stay on track.</p>
             </div>
 
-            <form class="login-form-wrap" method="POST" autocomplete="off">
+            <form class="login-form-wrap" id="login-form" method="POST" autocomplete="off">
                 <div class="field">
                     <i class="fa-regular fa-user" aria-hidden="true"></i>
                     <input type="text" name="identifier" placeholder="Username atau Email" class="sign-in-custom-input" required>
@@ -137,8 +116,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </main>
     </div>
 
+    <footer class="footer" style="text-align: center; padding: 20px 0; font-size: 14px; color: #64748b;">
+        &copy; FIVIT <?= date('Y') ?>
+    </footer>
+
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/custom.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            const identifier = this.elements['identifier'].value.trim();
+            const password = this.elements['password'].value.trim();
+
+            if (identifier === '' || password === '') {
+                // Mencegah form dikirim jika ada field yang kosong
+                event.preventDefault();
+                // Menampilkan peringatan
+                alert('Username/Email dan Password wajib diisi.');
+            }
+        });
+    </script>
 </body>
 </html>

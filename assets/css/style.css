@@ -7,6 +7,9 @@ body {
     background: linear-gradient(135deg, #f3f9ff, #e8f5f2);
     font-family: var(--app-font-family);
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     color: #1f2937;
     cursor: default;
 }
@@ -851,6 +854,7 @@ body.foodselection-page {
     min-height: 42px;
     padding: 10px 18px;
     font-weight: 600;
+    transition: transform 0.2s ease, background-color 0.2s ease, filter 0.2s ease;
 }
 
 .back-btn {
@@ -858,9 +862,29 @@ body.foodselection-page {
     background: #e2e8f0;
 }
 
+.back-btn:hover {
+    background-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.back-btn:active {
+    transform: translateY(0);
+    filter: brightness(0.95);
+}
+
 .confirm-btn {
     color: #fff;
     background: linear-gradient(135deg, #16a34a, #0ea5e9);
+}
+
+.confirm-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+
+.confirm-btn:active {
+    transform: translateY(0);
+    filter: brightness(0.95);
 }
 
 .empty-order,
@@ -1272,7 +1296,6 @@ body.auth-screen {
 
 body.auth-screen .site-content {
     width: min(100%, 640px);
-    min-height: 100vh;
     margin: 0 auto;
     padding: 32px 24px 40px;
     position: relative;
@@ -1498,3 +1521,18 @@ body.auth-screen .register-back-link:hover {
 }
 
 /* cursor global handled by theme/fivit cursor script */
+
+/* Sticky footer styles */
+main.app,
+.homescreen-wrapper,
+.food-screen,
+.site-content,
+.artikel-app,
+.education-app,
+.detail-app,
+.community-app,
+.coach-app,
+.gym-app,
+.pay-wrap {
+    flex: 1 0 auto;
+}

@@ -2,6 +2,24 @@
     &copy; FIVIT <?= date('Y') ?>
 </footer>
 
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header" style="border-bottom: none;">
+                <h5 class="modal-title" id="logoutModalLabel">Konfirmasi Logout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Anda yakin ingin logout?
+            </div>
+            <div class="modal-footer" style="border-top: none;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 999px;">Batal</button>
+                <a href="/Fivitt/logout.php" class="btn btn-danger" style="border-radius: 999px;">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <button type="button" class="fvai-trigger" id="fvai-trigger" aria-label="Buka AI FiVit">AI</button>
 <section class="fvai-box hidden" id="fvai-box" aria-live="polite">
     <div class="fvai-head">
@@ -17,7 +35,11 @@
     </form>
 </section>
 
-<script src="assets/js/fivit-cursor.js" defer></script>
+<script src="/Fivitt/assets/js/jquery.min.js"></script>
+<script src="/Fivitt/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/Fivitt/assets/js/custom.js"></script>
+
+<script src="/Fivitt/assets/js/fivit-cursor.js" defer></script>
 <script>
 (() => {
     const menuBtn = document.querySelector('.menu');

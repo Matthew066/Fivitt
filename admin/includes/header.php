@@ -139,7 +139,7 @@ if ($adminUserId > 0) {
                         </form>
                     </li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="logout.php"><i class='bx bx-log-out-circle'></i><span>Logout</span></a></li>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal"><i class='bx bx-log-out-circle'></i><span>Logout</span></a></li>
                 </ul>
             </div>
         </nav>

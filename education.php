@@ -35,16 +35,26 @@ $trending = $trendingStmt->fetchAll();
 .menu-card h2 { margin: 0 0 10px; color: #fff; font-size: 22px; font-weight: 700; }
 .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .menu-link { display: flex; align-items: center; gap: 8px; background: #f9fcff; border-radius: 14px; padding: 12px 10px; text-decoration: none; color: #475569; font-weight: 700; font-size: 14px; }
+.menu-link { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.menu-link:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.1); }
 .menu-link i { color: #94a3b8; }
 .trending-title { font-size: 28px; font-weight: 700; margin: 4px 2px 10px; color: #111827; }
 .trending-list { background: linear-gradient(150deg, #47c9d8, #35bad1); border-radius: 16px; padding: 10px; }
-.trending-item { display: grid; grid-template-columns: 68px 1fr 22px; gap: 10px; align-items: start; margin-bottom: 8px; text-decoration: none; }
-.trending-item:last-child { margin-bottom: 0; }
+.trending-item { display: grid; grid-template-columns: 68px 1fr 22px; gap: 10px; align-items: start; margin-bottom: 8px; text-decoration: none; padding-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+.trending-item { transition: transform 0.2s ease; }
+.trending-item:hover {
+    transform: scale(1.02);
+}
+.trending-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
 .trend-thumb { width: 68px; height: 68px; object-fit: cover; border-radius: 4px; background: #e2e8f0; }
-.trend-content h3 { margin: 0; color: #fff; font-size: 17px; line-height: 1.2; font-weight: 700; }
-.trend-meta { margin-top: 4px; color: #eafcff; font-size: 12px; }
-.trend-share { color: #d9f8ff; align-self: center; font-size: 15px; }
-.education-footer { text-align: center; margin-top: 18px; color: #64748b; font-size: 14px; }
+.trend-content h3 { margin: 0; color: #dcfce7; font-size: 17px; line-height: 1.2; font-weight: 700; }
+.trend-meta { margin-top: 4px; color: #fff; font-size: 12px; }
+.trend-share { color: #d9f8ff; align-self: center; font-size: 15px; cursor: pointer; transition: transform 0.2s ease, color 0.2s ease; }
+.trend-share:hover { transform: scale(1.15); color: #fff; }
 </style>
 
 <main class="education-app">
@@ -90,7 +100,38 @@ $trending = $trendingStmt->fetchAll();
         <?php endforeach; ?>
     </section>
 
-    <div class="education-footer">@Fivit 2026</div>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.trend-share').forEach(button => {
+        button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const link = button.closest('a');
+            if (!link) return;
+
+            const title = link.querySelector('h3')?.textContent || 'Artikel menarik dari FiVit';
+            const url = link.href;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title, url });
+                } catch (err) {
+                    console.error('Gagal share:', err);
+                }
+            } else if (navigator.clipboard) {
+                try {
+                    await navigator.clipboard.writeText(url);
+                    alert('Link artikel berhasil disalin!');
+                } catch (err) {
+                    alert('Gagal menyalin link.');
+                }
+            }
+        });
+    });
+});
+</script>
 
 <?php include 'includes/footer.php'; ?>

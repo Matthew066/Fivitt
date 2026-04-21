@@ -31,11 +31,15 @@ $articles = $stmt->fetchAll();
 .artikel-app { max-width: 420px; margin: 0 auto; padding: 10px 10px 28px; }
 .artikel-title { margin: 8px 8px 12px; font-size: 28px; font-weight: 700; color: #111827; }
 .artikel-list { background: linear-gradient(150deg, #47c9d8, #35bad1); border-radius: 16px; padding: 10px; }
-.artikel-item { display: grid; grid-template-columns: 68px 1fr; gap: 10px; text-decoration: none; margin-bottom: 8px; color: inherit; }
-.artikel-item:last-child { margin-bottom: 0; }
+.artikel-item { display: grid; grid-template-columns: 68px 1fr; gap: 10px; text-decoration: none; margin-bottom: 8px; color: inherit; padding-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+.artikel-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
 .artikel-thumb { width: 68px; height: 68px; object-fit: cover; border-radius: 4px; background: #e2e8f0; }
-.artikel-content h3 { margin: 0; color: #fff; font-size: 17px; line-height: 1.2; font-weight: 700; }
-.artikel-meta { margin-top: 4px; color: #eafcff; font-size: 12px; }
+.artikel-content h3 { margin: 0; color: #dcfce7; font-size: 17px; line-height: 1.2; font-weight: 700; }
+.artikel-meta { margin-top: 4px; color: #fff; font-size: 12px; }
 .artikel-footer { text-align: center; margin-top: 16px; color: #64748b; font-size: 14px; }
 </style>
 
@@ -64,7 +68,6 @@ $articles = $stmt->fetchAll();
             </a>
         <?php endforeach; ?>
     </section>
-    <div class="artikel-footer">@Fivit 2026</div>
 </main>
 
 <?php include 'includes/footer.php'; ?>

@@ -190,8 +190,28 @@ $pageTitle = 'Food Selection';
 $bodyClass = 'foodselection-page';
 require 'includes/header.php';
 ?>
-
-<link rel="stylesheet" href="assets/css/all.min.css">
+<style>
+.status-message {
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    border: 1px solid transparent;
+}
+.status-message.success {
+    background: #ecfdf5;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+.status-message.error {
+    background: #fef2f2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+.status-message.is-hidden {
+    display: none;
+}
+</style>
 <main class="food-screen">
     <section class="food-head">
         <h1 id="screen-title">Food Selection</h1>
@@ -202,18 +222,22 @@ require 'includes/header.php';
     </section>
 
     <section class="panel">
-        <h2 class="panel-title">Menu</h2>
+        <div id="status-message" class="is-hidden"></div>
+
+        <h2 class="panel-title" id="grid-title">Menu</h2>
         <div class="food-grid" id="food-grid"></div>
+
+        <div class="order-status is-hidden" id="order-status" style="margin-top: 14px;">
+            <div class="order-status-head">
+                <h3>Pesanan Terakhir</h3>
+                <span class="order-badge" id="order-status-badge"></span>
+            </div>
+            <div class="order-status-body" id="order-status-body"></div>
+        </div>
+
         <div class="cart-actions is-hidden" id="cart-actions">
             <button type="button" class="back-btn" id="back-btn" hidden>Back</button>
             <button type="button" class="confirm-btn" id="confirm-btn" hidden>Confirm</button>
-        </div>
-        <div class="order-status is-hidden" id="order-status">
-            <div class="order-status-head">
-                <h3>Pesanan</h3>
-                <span class="order-badge" id="order-status-badge">Sedang diproses</span>
-            </div>
-            <div class="order-status-body" id="order-status-body"></div>
         </div>
     </section>
 </main>
@@ -229,6 +253,7 @@ require 'includes/header.php';
     let lastOrder = Array.isArray(lastOrderSeed) ? lastOrderSeed : [];
     let lastOrderStatus = typeof lastOrderStatusSeed === 'string' ? lastOrderStatusSeed : '';
     const grid = document.getElementById('food-grid');
+    const gridTitle = document.getElementById('grid-title');
     const title = document.getElementById('screen-title');
     const cartCount = document.getElementById('cart-count');
     const confirmBtn = document.getElementById('confirm-btn');
@@ -238,6 +263,17 @@ require 'includes/header.php';
     const orderStatus = document.getElementById('order-status');
     const orderStatusBody = document.getElementById('order-status-body');
     const orderStatusBadge = document.getElementById('order-status-badge');
+    const statusMessageEl = document.getElementById('status-message');
+
+    function showStatusMessage(message, type = 'success') {
+        if (!statusMessageEl) return;
+        statusMessageEl.textContent = message;
+        statusMessageEl.className = `status-message ${type}`;
+        statusMessageEl.classList.remove('is-hidden');
+        setTimeout(() => {
+            statusMessageEl.classList.add('is-hidden');
+        }, 4000);
+    }
 
     function totalItems() {
         return menu.reduce((sum, item) => sum + item.qty, 0);
@@ -252,16 +288,12 @@ require 'includes/header.php';
         const items = visibleItems();
         const total = totalItems();
 
-        title.textContent = isOrderMode ? 'Food Order' : 'Food Selection';
+        title.textContent = 'Food Selection';
+        gridTitle.textContent = isOrderMode ? 'Keranjang Pesanan' : 'Menu';
         cartCount.textContent = String(total);
         cartCount.style.display = total > 0 ? 'inline-flex' : 'none';
 
-        const shouldShowOrderStatus = isOrderMode;
-        orderStatus.style.display = shouldShowOrderStatus ? 'block' : 'none';
-        if (!shouldShowOrderStatus) {
-            orderStatus.classList.add('is-hidden');
-            orderStatusBody.innerHTML = '';
-        }
+        renderOrderStatus();
 
         const showBack = isOrderMode && !isSaving;
         const showConfirm = isOrderMode && total > 0 && !isSaving;
@@ -272,27 +304,15 @@ require 'includes/header.php';
         confirmBtn.disabled = isSaving;
         backBtn.disabled = isSaving;
 
-        if (isOrderMode && items.length === 0) {
+        if (items.length === 0) {
             grid.innerHTML = `
                 <article class="empty-order">
-                    Belum ada makanan yang ditambahkan ke keranjang.
+                    ${isOrderMode
+                        ? 'Keranjang kosong.'
+                        : 'Menu belum tersedia. Silakan tunggu cooker menambahkan menu di Healthy Canteen.'
+                    }
                 </article>
             `;
-            if (shouldShowOrderStatus) {
-                renderOrderStatus();
-            }
-            return;
-        }
-
-        if (!isOrderMode && items.length === 0) {
-            grid.innerHTML = `
-                <article class="empty-order">
-                    Menu belum tersedia. Silakan tunggu cooker menambahkan menu di Healthy Canteen.
-                </article>
-            `;
-            if (shouldShowOrderStatus) {
-                renderOrderStatus();
-            }
             return;
         }
 
@@ -318,29 +338,15 @@ require 'includes/header.php';
             </article>
         `;
         }).join('');
-
-        if (shouldShowOrderStatus) {
-            renderOrderStatus();
-        }
     }
 
     function renderOrderStatus() {
-        if (!isOrderMode) {
+        if (!isOrderMode || !lastOrder || lastOrder.length === 0) {
             orderStatus.classList.add('is-hidden');
-            orderStatusBody.innerHTML = '';
             return;
         }
 
         orderStatus.classList.remove('is-hidden');
-        if (!lastOrder || lastOrder.length === 0) {
-            orderStatusBadge.textContent = 'Belum ada';
-            orderStatusBody.innerHTML = `
-                <div class="order-status-empty">
-                    Belum ada pesanan yang dikonfirmasi.
-                </div>
-            `;
-            return;
-        }
 
         if (isSaving) {
             orderStatusBadge.textContent = 'Menyimpan...';
@@ -441,9 +447,9 @@ require 'includes/header.php';
                 item.qty = 0;
             });
             isOrderMode = false;
-            alert(data.message || 'Pesanan berhasil disimpan.');
+            showStatusMessage(data.message || 'Pesanan berhasil disimpan.', 'success');
         } catch (error) {
-            alert(error.message || 'Gagal menyimpan pesanan.');
+            showStatusMessage(error.message || 'Gagal menyimpan pesanan.', 'error');
         } finally {
             isSaving = false;
             render();
