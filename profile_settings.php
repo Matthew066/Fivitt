@@ -1,0 +1,160 @@
+<?php
+session_start();
+require_once 'includes/db.php';
+require_once 'includes/auth_guard.php';
+require_once 'includes/user_profile.php';
+require_login();
+
+ensure_users_profile_schema($pdo);
+
+$userId = (int) ($_SESSION['user_id'] ?? 0);
+$message = '';
+$error = '';
+
+$userStmt = $pdo->prepare("
+    SELECT name, email, department, birth_date, age_group
+    FROM users
+    WHERE id_users = ?
+    LIMIT 1
+");
+$userStmt->execute([$userId]);
+$user = $userStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+if (!$user) {
+    header('Location: index.php');
+    exit;
+}
+
+$name = (string) ($user['name'] ?? '');
+$email = (string) ($user['email'] ?? '');
+$department = (string) ($user['department'] ?? '');
+$birthDate = (string) ($user['birth_date'] ?? '');
+$ageGroup = normalize_age_group((string) ($user['age_group'] ?? 'adult'));
+$ageGroupOptions = get_age_group_options();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $birthDate = trim((string) ($_POST['birth_date'] ?? ''));
+    $ageGroup = normalize_age_group((string) ($_POST['age_group'] ?? 'adult'));
+
+    if ($birthDate !== '') {
+        $derivedAgeGroup = get_age_group_from_birth_date($birthDate);
+        if ($derivedAgeGroup === null) {
+            $error = 'Tanggal lahir tidak valid.';
+        } else {
+            $ageGroup = $derivedAgeGroup;
+        }
+    }
+
+    if ($error === '') {
+        $update = $pdo->prepare("
+            UPDATE users
+            SET birth_date = ?, age_group = ?
+            WHERE id_users = ?
+        ");
+        $update->execute([
+            $birthDate !== '' ? $birthDate : null,
+            $ageGroup,
+            $userId
+        ]);
+
+        $_SESSION['user_age_group'] = $ageGroup;
+        $message = 'Profil berhasil diperbarui.';
+    }
+}
+
+$profileSettings = get_user_profile_settings($pdo, $userId);
+$sleepTarget = get_sleep_target_by_age_group($profileSettings['effective_age_group']);
+
+$pageTitle = 'Profil';
+$bodyClass = 'sleep-page';
+include 'includes/header.php';
+?>
+
+<main class="app">
+    <section class="card sleep-hero" style="margin-bottom:16px;">
+        <div class="sleep-hero-inner">
+            <div class="emoji-bubble">👤</div>
+            <div class="hero-copy">
+                <div class="sleep-title">Profil</div>
+                <div class="sleep-sub">
+                    Pengaturan ini dipakai untuk menyesuaikan target tidur dan rekomendasi recovery kamu.
+                </div>
+                <div class="hero-badges">
+                    <span class="hero-badge"><?= htmlspecialchars($sleepTarget['profile_label']) ?></span>
+                    <span class="hero-badge">Target <?= htmlspecialchars($sleepTarget['label']) ?></span>
+                    <span class="hero-badge"><?= $profileSettings['effective_source'] === 'birth_date' ? 'Otomatis dari tanggal lahir' : 'Manual dari profil' ?></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card sleep-form-card">
+        <div class="sleep-form-head">
+            <div>
+                <div class="summary-title">Atur Profil</div>
+                <div class="sleep-sub">Kalau tanggal lahir diisi, kategori usia akan mengikuti umur secara otomatis.</div>
+            </div>
+        </div>
+
+        <?php if ($message !== ''): ?>
+            <div class="summary-pill score-tier-excellent" style="margin-bottom:16px;"><?= htmlspecialchars($message) ?></div>
+        <?php endif; ?>
+
+        <?php if ($error !== ''): ?>
+            <div class="summary-pill score-tier-low" style="margin-bottom:16px;"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+
+        <form method="POST" class="sleep-entry-form">
+            <div class="input-row">
+                <div class="input-group input-card">
+                    <label>Nama</label>
+                    <input type="text" value="<?= htmlspecialchars($name) ?>" disabled>
+                </div>
+                <div class="input-group input-card">
+                    <label>Email</label>
+                    <input type="text" value="<?= htmlspecialchars($email) ?>" disabled>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group input-card">
+                    <label>Department</label>
+                    <input type="text" value="<?= htmlspecialchars($department) ?>" disabled>
+                </div>
+                <div class="input-group input-card input-card-accent">
+                    <label>Tanggal Lahir</label>
+                    <input type="date" name="birth_date" value="<?= htmlspecialchars($birthDate) ?>" max="<?= date('Y-m-d') ?>">
+                    <small class="input-hint">Kosongkan jika ingin mengatur kategori usia secara manual.</small>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group input-card">
+                    <label>Kategori Usia</label>
+                    <select class="select-modern" name="age_group" required>
+                        <?php foreach ($ageGroupOptions as $groupKey => $groupLabel): ?>
+                            <option value="<?= htmlspecialchars($groupKey) ?>" <?= $ageGroup === $groupKey ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($groupLabel) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <small class="input-hint">Dipakai kalau tanggal lahir belum diisi.</small>
+                </div>
+                <div class="input-group input-card sleep-date-summary">
+                    <span class="sleep-date-summary-label">Kategori aktif</span>
+                    <strong><?= htmlspecialchars($sleepTarget['profile_label']) ?></strong>
+                    <small>Target tidur aktif: <?= htmlspecialchars($sleepTarget['label']) ?></small>
+                </div>
+            </div>
+
+            <div class="sleep-form-footer">
+                <div class="sleep-form-note">
+                    <strong>Info:</strong> kategori lansia memakai target yang lebih sempit agar penilaian durasi tidur lebih relevan.
+                </div>
+                <button class="btn-primary sleep-submit-btn" type="submit">Simpan Profil</button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<?php include 'includes/footer.php'; ?>

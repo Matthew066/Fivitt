@@ -66,8 +66,29 @@ function autoTrustCoaches(PDO $pdo, int $minSessions = 100): void
     $stmt->execute([$minSessions]);
 }
 
-$imageDirRelative = 'assets/images/coaches';
+$imageDirRelative = 'assets/images/coach';
 $imageDirAbsolute = dirname(__DIR__) . '/' . $imageDirRelative;
+
+function slugifyFilePart(string $value): string
+{
+    $value = strtolower(trim($value));
+    $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?? '';
+    $value = trim($value, '-');
+    return $value !== '' ? $value : 'coach';
+}
+
+function deleteOwnedAdminImage(string $path, string $baseDirRelative): void
+{
+    $path = trim($path);
+    if ($path === '' || !str_starts_with($path, $baseDirRelative . '/')) {
+        return;
+    }
+
+    $absolutePath = dirname(__DIR__) . '/' . $path;
+    if (is_file($absolutePath)) {
+        @unlink($absolutePath);
+    }
+}
 
 $action = $_POST['action'] ?? '';
 
@@ -95,6 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (isset($_POST['remove_image'])) {
             $imagePath = '';
+            deleteOwnedAdminImage($currentImagePath, $imageDirRelative);
         }
         if (isset($_POST['remove_badge'])) {
             $badgePath = '';
@@ -109,17 +131,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!is_dir($imageDirAbsolute)) {
                     mkdir($imageDirAbsolute, 0777, true);
                 }
-                $fileName = 'coach-' . date('YmdHis') . '-' . bin2hex(random_bytes(4)) . '.' . $allowed[$mime];
+                $fileName = slugifyFilePart($coachName) . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(4)) . '.' . $allowed[$mime];
                 $targetAbs = $imageDirAbsolute . '/' . $fileName;
                 $targetRel = $imageDirRelative . '/' . $fileName;
                 if (move_uploaded_file($tmp, $targetAbs)) {
-                    if (
-                        $currentImagePath !== '' &&
-                        str_starts_with($currentImagePath, $imageDirRelative . '/') &&
-                        is_file(dirname(__DIR__) . '/' . $currentImagePath)
-                    ) {
-                        @unlink(dirname(__DIR__) . '/' . $currentImagePath);
-                    }
+                    deleteOwnedAdminImage($currentImagePath, $imageDirRelative);
                     $imagePath = $targetRel;
                 }
             }
@@ -231,13 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$id]);
 
             $imagePath = (string) ($row['photo_path'] ?? '');
-            if (
-                $imagePath !== '' &&
-                str_starts_with($imagePath, $imageDirRelative . '/') &&
-                is_file(dirname(__DIR__) . '/' . $imagePath)
-            ) {
-                @unlink(dirname(__DIR__) . '/' . $imagePath);
-            }
+            deleteOwnedAdminImage($imagePath, $imageDirRelative);
             $badgePath = (string) ($row['trusted_badge_path'] ?? '');
             if (
                 $badgePath !== '' &&

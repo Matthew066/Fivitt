@@ -1,6 +1,9 @@
 ﻿<?php
 session_start();
 require 'includes/db.php';
+require_once 'includes/user_profile.php';
+
+ensure_users_profile_schema($pdo);
 
 $error = '';
 $success = '';
@@ -45,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = (int)$user['id_users'];
                 $_SESSION['user_name'] = (string)$user['name'];
                 $_SESSION['user_role'] = $role;
+                $_SESSION['user_age_group'] = normalize_age_group((string)($user['age_group'] ?? 'adult'));
 
                 if ($role === 'admin') {
                     header('Location: admin/index.php');

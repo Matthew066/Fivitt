@@ -80,6 +80,9 @@ addColumnIfMissing($pdo, 'coaches', 'is_blacklisted', 'TINYINT(1) NOT NULL DEFAU
 addColumnIfMissing($pdo, 'coaches', 'is_trusted', 'TINYINT(1) NOT NULL DEFAULT 0');
 addColumnIfMissing($pdo, 'coaches', 'trusted_badge_path', 'VARCHAR(255) NULL');
 
+$coachImageDirRelative = 'assets/images/coach';
+$coachImageDirAbsolute = __DIR__ . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'coach';
+
 function autoTrustCoaches(PDO $pdo, int $minSessions = 100): void
 {
     $stmt = $pdo->prepare("
@@ -125,6 +128,73 @@ function buildSpecialties(string $raw): string {
     return implode("\n", $parts);
 }
 
+function slugifyFilePart(string $value): string
+{
+    $value = strtolower(trim($value));
+    $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?? '';
+    $value = trim($value, '-');
+    return $value !== '' ? $value : 'coach';
+}
+
+function deleteCoachPhotoIfOwned(string $path, string $baseDirRelative): void
+{
+    $path = trim($path);
+    if ($path === '' || !str_starts_with($path, $baseDirRelative . '/')) {
+        return;
+    }
+
+    $absolutePath = __DIR__ . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+    if (is_file($absolutePath)) {
+        @unlink($absolutePath);
+    }
+}
+
+function uploadCoachPhoto(array $file, string $coachName, string $targetDirAbsolute, string $targetDirRelative, array &$errors): ?string
+{
+    $uploadError = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($uploadError === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+
+    if ($uploadError !== UPLOAD_ERR_OK) {
+        $errors[] = 'Upload foto coach gagal. Coba pilih file lagi.';
+        return null;
+    }
+
+    $tmpName = (string) ($file['tmp_name'] ?? '');
+    $fileSize = (int) ($file['size'] ?? 0);
+    $maxFileSize = 5 * 1024 * 1024;
+    $allowedMimeTypes = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+    $detectedMime = $tmpName !== '' ? (string) mime_content_type($tmpName) : '';
+
+    if ($fileSize <= 0 || $fileSize > $maxFileSize) {
+        $errors[] = 'Ukuran foto coach maksimal 5MB.';
+        return null;
+    }
+
+    if (!isset($allowedMimeTypes[$detectedMime])) {
+        $errors[] = 'Format foto coach harus JPG, PNG, atau WEBP.';
+        return null;
+    }
+
+    if (!is_dir($targetDirAbsolute) && !mkdir($targetDirAbsolute, 0777, true) && !is_dir($targetDirAbsolute)) {
+        $errors[] = 'Folder foto coach tidak bisa dibuat.';
+        return null;
+    }
+
+    $extension = $allowedMimeTypes[$detectedMime];
+    $fileName = slugifyFilePart($coachName) . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(4)) . '.' . $extension;
+    $targetAbsolutePath = $targetDirAbsolute . DIRECTORY_SEPARATOR . $fileName;
+    $targetRelativePath = $targetDirRelative . '/' . $fileName;
+
+    if (!move_uploaded_file($tmpName, $targetAbsolutePath)) {
+        $errors[] = 'Foto coach gagal disimpan ke server.';
+        return null;
+    }
+
+    return $targetRelativePath;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
 
@@ -144,6 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $rateText = trim((string) ($_POST['rate_text'] ?? ''));
         $visibility = normalizeVisibility((string) ($_POST['visibility'] ?? 'public'));
         $departmentScope = trim((string) ($_POST['department_scope'] ?? ''));
+        $uploadedPhotoPath = null;
 
         if ($coachName === '') { $errors[] = 'Nama coach wajib diisi.'; }
         if ($coachEmail === '' && $coachPhone === '') { $errors[] = 'Minimal isi email atau nomor WhatsApp.'; }
@@ -163,10 +234,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!$errors) {
+            $uploadedPhotoPath = uploadCoachPhoto(
+                $_FILES['coach_photo'] ?? [],
+                $coachName,
+                $coachImageDirAbsolute,
+                $coachImageDirRelative,
+                $errors
+            );
+        }
+
+        if (!$errors) {
             $insert = $pdo->prepare("
                 INSERT INTO coaches
-                (id_users, coach_name, coach_email, coach_phone, coach_bio, specialties_text, coach_type, rate_type, rate_text, visibility, department_scope, id_users_created_by)
-                VALUES (NULL, ?, ?, ?, ?, ?, 'external', ?, ?, ?, ?, ?)
+                (id_users, coach_name, coach_email, coach_phone, coach_bio, specialties_text, coach_type, rate_type, rate_text, visibility, department_scope, photo_path, id_users_created_by)
+                VALUES (NULL, ?, ?, ?, ?, ?, 'external', ?, ?, ?, ?, ?, ?)
             ");
             $insert->execute([
                 $coachName,
@@ -178,6 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $rateText,
                 $visibility,
                 $departmentScope,
+                $uploadedPhotoPath,
                 $userId > 0 ? $userId : null,
             ]);
             $success = 'Coach berhasil diundang/ditambahkan ke directory.';
@@ -197,6 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $rateText = trim((string) ($_POST['rate_text'] ?? ''));
         $visibility = normalizeVisibility((string) ($_POST['visibility'] ?? 'private'));
         $departmentScope = $userDepartment;
+        $uploadedPhotoPath = null;
 
         if ($coachName === '') { $errors[] = 'Nama coach wajib diisi.'; }
         if ($coachBio === '') { $errors[] = 'Bio singkat wajib diisi.'; }
@@ -209,15 +292,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!$errors) {
-            $existing = $pdo->prepare('SELECT id_coaches FROM coaches WHERE id_users = ? LIMIT 1');
+            $uploadedPhotoPath = uploadCoachPhoto(
+                $_FILES['coach_photo'] ?? [],
+                $coachName,
+                $coachImageDirAbsolute,
+                $coachImageDirRelative,
+                $errors
+            );
+        }
+
+        if (!$errors) {
+            $existing = $pdo->prepare('SELECT id_coaches, photo_path FROM coaches WHERE id_users = ? LIMIT 1');
             $existing->execute([$userId]);
             $existingRow = $existing->fetch(PDO::FETCH_ASSOC);
 
             if ($existingRow) {
+                $currentPhotoPath = (string) ($existingRow['photo_path'] ?? '');
+                $finalPhotoPath = $uploadedPhotoPath ?? ($currentPhotoPath !== '' ? $currentPhotoPath : null);
                 $update = $pdo->prepare("
                     UPDATE coaches
                     SET coach_name = ?, coach_bio = ?, specialties_text = ?, coach_type = 'internal',
-                        rate_type = ?, rate_text = ?, visibility = ?, department_scope = ?, is_active = 1
+                        rate_type = ?, rate_text = ?, visibility = ?, department_scope = ?, photo_path = ?, is_active = 1
                     WHERE id_users = ?
                 ");
                 $update->execute([
@@ -228,14 +323,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $rateText,
                     $visibility,
                     $departmentScope,
+                    $finalPhotoPath,
                     $userId,
                 ]);
+                if ($uploadedPhotoPath !== null && $currentPhotoPath !== '' && $currentPhotoPath !== $uploadedPhotoPath) {
+                    deleteCoachPhotoIfOwned($currentPhotoPath, $coachImageDirRelative);
+                }
                 $success = 'Profil coach kamu berhasil diperbarui.';
             } else {
                 $insert = $pdo->prepare("
                 INSERT INTO coaches
-                (id_users, coach_name, coach_email, coach_phone, coach_bio, specialties_text, coach_type, rate_type, rate_text, visibility, department_scope, id_users_created_by)
-                VALUES (?, ?, '', '', ?, ?, 'internal', ?, ?, ?, ?, ?)
+                (id_users, coach_name, coach_email, coach_phone, coach_bio, specialties_text, coach_type, rate_type, rate_text, visibility, department_scope, photo_path, id_users_created_by)
+                VALUES (?, ?, '', '', ?, ?, 'internal', ?, ?, ?, ?, ?, ?)
             ");
                 $insert->execute([
                     $userId,
@@ -246,6 +345,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $rateText,
                     $visibility,
                     $departmentScope,
+                    $uploadedPhotoPath,
                     $userId,
                 ]);
                 $success = 'Kamu berhasil terdaftar sebagai coach.';
@@ -303,14 +403,20 @@ $coaches = array_map(static function (array $row): array {
 }
 .coach-hero h1 { margin: 0 0 8px; font-size: 28px; }
 .coach-hero p { margin: 0; font-size: 14px; max-width: 720px; opacity: .95; }
-.tabs { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
-.tab { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border-radius:999px; padding:10px 14px; font-size:13px; font-weight:700; border:1px solid rgba(255,255,255,.35); color:#fff; background:rgba(255,255,255,.12); }
-.tab.active { background:#fff; color:#0f172a; border-color:#fff; }
+.coach-nav-shell { margin-top:16px; padding:14px; border-radius:18px; background:#fff; border:1px solid rgba(191,219,254,.6); box-shadow:0 10px 22px rgba(14,116,144,.08); }
+.coach-nav-title { margin:0 0 10px; font-size:13px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:.08em; }
+.tabs { display:flex; flex-wrap:wrap; gap:10px; }
+.tab { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border-radius:999px; padding:10px 14px; font-size:13px; font-weight:700; border:1px solid #cbd5e1; color:#0f172a; background:#f8fafc; }
+.tab.active { background:linear-gradient(135deg,#1d4ed8,#0ea5e9); color:#fff; border-color:transparent; }
 .coach-section { margin-top: 16px; background: rgba(255,255,255,.92); border: 1px solid rgba(147,197,253,.35); border-radius: 20px; padding: 18px; box-shadow: 0 8px 22px rgba(15,23,42,.07); }
 .coach-title { margin: 0 0 8px; font-size: 20px; color: #0f172a; }
 .coach-sub { margin: 0 0 14px; color: #475569; font-size: 13px; }
 .grid-2 { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
 .card { background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:14px; }
+.coach-head { display:flex; gap:12px; align-items:flex-start; }
+.coach-photo { width:72px; height:72px; border-radius:18px; object-fit:cover; border:1px solid #dbeafe; background:linear-gradient(135deg,#eff6ff,#dbeafe); flex:0 0 auto; }
+.coach-photo-placeholder { display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; color:#1d4ed8; }
+.coach-main { flex:1; min-width:0; }
 .card-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
 .trusted-badge { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; border-radius:999px; padding:6px 10px; background:#ecfeff; border:1px solid #a5f3fc; color:#155e75; }
 .trusted-badge img { width:18px; height:18px; border-radius:50%; object-fit:cover; }
@@ -346,11 +452,13 @@ $coaches = array_map(static function (array $row): array {
         <h1>Coach Directory</h1>
         <p>Karyawan bisa undang coach (eksternal), atau daftar jadi coach (internal). Coach bisa <b>public</b> (lintas perusahaan) atau <b>private</b> (hanya terlihat di perusahaan/department kamu).</p>
         <div class="dept-pill">Scope kamu: <?= htmlspecialchars($userDepartment, ENT_QUOTES, 'UTF-8') ?></div>
-        <div class="pill-row" style="margin-top:12px;">
-            <a class="tab" href="coach_sessions.php" style="border-color:rgba(255,255,255,.35);">Buat / Kelola Sesi Coach</a>
-        </div>
+    </section>
+
+    <section class="coach-nav-shell">
+        <div class="coach-nav-title">Menu Coach</div>
         <nav class="tabs" aria-label="Coach menu">
             <a class="tab <?= $tab === 'directory' ? 'active' : '' ?>" href="coach.php?tab=directory">Directory</a>
+            <a class="tab" href="coach_sessions.php">Buat / Kelola Sesi Coach</a>
             <?php if ($isLoggedIn): ?>
                 <a class="tab <?= $tab === 'invite' ? 'active' : '' ?>" href="coach.php?tab=invite">Undang Coach</a>
                 <a class="tab <?= $tab === 'register' ? 'active' : '' ?>" href="coach.php?tab=register">Daftar Jadi Coach</a>
@@ -371,23 +479,32 @@ $coaches = array_map(static function (array $row): array {
                 <div class="grid-2">
                     <?php foreach ($coaches as $coach): ?>
                         <article class="card">
-                            <div class="card-top">
-                                <h3 class="coach-name"><?= htmlspecialchars($coach['name'], ENT_QUOTES, 'UTF-8') ?></h3>
-                                <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
-                                    <?php if (!empty($coach['is_trusted'])): ?>
-                                        <span class="trusted-badge">
-                                            <?php if (!empty($coach['trusted_badge_path'])): ?>
-                                                <img src="<?= htmlspecialchars($coach['trusted_badge_path'], ENT_QUOTES, 'UTF-8') ?>" alt="Trusted">
+                            <div class="coach-head">
+                                <?php if ($coach['photo_path'] !== ''): ?>
+                                    <img class="coach-photo" src="<?= htmlspecialchars($coach['photo_path'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($coach['name'], ENT_QUOTES, 'UTF-8') ?>">
+                                <?php else: ?>
+                                    <div class="coach-photo coach-photo-placeholder"><?= htmlspecialchars(function_exists('mb_substr') ? mb_substr($coach['name'], 0, 1) : substr($coach['name'], 0, 1), ENT_QUOTES, 'UTF-8') ?></div>
+                                <?php endif; ?>
+                                <div class="coach-main">
+                                    <div class="card-top">
+                                        <h3 class="coach-name"><?= htmlspecialchars($coach['name'], ENT_QUOTES, 'UTF-8') ?></h3>
+                                        <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                                            <?php if (!empty($coach['is_trusted'])): ?>
+                                                <span class="trusted-badge">
+                                                    <?php if (!empty($coach['trusted_badge_path'])): ?>
+                                                        <img src="<?= htmlspecialchars($coach['trusted_badge_path'], ENT_QUOTES, 'UTF-8') ?>" alt="Trusted">
+                                                    <?php endif; ?>
+                                                    Trusted
+                                                </span>
                                             <?php endif; ?>
-                                            Trusted
-                                        </span>
-                                    <?php endif; ?>
-                                    <span class="badge <?= $coach['coach_type'] === 'internal' ? 'internal' : 'external' ?>">
-                                        <?= $coach['coach_type'] === 'internal' ? 'Internal' : 'External' ?>
-                                    </span>
-                                    <span class="badge <?= $coach['visibility'] === 'private' ? 'private' : 'public' ?>">
-                                        <?= $coach['visibility'] === 'private' ? 'Private' : 'Public' ?>
-                                    </span>
+                                            <span class="badge <?= $coach['coach_type'] === 'internal' ? 'internal' : 'external' ?>">
+                                                <?= $coach['coach_type'] === 'internal' ? 'Internal' : 'External' ?>
+                                            </span>
+                                            <span class="badge <?= $coach['visibility'] === 'private' ? 'private' : 'public' ?>">
+                                                <?= $coach['visibility'] === 'private' ? 'Private' : 'Public' ?>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -451,7 +568,7 @@ $coaches = array_map(static function (array $row): array {
                 <div class="form-message form-success"><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?></div>
             <?php endif; ?>
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="invite_coach">
 
                 <div class="input-grid">
@@ -507,6 +624,12 @@ $coaches = array_map(static function (array $row): array {
                 </div>
 
                 <div class="input-group">
+                    <label for="invite_photo">Foto coach (opsional)</label>
+                    <input id="invite_photo" name="coach_photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                    <div class="hint">File akan disimpan ke `assets/images/coach/` dan database hanya menyimpan path-nya.</div>
+                </div>
+
+                <div class="input-group">
                     <label for="invite_scope">Scope private (opsional)</label>
                     <input id="invite_scope" name="department_scope" type="text" value="<?= htmlspecialchars((string) ($_POST['department_scope'] ?? $userDepartment), ENT_QUOTES, 'UTF-8') ?>" placeholder="default: department kamu">
                     <div class="hint">Dipakai kalau visibility = private. Kalau public, field ini akan diabaikan.</div>
@@ -541,7 +664,7 @@ $coaches = array_map(static function (array $row): array {
                 <div class="form-message form-success"><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?></div>
             <?php endif; ?>
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="register_self">
 
                 <div class="input-grid">
@@ -583,6 +706,12 @@ $coaches = array_map(static function (array $row): array {
                 <div class="input-group">
                     <label for="self_bio">Bio singkat</label>
                     <textarea id="self_bio" name="coach_bio" required><?= htmlspecialchars((string) ($_POST['coach_bio'] ?? ''), ENT_QUOTES, 'UTF-8') ?></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label for="self_photo">Foto coach (opsional)</label>
+                    <input id="self_photo" name="coach_photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                    <div class="hint">Kalau upload ulang, foto lama akan diganti dengan file baru yang namanya otomatis dibuat unik.</div>
                 </div>
 
                 <button class="btn btn-primary" type="submit">Simpan Profil Coach</button>

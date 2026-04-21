@@ -5,6 +5,7 @@ require_once 'includes/auth_guard.php';
 require_login();
 
 $pageTitle = 'Health Overview';
+$bodyClass = 'health-page';
 include 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;
@@ -306,201 +307,561 @@ if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
     $status = "Optimal";
 }
 
+$weeklyTrendStmt = $pdo->prepare("
+    SELECT checkin_date, activity_minutes, water_intake_ml
+    FROM daily_checkins
+    WHERE id_users = ?
+      AND checkin_date >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+    ORDER BY checkin_date ASC
+");
+$weeklyTrendStmt->execute([$user_id]);
+$weeklyTrendRows = $weeklyTrendStmt->fetchAll(PDO::FETCH_ASSOC);
+
+$sleepTrendStmt = $pdo->prepare("
+    SELECT sleep_date, sleep_start, sleep_end
+    FROM sleep_logs
+    WHERE id_users = ?
+      AND sleep_date >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+    ORDER BY sleep_date ASC
+");
+$sleepTrendStmt->execute([$user_id]);
+$sleepTrendRows = $sleepTrendStmt->fetchAll(PDO::FETCH_ASSOC);
+
+$sleepTrendMap = [];
+foreach ($sleepTrendRows as $row) {
+    $date = (string) ($row['sleep_date'] ?? '');
+    $start = strtotime($date . ' ' . $row['sleep_start']);
+    $end = strtotime($date . ' ' . $row['sleep_end']);
+    if ($end <= $start) {
+        $end = strtotime('+1 day', $end);
+    }
+    $sleepTrendMap[$date] = round(($end - $start) / 3600, 1);
+}
+
+$trendLabels = [];
+$trendActivityData = [];
+$trendWaterData = [];
+$trendSleepData = [];
+
+for ($i = 6; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-{$i} day"));
+    $trendLabels[] = date('d M', strtotime($date));
+
+    $checkinRow = null;
+    foreach ($weeklyTrendRows as $row) {
+        if (($row['checkin_date'] ?? '') === $date) {
+            $checkinRow = $row;
+            break;
+        }
+    }
+
+    $trendActivityData[] = (int) ($checkinRow['activity_minutes'] ?? 0);
+    $trendWaterData[] = round(((int) ($checkinRow['water_intake_ml'] ?? 0)) / 1000, 2);
+    $trendSleepData[] = $sleepTrendMap[$date] ?? 0;
+}
+
+$waterAvgLiters = round($waterDailyAvgMl / 1000, 1);
+$sleepAvgHoursFormatted = number_format($weeklySleepAvgHours, 1);
+$activityCompletionPercent = max(0, min(100, round(($weeklyActivityMinutes / $activityMinTarget) * 100)));
+$waterCompletionPercent = max(0, min(100, round(($waterDailyAvgMl / $waterTargetMl) * 100)));
+$sleepCompletionPercent = max(0, min(100, round(($weeklySleepAvgHours / 8) * 100)));
+$healthPulse = $averageScore >= 7.5 ? 'Aligned Week' : ($averageScore >= 5 ? 'Rebuilding Rhythm' : 'Needs Recovery');
+$healthPulseText = $averageScore >= 7.5
+    ? 'Kebiasaan utama kamu lagi sinkron. Pertahankan ritmenya tanpa harus ngebut.'
+    : ($averageScore >= 5
+        ? 'Fondasinya sudah ada, tapi masih perlu stabil di tidur, hidrasi, atau aktivitas.'
+        : 'Tubuhmu butuh reset yang lembut. Fokus ke pilar dasar dulu minggu ini.');
+$pillarFocus = $activityCompletionPercent >= $waterCompletionPercent && $activityCompletionPercent >= $sleepCompletionPercent
+    ? 'Aktivitas paling dominan minggu ini'
+    : ($waterCompletionPercent >= $sleepCompletionPercent
+        ? 'Hidrasi paling stabil minggu ini'
+        : 'Tidur lagi paling mendukung pemulihan');
+
 ?>
 
 <style>
-
-/* ===== WATER CARD ===== */
-.water-card {
-    background: #ffffff;
-    padding: 24px;
-    border-radius: 20px;
-    box-shadow: 0 12px 24px rgba(0,150,255,0.08);
-    text-align: center;
+body.health-page {
+    background:
+        radial-gradient(circle at top left, rgba(245, 158, 11, 0.10), transparent 18%),
+        radial-gradient(circle at top right, rgba(20, 184, 166, 0.16), transparent 22%),
+        linear-gradient(180deg, #faf7f1 0%, #f4f8f6 48%, #eef5fb 100%);
 }
 
-.water-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #0077b6;
-    margin-bottom: 8px;
+.health-page .app {
+    width: min(420px, 100% - 24px);
+    margin: 14px auto 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding-bottom: 88px;
 }
 
-.water-subtitle {
-    font-size: 13px;
-    color: #5f6b77;
-    margin-bottom: 18px;
+.health-page .card {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 22px;
+    background: linear-gradient(145deg, #ffffff, #fbfdfa 58%, #f4fbf8 100%);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
 }
 
-/* ===== GLASS WRAPPER ===== */
-.glass-wrapper {
+.health-page .sleep-hero {
+    grid-column: 1 / -1;
+    padding: 18px;
+    background:
+        radial-gradient(circle at top right, rgba(255,255,255,.32), transparent 24%),
+        linear-gradient(145deg, #1f766e 0%, #2b8b82 48%, #d6b36f 118%);
+    color: #fffdf8;
+    border-color: rgba(255,255,255,.16);
+    box-shadow: 0 22px 46px rgba(23, 63, 68, 0.18);
+}
+
+.health-page .sleep-hero-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+.health-page .emoji-bubble {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 10px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
+    font-size: 26px;
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.16);
 }
 
-/* ===== GLASS ===== */
-.glass {
-    width: 36px;
-    height: 60px;
-    border: 2px solid #00b4d8;
-    border-radius: 8px 8px 15px 15px;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    transition: 0.3s ease;
-    background: rgba(255,255,255,0.7);
-}
-
-.glass:hover {
-    transform: translateY(-6px);
-}
-
-@media (max-width: 520px) {
-    .glass-wrapper {
-        justify-content: flex-start;
-    }
-}
-
-/* ===== WATER ===== */
-.water {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 0%;
-    background: linear-gradient(to top,#00b4d8,#90e0ef);
-    transition: height 0.4s ease;
-}
-
-/* ACTIVE GLASS */
-.glass.active .water {
-    height: 85%;
-}
-
-/* ===== LABEL ===== */
-.glass-label {
-    margin-top: 25px;
-    font-size: 16px;
-}
-
-.glass-label strong {
-    font-size: 24px;
-    color: #0077b6;
-}
-
-.glass-label small {
-    display: block;
-    font-size: 13px;
-    color: #666;
-    margin-top: 5px;
-}
-
-.water-status {
-    margin-top: 12px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.water-advice {
-    margin-top: 6px;
-    font-size: 13px;
-    color: #4b5563;
-}
-
-.water-low { color: #b23a2f; }
-.water-ok { color: #1f7a6c; }
-.water-good { color: #157347; }
-.water-high { color: #8a6d1d; }
-.water-over { color: #8b1e3f; }
-.water-none { color: #666; }
-
-/* ===== BMI GAUGE ===== */
-.bmi-gauge {
-    margin-top: 16px;
-}
-
-.bmi-track {
-    position: relative;
-    height: 12px;
-    border-radius: 999px;
-    background: linear-gradient(90deg,
-        #f4a261 0%,
-        #f4a261 28%,
-        #2a9d8f 28%,
-        #2a9d8f 43%,
-        #e9c46a 43%,
-        #e9c46a 67%,
-        #e76f51 67%,
-        #e76f51 100%
-    );
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
-}
-
-.bmi-marker {
-    position: absolute;
-    top: -6px;
-    width: 3px;
-    height: 24px;
-    background: #1d3557;
-    border-radius: 2px;
-}
-
-.bmi-labels {
+.health-page .hero-main {
     display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.health-page .hero-kicker {
+    display: inline-flex;
+    margin-bottom: 8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.16);
+    color: #fff8ef;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.health-page .sleep-title,
+.health-page .summary-title,
+.health-page .score-header {
+    color: #16323b;
+}
+
+.health-page .sleep-hero .sleep-title {
+    color: #fffdf8;
+    font-size: clamp(24px, 8vw, 32px);
+}
+
+.health-page .sleep-sub {
+    color: #607077;
+}
+
+.health-page .sleep-hero .sleep-sub {
+    color: rgba(255, 250, 240, 0.86);
+}
+
+.health-page .hero-badges {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.health-page .hero-badge,
+.health-page .summary-pill,
+.health-page .activity-status,
+.health-page .water-status {
+    border-radius: 999px;
+    padding: 8px 12px;
     font-size: 12px;
-    color: #556;
+    font-weight: 800;
 }
 
-.bmi-status {
+.health-page .hero-badge {
+    background: rgba(255,255,255,.14);
+    color: #fff8ef;
+    border: 1px solid rgba(255,255,255,.16);
+}
+
+.health-page .hero-side {
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(15, 23, 42, 0.18);
+    backdrop-filter: blur(10px);
+}
+
+.health-page .hero-side-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(255,250,240,.74);
+}
+
+.health-page .hero-side strong {
+    display: block;
     margin-top: 8px;
-    font-weight: 600;
+    color: #fffdf8;
+    font-size: 24px;
+    line-height: 1.08;
 }
 
-.bmi-gauge.bmi-none {
-    opacity: 0.6;
+.health-page .hero-side p {
+    margin: 10px 0 0;
+    color: rgba(255,250,240,.84);
+    font-size: 13px;
+    line-height: 1.55;
 }
 
-.bmi-gauge.bmi-none .bmi-marker {
-    display: none;
+.health-page .hero-side-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 12px;
 }
 
-.bmi-low { color: #b65734; }
-.bmi-normal { color: #1f7a6c; }
-.bmi-high { color: #a37c15; }
-.bmi-obese { color: #b23a2f; }
-.bmi-none { color: #666; }
-
-/* ===== PERSONALIZED WORKOUT ===== */
-.activity-meta {
-    margin-top: 8px;
-    font-size: 14px;
+.health-page .hero-side-tile {
+    padding: 12px;
+    border-radius: 18px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.12);
 }
 
-.activity-status {
+.health-page .hero-side-tile span {
+    display: block;
+    color: rgba(255,250,240,.72);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.health-page .hero-side-tile strong {
+    margin-top: 7px;
+    font-size: 18px;
+}
+
+.health-page .health-pillars-card,
+.health-page .chart-card {
+    grid-column: 1 / -1;
+    padding: 16px;
+}
+
+.health-page .health-pillars-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.health-page .health-pillar-tile {
+    padding: 14px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #fbf8f1, #ffffff);
+    border: 1px solid rgba(226,232,240,.78);
+}
+
+.health-page .health-pillar-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.health-page .health-pillar-tile strong {
+    display: block;
+    font-size: 20px;
+    color: #16323b;
+}
+
+.health-page .health-pillar-tile small {
+    display: block;
+    margin-top: 6px;
+    color: #607077;
+    line-height: 1.45;
+}
+
+.health-page .health-checkin-card,
+.health-page .health-bmi-card,
+.health-page .health-summary-card,
+.health-page .health-workout-card,
+.health-page .score-card {
+    padding: 16px;
+}
+
+.health-page .health-checkin-card {
+    grid-column: 1 / -1;
+}
+
+.health-page .input-card,
+.health-page .water-card {
+    background: linear-gradient(145deg, #fffdf8, #f8fbfb);
+    border: 1px solid rgba(226,232,240,.8);
+    border-radius: 18px;
+}
+
+.health-page .water-card {
+    margin: 6px 0 12px;
+    padding: 14px;
+}
+
+.health-page .progress {
+    background: #e6f1ef;
+}
+
+.health-page .progress-fill {
+    background: linear-gradient(90deg, #1f766e, #d6b36f);
+}
+
+.health-page .chart-card canvas {
     margin-top: 10px;
-    font-size: 15px;
-    font-weight: 700;
+    height: 220px !important;
 }
 
-.activity-advice {
+.health-page .score-number {
+    color: #16323b;
+}
+
+.health-page .health-summary-card {
+    background: linear-gradient(145deg, #17353d, #214752 58%, #2d6e6a 100%);
+    color: #f8fafc;
+}
+
+.health-page .health-summary-top {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.health-page .health-summary-score {
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.12);
+}
+
+.health-page .health-summary-score-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(248,250,252,.74);
+}
+
+.health-page .health-summary-score strong {
+    display: block;
     margin-top: 8px;
-    font-size: 14px;
-    color: #4b5563;
+    font-size: 30px;
+    line-height: 1;
+    color: #fff;
+}
+
+.health-page .health-summary-score small {
+    display: block;
+    margin-top: 8px;
+    color: rgba(248,250,252,.82);
     line-height: 1.5;
 }
 
-.act-low { color: #b23a2f; }
-.act-good { color: #157347; }
-.act-high { color: #8a6d1d; }
-.act-none { color: #666; }
+.health-page .health-summary-metrics {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
 
+.health-page .health-summary-metric {
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.10);
+}
 
+.health-page .health-summary-metric span {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: rgba(248,250,252,.72);
+}
+
+.health-page .health-summary-metric strong {
+    display: block;
+    margin-top: 6px;
+    color: #fff;
+    font-size: 18px;
+}
+
+.health-page .health-summary-card .summary-title,
+.health-page .health-summary-card .sleep-sub,
+.health-page .health-summary-card .summary-pill {
+    color: #f8fafc;
+}
+
+.health-page .health-summary-card .summary-pill {
+    background: rgba(255,255,255,.12);
+    display: inline-flex;
+    margin-top: 12px;
+}
+
+.health-page .health-summary-card .progress {
+    margin-top: 14px;
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255,255,255,.14);
+}
+
+.health-page .health-summary-card .progress-fill {
+    border-radius: inherit;
+    min-width: 8%;
+    background: linear-gradient(90deg, #fde68a, #86efac, #67e8f9);
+}
+
+.health-page .activity-status.act-good,
+.health-page .water-status.water-good,
+.health-page .water-status.water-ok {
+    background: #ecfdf5;
+    color: #166534;
+}
+
+.health-page .activity-status.act-low,
+.health-page .water-status.water-low {
+    background: #fff7ed;
+    color: #9a3412;
+}
+
+.health-page .activity-status.act-high,
+.health-page .water-status.water-high {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.health-page .activity-status.act-none,
+.health-page .water-status.water-none,
+.health-page .water-status.water-over {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+@media (min-width: 900px) {
+    .health-page .app {
+        width: min(1080px, 92%);
+        margin: 18px auto 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        padding-bottom: 90px;
+    }
+
+    .health-page .card {
+        border-radius: 28px;
+    }
+
+    .health-page .sleep-hero {
+        padding: 24px;
+    }
+
+    .health-page .sleep-hero-inner {
+        grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr);
+        gap: 18px;
+    }
+
+    .health-page .emoji-bubble {
+        width: 72px;
+        height: 72px;
+        border-radius: 22px;
+        font-size: 32px;
+    }
+
+    .health-page .hero-main {
+        gap: 18px;
+    }
+
+    .health-page .sleep-hero .sleep-title {
+        font-size: clamp(28px, 3.6vw, 38px);
+    }
+
+    .health-page .hero-side {
+        padding: 18px;
+        border-radius: 24px;
+    }
+
+    .health-page .hero-side strong {
+        font-size: 30px;
+    }
+
+    .health-page .hero-side p {
+        font-size: 14px;
+        line-height: 1.65;
+    }
+
+    .health-page .hero-side-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 16px;
+    }
+
+    .health-page .health-pillars-card,
+    .health-page .chart-card {
+        padding: 18px;
+    }
+
+    .health-page .health-pillars-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .health-page .health-pillar-tile {
+        padding: 16px;
+        border-radius: 22px;
+    }
+
+    .health-page .health-pillar-tile strong {
+        font-size: 24px;
+    }
+
+    .health-page .health-checkin-card,
+    .health-page .health-bmi-card,
+    .health-page .health-summary-card,
+    .health-page .health-workout-card,
+    .health-page .score-card {
+        padding: 18px;
+    }
+
+    .health-page .input-card,
+    .health-page .water-card {
+        border-radius: 22px;
+    }
+
+    .health-page .water-card {
+        padding: 18px;
+    }
+
+    .health-page .chart-card canvas {
+        height: 320px !important;
+    }
+
+    .health-page .health-summary-top,
+    .health-page .health-summary-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
 </style>
 
 <main class="app">
@@ -508,47 +869,99 @@ if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
 <!-- ================= HERO ================= -->
 <section class="card sleep-hero">
     <div class="sleep-hero-inner">
-        <div class="emoji-bubble">&#128170;</div>
-        <div class="hero-copy">
-            <div class="sleep-title"><?= $status ?></div>
-            <div class="sleep-sub">
-                Ringkasan kondisi health kamu minggu ini dari check-in otomatis, hidrasi, aktivitas, dan BMI.
+        <div class="hero-main">
+            <div class="emoji-bubble">&#128170;</div>
+            <div class="hero-copy">
+                <span class="hero-kicker">Weekly Health Reading</span>
+                <div class="sleep-title"><?= $status ?></div>
+                <div class="sleep-sub">
+                    Ringkasan kondisi health kamu minggu ini dari check-in otomatis, hidrasi, aktivitas, dan BMI.
+                </div>
+                <div class="hero-badges">
+                    <span class="hero-badge">Skor <?= $averageScore ?>/10 minggu ini</span>
+                    <span class="hero-badge"><?= (int) $healthyPillarCount ?>/4 pilar tercapai</span>
+                    <span class="hero-badge">Check-in otomatis aktif</span>
+                </div>
             </div>
-            <div class="hero-badges">
-                <span class="hero-badge">Skor <?= $averageScore ?>/10 minggu ini</span>
-                <span class="hero-badge"><?= (int) $healthyPillarCount ?>/4 pilar tercapai</span>
-                <span class="hero-badge">Check-in otomatis aktif</span>
+        </div>
+        <aside class="hero-side">
+            <span class="hero-side-label">Body Pulse</span>
+            <strong><?= htmlspecialchars($healthPulse) ?></strong>
+            <p><?= htmlspecialchars($healthPulseText) ?></p>
+            <div class="hero-side-grid">
+                <div class="hero-side-tile">
+                    <span>Focus</span>
+                    <strong><?= htmlspecialchars($pillarFocus) ?></strong>
+                </div>
+                <div class="hero-side-tile">
+                    <span>Trend</span>
+                    <strong><?= (int) $weeklyActivityMinutes ?>m / <?= number_format($waterAvgLiters, 1) ?>L</strong>
+                </div>
             </div>
+        </aside>
+    </div>
+</section>
+
+<section class="card health-pillars-card">
+    <div class="health-pillars-grid">
+        <div class="health-pillar-tile">
+            <span class="health-pillar-label">Aktivitas</span>
+            <strong><?= (int) $weeklyActivityMinutes ?> menit</strong>
+            <small><?= $activityCompletionPercent ?>% dari target minimum mingguan</small>
+        </div>
+        <div class="health-pillar-tile">
+            <span class="health-pillar-label">Hidrasi</span>
+            <strong><?= number_format($waterAvgLiters, 1) ?> L/hari</strong>
+            <small><?= $waterCompletionPercent ?>% dari target harian</small>
+        </div>
+        <div class="health-pillar-tile">
+            <span class="health-pillar-label">Tidur</span>
+            <strong><?= $sleepAvgHoursFormatted ?> jam</strong>
+            <small><?= $sleepCompletionPercent ?>% menuju ritme ideal</small>
+        </div>
+        <div class="health-pillar-tile">
+            <span class="health-pillar-label">BMI</span>
+            <strong><?= $bmi > 0 ? number_format((float) $bmi, 1) : '--' ?></strong>
+            <small><?= htmlspecialchars($bmiStatus) ?></small>
         </div>
     </div>
 </section>
 
 
 <!-- ================= CHECKIN ================= -->
-<section class="card">
+<section class="card sleep-form-card health-checkin-card">
+    <div class="sleep-form-head">
+        <div>
+            <div class="summary-title">Daily Check-In</div>
+            <div class="sleep-sub">Isi aktivitas, hidrasi, dan data tubuh harian dalam satu panel yang lebih ringkas.</div>
+        </div>
+    </div>
 
-    <div class="summary-title">Your health and Check-In (auto)</div>
+    <form method="POST" class="sleep-entry-form">
 
-    <form method="POST">
-
-        <!-- ACTIVITY -->
-        <div class="input-group">
-            <label>Aktivitas Fisik (menit)</label>
-            <input type="number"
-                   name="activity_minutes"
-                   min="0"
-                   value="<?= htmlspecialchars((string) $activity) ?>"
-                   placeholder="Contoh: 30">
+        <div class="input-row">
+            <div class="input-group input-card">
+                <label>Aktivitas Fisik (menit)</label>
+                <input type="number"
+                       name="activity_minutes"
+                       min="0"
+                       value="<?= htmlspecialchars((string) $activity) ?>"
+                       placeholder="Contoh: 30">
+            </div>
+            <div class="input-group input-card health-quick-note">
+                <span class="sleep-date-summary-label">Status mingguan</span>
+                <strong><?= htmlspecialchars($activityWeeklyStatus) ?></strong>
+                <small><?= (int) $healthyPillarCount ?>/4 pilar sehat sudah tercapai minggu ini.</small>
+            </div>
         </div>
 
-        <!-- WATER -->
         <div class="water-card">
 
             <div class="water-title">&#128167; Asupan Air Harian</div>
-
+            <div class="water-subtitle">Pilih jumlah gelas untuk memperbarui estimasi hidrasi harian.</div>
 
             <div class="glass-wrapper">
-                <?php for ($i = 1; $i <= 12; $i++): ?>
+                <?php for ($i = 1; $i <= 8; $i++): ?>
                     <div class="glass <?= $water_glass >= $i ? 'active' : '' ?>"
                          onclick="setGlass(<?= $i ?>)">
                         <div class="water"></div>
@@ -570,40 +983,46 @@ if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
 
         </div>
 
-        <!-- BMI INPUT -->
-        <div class="input-group">
-            <label>Tinggi Badan (cm)</label>
-            <input type="number"
-                   name="height_cm"
-                   min="1"
-                   value="<?= htmlspecialchars((string) $lastHeight) ?>"
-                   placeholder="Contoh: 170">
+        <div class="input-row health-body-metrics">
+            <div class="input-group input-card">
+                <label>Tinggi Badan (cm)</label>
+                <input type="number"
+                       name="height_cm"
+                       min="1"
+                       value="<?= htmlspecialchars((string) $lastHeight) ?>"
+                       placeholder="Contoh: 170">
+            </div>
+
+            <div class="input-group input-card">
+                <label>Berat Badan (kg)</label>
+                <input type="number"
+                       step="0.1"
+                       min="1"
+                       name="weight_kg"
+                       value="<?= htmlspecialchars((string) $lastWeight) ?>"
+                       placeholder="Contoh: 65">
+            </div>
         </div>
 
-        <div class="input-group">
-            <label>Berat Badan (kg)</label>
-            <input type="number"
-                   step="0.1"
-                   min="1"
-                   name="weight_kg"
-                   value="<?= htmlspecialchars((string) $lastWeight) ?>"
-                   placeholder="Contoh: 65">
+        <div class="sleep-form-footer">
+            <div class="sleep-form-note">
+                <strong>Tip:</strong> data hari ini otomatis jadi dasar ringkasan mingguan, jadi cukup update sekali tiap hari.
+            </div>
+            <button class="btn-primary sleep-submit-btn" type="submit">
+                Simpan Semua Data
+            </button>
         </div>
-
-        <button class="btn-primary" type="submit">
-            Simpan Semua Data
-        </button>
 
     </form>
 </section>
 
 
 <!-- ================= BMI RESULT ================= -->
-<section class="card">
+<section class="card health-bmi-card">
     <div class="summary-title">BMI/IMT Terakhir</div>
 
     <div class="score-number">
-        <?= $bmi ?>
+        <?= $bmi > 0 ? $bmi : '--' ?>
     </div>
 
     <div class="sleep-sub bmi-status <?= $bmiGaugeClass ?>">
@@ -623,15 +1042,46 @@ if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
     </div>
 </section>
 
+<section class="card chart-card">
+    <div class="summary-title">Tren 7 Hari Terakhir</div>
+    <canvas id="healthTrendChart" height="320"></canvas>
+</section>
+
 
 <!-- ================= WEEKLY PROGRESS ================= -->
-<section class="card">
+<section class="card health-summary-card">
     <div class="summary-title">Ringkasan Mingguan</div>
+    <div class="sleep-sub">Snapshot mingguan supaya kamu cepat lihat posisi health tanpa baca semua detail.</div>
+
+    <div class="health-summary-top">
+        <div class="health-summary-score">
+            <span class="health-summary-score-label">Weekly Score</span>
+            <strong><?= number_format($averageScore, 1) ?>/10</strong>
+            <small><?= (int) $healthyPillarCount ?>/4 pilar sehat berhasil tercapai minggu ini.</small>
+        </div>
+
+        <div class="health-summary-metrics">
+            <div class="health-summary-metric">
+                <span>Aktivitas</span>
+                <strong><?= (int) $weeklyActivityMinutes ?> menit</strong>
+            </div>
+            <div class="health-summary-metric">
+                <span>Air Harian</span>
+                <strong><?= number_format($waterAvgLiters, 1) ?> L</strong>
+            </div>
+            <div class="health-summary-metric">
+                <span>Tidur</span>
+                <strong><?= $sleepAvgHoursFormatted ?> jam</strong>
+            </div>
+            <div class="health-summary-metric">
+                <span>BMI</span>
+                <strong><?= $bmi > 0 ? number_format((float) $bmi, 1) : '--' ?></strong>
+            </div>
+        </div>
+    </div>
 
     <div class="progress">
-        <div class="progress-fill"
-             style="width: <?= $averageScore * 10 ?>%;">
-        </div>
+        <div class="progress-fill" style="width: <?= $averageScore * 10 ?>%;"></div>
     </div>
 
     <div class="summary-pill">
@@ -644,7 +1094,7 @@ if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
 </section>
 
 <!-- ================= PERSONALIZED WORKOUT ================= -->
-<section class="card">
+<section class="card health-workout-card">
     <div class="summary-title">Workout Personal (Mingguan)</div>
 
     <div class="activity-meta">
@@ -694,6 +1144,7 @@ if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
 </section>
 
 </main>
+<script src="assets/js/chart.js"></script>
 <script>
 function setGlass(count) {
     const glasses = document.querySelectorAll('.glass');
@@ -711,6 +1162,105 @@ function setGlass(count) {
     glassCount.innerText = count;
     waterInput.value = count * 250;
 }
+
+(() => {
+    const canvas = document.getElementById('healthTrendChart');
+    if (!canvas || typeof Chart === 'undefined') {
+        return;
+    }
+
+    new Chart(canvas, {
+        data: {
+            labels: <?= json_encode($trendLabels) ?>,
+            datasets: [
+                {
+                    type: 'bar',
+                    label: 'Aktivitas (menit)',
+                    data: <?= json_encode($trendActivityData) ?>,
+                    backgroundColor: 'rgba(34, 197, 94, 0.75)',
+                    borderRadius: 10,
+                    yAxisID: 'y'
+                },
+                {
+                    type: 'line',
+                    label: 'Air (L)',
+                    data: <?= json_encode($trendWaterData) ?>,
+                    borderColor: '#0ea5e9',
+                    backgroundColor: 'rgba(14, 165, 233, 0.16)',
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#0ea5e9',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    tension: 0.35,
+                    fill: false,
+                    yAxisID: 'y1'
+                },
+                {
+                    type: 'line',
+                    label: 'Tidur (jam)',
+                    data: <?= json_encode($trendSleepData) ?>,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.12)',
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#8b5cf6',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    tension: 0.35,
+                    fill: false,
+                    yAxisID: 'y2'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    suggestedMax: 60,
+                    ticks: {
+                        color: '#475569'
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.15)'
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    suggestedMax: 3,
+                    grid: {
+                        drawOnChartArea: false
+                    },
+                    ticks: {
+                        color: '#0284c7'
+                    }
+                },
+                y2: {
+                    beginAtZero: true,
+                    position: 'right',
+                    display: false,
+                    suggestedMax: 10
+                }
+            }
+        }
+    });
+})();
 </script>
 
 <?php include 'includes/footer.php'; ?>

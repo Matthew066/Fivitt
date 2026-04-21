@@ -51,7 +51,13 @@ if ($isLoggedIn) {
 <div class="drawer-backdrop" data-drawer-close></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
     <div class="drawer-header">
-        <img src="/Fivitt/assets/Foto/Logo5vit.png" alt="FIVIT" class="logo" style="width: 50px; height: 50px;">
+        <div class="drawer-brand">
+            <img src="/Fivitt/assets/Foto/Logo5vit.png" alt="FIVIT" class="logo" style="width: 50px; height: 50px;">
+            <div class="drawer-brand-copy">
+                <strong>FiVit</strong>
+                <span>Health ecosystem</span>
+            </div>
+        </div>
         <button class="menu drawer-close" aria-label="Tutup Menu" data-drawer-close>&#9776;</button>
     </div>
     <nav class="drawer-nav">
@@ -76,9 +82,11 @@ if ($isLoggedIn) {
         <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? '/Fivitt/education.php' : '/Fivitt/login.php' ?>">Education</a>
         <div class="drawer-section">Community</div>
         <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? '/Fivitt/community.php' : '/Fivitt/login.php'?>"> Community Hub</a>
+        <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? '/Fivitt/leaderboard.php' : '/Fivitt/login.php' ?>">Leaderboard</a>
 
         <?php if ($isLoggedIn): ?>
             <div class="drawer-section">Account</div>
+            <a class="drawer-link sub" href="/Fivitt/profile_settings.php">Profil</a>
             <a class="drawer-link drawer-link-logout" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
                 <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
                 <span>Logout</span>

@@ -2,7 +2,10 @@
 session_start();
 require_once 'includes/db.php';
 require_once 'includes/auth_guard.php';
+require_once 'includes/user_profile.php';
 require_login();
+
+ensure_users_profile_schema($pdo);
 
 $pageTitle = 'Sleep & Recovery';
 $bodyClass = 'sleep-page';
@@ -40,7 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sleepDate = $_POST['sleep_date'] ?? $today;
     $start = $_POST['sleep_start'];
     $end   = $_POST['sleep_end'];
-    $ageGroup = $_POST['age_group'] ?? 'adult';
     $sleepLatency = isset($_POST['sleep_latency_min']) ? (int) $_POST['sleep_latency_min'] : 20;
     $nightAwakenings = isset($_POST['night_awakenings']) ? (int) $_POST['night_awakenings'] : 0;
 
@@ -48,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sleepDate = $today;
     }
 
-    $_SESSION['sleep_age_group'] = in_array($ageGroup, ['teen_12_14', 'adult'], true) ? $ageGroup : 'adult';
     $_SESSION['sleep_latency_min'] = max(0, min(180, $sleepLatency));
     $_SESSION['night_awakenings'] = max(0, min(10, $nightAwakenings));
 
@@ -79,19 +80,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 /* ================= SLEEP TARGET PROFILE ================= */
-$ageGroup = $_SESSION['sleep_age_group'] ?? 'adult';
 $sleepLatency = (int) ($_SESSION['sleep_latency_min'] ?? 20);
 $nightAwakenings = (int) ($_SESSION['night_awakenings'] ?? 0);
-
-if ($ageGroup === 'teen_12_14') {
-    $sleepTargetMin = 8.0;
-    $sleepTargetMax = 10.0;
-    $sleepTargetLabel = '8-10 jam (usia 12-14)';
-} else {
-    $sleepTargetMin = 7.0;
-    $sleepTargetMax = 9.0;
-    $sleepTargetLabel = '7-9 jam (dewasa)';
-}
+$profileSettings = get_user_profile_settings($pdo, (int) $user_id);
+$sleepTarget = get_sleep_target_by_age_group($profileSettings['effective_age_group']);
+$sleepTargetMin = $sleepTarget['min'];
+$sleepTargetMax = $sleepTarget['max'];
+$sleepTargetLabel = $sleepTarget['label'];
+$sleepProfileLabel = $sleepTarget['profile_label'];
 
 $sleepTargetMid = ($sleepTargetMin + $sleepTargetMax) / 2;
 
@@ -218,6 +214,7 @@ if ($combinedSleepScore < 6) {
             <div class="hero-badges">
                 <span class="hero-badge">Rata-rata <?= formatAverage($average) ?></span>
                 <span class="hero-badge">Target <?= htmlspecialchars($sleepTargetLabel) ?></span>
+                <span class="hero-badge">Profil <?= htmlspecialchars($sleepProfileLabel) ?></span>
                 <span class="hero-badge"><?= htmlspecialchars($qualityStatus) ?></span>
             </div>
         </div>
@@ -225,60 +222,69 @@ if ($combinedSleepScore < 6) {
 </section>
 
 <!-- ================= INPUT ================= -->
-<section class="card">
-    <div class="summary-title">Input Tidur</div>
+<section class="card sleep-form-card">
+    <div class="sleep-form-head">
+        <div>
+            <div class="summary-title">Input Tidur</div>
+            <div class="sleep-sub">
+                Catat jam tidur, pilih tanggal, lalu perbarui kalau kemarin sempat terlewat.
+                Target tidur mengikuti profil usia kamu.
+                <a href="profile_settings.php">Ubah profil usia</a>
+            </div>
+        </div>
+    </div>
 
-    <form method="POST">
-        <div class="input-row">
-            <div class="input-group">
+    <form method="POST" class="sleep-entry-form">
+        <div class="input-row sleep-primary-row">
+            <div class="input-group input-card input-card-accent">
                 <label>Tanggal</label>
                 <input type="date" name="sleep_date" max="<?= htmlspecialchars($today) ?>"
                        value="<?= htmlspecialchars($selectedDate) ?>" required>
+                <small class="input-hint">Bisa dipakai untuk update tidur kemarin.</small>
+            </div>
+            <div class="input-group input-card sleep-date-summary">
+                <span class="sleep-date-summary-label">Tanggal terpilih</span>
+                <strong><?= htmlspecialchars(date('d M Y', strtotime($selectedDate))) ?></strong>
+                <small>Data akan diperbarui jika log sudah ada.</small>
             </div>
         </div>
-        <div class="input-row">
 
-            <div class="input-group">
-                <label>Mulai</label>
+        <div class="input-row">
+            <div class="input-group input-card">
+                <label>Mulai Tidur</label>
                 <input type="time" name="sleep_start"
                        value="<?= htmlspecialchars($selectedLog['sleep_start']) ?>" required>
             </div>
 
-            <div class="input-group">
-                <label>Selesai</label>
+            <div class="input-group input-card">
+                <label>Bangun</label>
                 <input type="time" name="sleep_end"
                        value="<?= htmlspecialchars($selectedLog['sleep_end']) ?>" required>
             </div>
-
         </div>
-        <div class="input-row">
-            <div class="input-group">
-                <label>Kelompok Usia</label>
-                <select class="select-modern" name="age_group" required>
-                    <option value="adult" <?= $ageGroup === 'adult' ? 'selected' : '' ?>>Dewasa (7-9 jam)</option>
-                    <option value="teen_12_14" <?= $ageGroup === 'teen_12_14' ? 'selected' : '' ?>>Remaja 12-14 (8-10 jam)</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>Latensi Tidur (menit)</label>
+
+        <div class="input-row sleep-metrics-row">
+            <div class="input-group input-card">
+                <label>Latensi Tidur</label>
                 <input type="number" name="sleep_latency_min" min="0" max="180"
                        value="<?= (int) $sleepLatency ?>" placeholder="Contoh: 20">
+                <small class="input-hint">Berapa menit sampai benar-benar tertidur.</small>
             </div>
-            <div class="input-group">
-                <label>Terbangun Malam (kali)</label>
+            <div class="input-group input-card">
+                <label>Terbangun Malam</label>
                 <input type="number" name="night_awakenings" min="0" max="10"
                        value="<?= (int) $nightAwakenings ?>" placeholder="Contoh: 1">
+                <small class="input-hint">Jumlah bangun di tengah malam.</small>
             </div>
         </div>
 
-        <button class="btn-primary" type="submit">
-            Update Tidur
-        </button>
-        <div class="sleep-sub" style="margin-top: 10px;">
-            Pilih tanggal jika kamu ingin memperbarui data tidur yang belum sempat diisi kemarin.
-        </div>
-        <div class="sleep-sub" style="margin-top: 6px;">
-            Catatan: indikator kualitas ini adalah skrining harian ringan (bukan PSQI lengkap).
+        <div class="sleep-form-footer">
+            <div class="sleep-form-note">
+                <strong>Catatan:</strong> indikator kualitas ini adalah skrining harian ringan, bukan PSQI lengkap.
+            </div>
+            <button class="btn-primary sleep-submit-btn" type="submit">
+                Simpan Update Tidur
+            </button>
         </div>
     </form>
 </section>

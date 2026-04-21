@@ -102,6 +102,9 @@ $pdo->exec("
 
 function normalizeChannel(string $value): string {
     $value = strtolower(trim($value));
+    if (in_array($value, ['community', 'general', 'room'], true)) {
+        return 'gym';
+    }
     return in_array($value, ['gym', 'coach'], true) ? $value : 'gym';
 }
 
@@ -128,6 +131,10 @@ function normalizeRole(string $value): string {
 function normalizeMemberStatus(string $value): string {
     $value = strtolower(trim($value));
     return in_array($value, ['pending', 'member', 'rejected', 'kicked', 'left'], true) ? $value : 'pending';
+}
+
+function normalizeRoomCode(string $value): string {
+    return strtoupper(preg_replace('/[^A-Z0-9]/', '', trim($value)));
 }
 
 function generateRoomCode(int $len = 6): string {
@@ -157,6 +164,41 @@ function getPendingCount(PDO $pdo, int $roomId): int {
     $stmt = $pdo->prepare('SELECT COUNT(*) FROM community_room_members WHERE id_community_rooms = ? AND status = ?');
     $stmt->execute([$roomId, 'pending']);
     return (int) $stmt->fetchColumn();
+}
+
+// Keep legacy rows usable on older localhost schemas where is_active was stored as NULL.
+$pdo->exec("UPDATE community_rooms SET is_active = 1 WHERE is_active IS NULL");
+
+function getRoomByCode(PDO $pdo, string $code, ?string $channel = null): ?array {
+    if ($code === '') {
+        return null;
+    }
+
+    if ($channel !== null) {
+        $stmt = $pdo->prepare('SELECT * FROM community_rooms WHERE room_code = ? AND channel = ? AND COALESCE(is_active, 1) = 1 LIMIT 1');
+        $stmt->execute([$code, $channel]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        if ($row) {
+            return $row;
+        }
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM community_rooms WHERE room_code = ? AND COALESCE(is_active, 1) = 1 LIMIT 1');
+    $stmt->execute([$code]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+function addRoomSystemMessage(PDO $pdo, int $roomId, string $message): void {
+    if ($roomId <= 0 || trim($message) === '') {
+        return;
+    }
+
+    $stmt = $pdo->prepare("
+        INSERT INTO community_room_messages
+        (id_community_rooms, id_users, display_name, message)
+        VALUES (?, NULL, 'System', ?)
+    ");
+    $stmt->execute([$roomId, $message]);
 }
 
 $channel = normalizeChannel((string) ($_GET['channel'] ?? 'gym'));
@@ -269,8 +311,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $insert = $pdo->prepare("
                         INSERT INTO community_rooms
-                        (channel, room_name, room_code, join_mode, created_by)
-                        VALUES (?, ?, ?, ?, ?)
+                        (channel, room_name, room_code, join_mode, created_by, is_active)
+                        VALUES (?, ?, ?, ?, ?, 1)
                     ");
                     $insert->execute([
                         $postChannel,
@@ -289,7 +331,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ");
                     $insMember->execute([$newRoomId, $userId, $ownerName]);
 
+                    addRoomSystemMessage(
+                        $pdo,
+                        $newRoomId,
+                        'Room dibuat. Kode room ini adalah ' . $code . '. Kode tetap aktif dan bisa dipakai lagi selama room masih aktif.'
+                    );
+
                     $success = 'Private room berhasil dibuat. Kode room: ' . $code;
+                    $channel = $postChannel;
+                    $roomId = $newRoomId;
                 }
             }
         }
@@ -298,22 +348,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$isLoggedIn) {
             $errors[] = 'Silakan login untuk join room.';
         } else {
-            $code = strtoupper(trim((string) ($_POST['room_code'] ?? '')));
+            $requestedChannel = normalizeChannel((string) ($_POST['channel'] ?? $channel));
+            $code = normalizeRoomCode((string) ($_POST['room_code'] ?? ''));
             if ($code === '') {
                 $errors[] = 'Kode room wajib diisi.';
             } else {
-                $roomStmt = $pdo->prepare('SELECT * FROM community_rooms WHERE room_code = ? AND is_active = 1 LIMIT 1');
-                $roomStmt->execute([$code]);
-                $roomRow = $roomStmt->fetch(PDO::FETCH_ASSOC) ?: null;
+                $roomRow = getRoomByCode($pdo, $code, $requestedChannel);
 
                 if (!$roomRow) {
                     $errors[] = 'Room tidak ditemukan.';
                 } else {
+                    $resolvedChannel = normalizeChannel((string) ($roomRow['channel'] ?? $requestedChannel));
+                    $resolvedRoomId = (int) ($roomRow['id_community_rooms'] ?? 0);
                     $joinMode = normalizeJoinMode((string) ($roomRow['join_mode'] ?? 'auto'));
                     $targetStatus = $joinMode === 'auto' ? 'member' : 'pending';
 
                     $memberStmt = $pdo->prepare('SELECT status FROM community_room_members WHERE id_community_rooms = ? AND id_users = ? LIMIT 1');
-                    $memberStmt->execute([(int) $roomRow['id_community_rooms'], $userId]);
+                    $memberStmt->execute([$resolvedRoomId, $userId]);
                     $memberRow = $memberStmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
                     if ($memberRow) {
@@ -324,10 +375,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $errors[] = 'Kamu sudah dikeluarkan dari room ini.';
                         } else {
                             $upd = $pdo->prepare('UPDATE community_room_members SET status = ? WHERE id_community_rooms = ? AND id_users = ?');
-                            $upd->execute([$targetStatus, (int) $roomRow['id_community_rooms'], $userId]);
+                            $upd->execute([$targetStatus, $resolvedRoomId, $userId]);
                             $success = $targetStatus === 'member'
                                 ? 'Berhasil join room.'
                                 : 'Request join dikirim. Menunggu approval owner.';
+                            if ($targetStatus === 'member') {
+                                addRoomSystemMessage($pdo, $resolvedRoomId, ($userName !== '' ? $userName : 'Member') . ' bergabung ke room dengan kode ' . $code . '.');
+                            }
+                            $channel = $resolvedChannel;
+                            $roomId = $resolvedRoomId;
                         }
                     } else {
                         $display = $userName !== '' ? $userName : 'Member';
@@ -336,10 +392,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             (id_community_rooms, id_users, display_name, role, status)
                             VALUES (?, ?, ?, 'member', ?)
                         ");
-                        $ins->execute([(int) $roomRow['id_community_rooms'], $userId, $display, $targetStatus]);
+                        $ins->execute([$resolvedRoomId, $userId, $display, $targetStatus]);
                         $success = $targetStatus === 'member'
                             ? 'Berhasil join room.'
                             : 'Request join dikirim. Menunggu approval owner.';
+                        if ($targetStatus === 'member') {
+                            addRoomSystemMessage($pdo, $resolvedRoomId, $display . ' bergabung ke room dengan kode ' . $code . '.');
+                        }
+                        $channel = $resolvedChannel;
+                        $roomId = $resolvedRoomId;
                     }
                 }
             }
@@ -369,6 +430,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ");
                     $ins->execute([$targetRoomId, $userId, $display, $message]);
                     $success = 'Pesan room terkirim.';
+                    $roomRow = $pdo->prepare('SELECT channel FROM community_rooms WHERE id_community_rooms = ? LIMIT 1');
+                    $roomRow->execute([$targetRoomId]);
+                    $roomInfo = $roomRow->fetch(PDO::FETCH_ASSOC) ?: null;
+                    if ($roomInfo) {
+                        $channel = normalizeChannel((string) ($roomInfo['channel'] ?? $channel));
+                    }
+                    $roomId = $targetRoomId;
                 }
             }
         }
@@ -524,7 +592,7 @@ if ($isLoggedIn) {
                m.role, m.status
         FROM community_rooms r
         JOIN community_room_members m ON m.id_community_rooms = r.id_community_rooms
-        WHERE r.is_active = 1 AND r.channel = ? AND m.id_users = ?
+        WHERE COALESCE(r.is_active, 1) = 1 AND r.channel = ? AND m.id_users = ?
     ";
     $params = [$channel, $userId];
     if ($roomSearch !== '') {
@@ -553,7 +621,7 @@ $roomMembers = [];
 $roomPending = [];
 $roomMessages = [];
 if ($roomId > 0) {
-    $roomStmt = $pdo->prepare('SELECT * FROM community_rooms WHERE id_community_rooms = ? AND is_active = 1 LIMIT 1');
+    $roomStmt = $pdo->prepare('SELECT * FROM community_rooms WHERE id_community_rooms = ? AND COALESCE(is_active, 1) = 1 LIMIT 1');
     $roomStmt->execute([$roomId]);
     $activeRoom = $roomStmt->fetch(PDO::FETCH_ASSOC) ?: null;
     if ($activeRoom && normalizeChannel((string) ($activeRoom['channel'] ?? 'gym')) !== $channel) {
@@ -808,6 +876,7 @@ function formatTime(?string $value): string {
                     <h3>Join via Kode</h3>
                     <form method="POST">
                         <input type="hidden" name="action" value="join_room">
+                        <input type="hidden" name="channel" value="<?= htmlspecialchars($channel, ENT_QUOTES, 'UTF-8') ?>">
                         <div class="input-group">
                             <label for="room_code">Kode room</label>
                             <input id="room_code" name="room_code" type="text" placeholder="Contoh: A7K2Q9" required>
@@ -869,6 +938,7 @@ function formatTime(?string $value): string {
         <section class="section">
             <h2 class="title">Room: <?= htmlspecialchars((string) ($activeRoom['room_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></h2>
             <p class="sub">Kode: <span class="room-code"><?= htmlspecialchars((string) ($activeRoom['room_code'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span> &bull; Mode: <?= htmlspecialchars((string) ($activeRoom['join_mode'] ?? 'auto'), ENT_QUOTES, 'UTF-8') ?></p>
+            <div class="hint">Kode room ini permanen selama room aktif, jadi bisa dipakai berulang untuk member lain yang mau masuk grup.</div>
 
             <?php if (!$isLoggedIn): ?>
                 <div class="hint">Login untuk mengakses room.</div>

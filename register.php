@@ -1,6 +1,9 @@
 <?php
 session_start();
 require 'includes/db.php';
+require_once 'includes/user_profile.php';
+
+ensure_users_profile_schema($pdo);
 
 if (isset($_SESSION['user_id'])) {
     $role = strtolower(trim((string)($_SESSION['user_role'] ?? 'user')));
@@ -16,7 +19,10 @@ $error = '';
 $name = '';
 $email = '';
 $department = '';
+$birthDate = '';
+$ageGroup = 'adult';
 $departmentOptions = ['General', 'HR', 'Finance', 'IT', 'Marketing', 'Operations'];
+$ageGroupOptions = get_age_group_options();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim((string)($_POST['name'] ?? ''));
@@ -24,16 +30,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = trim((string)($_POST['password'] ?? ''));
     $confirmPassword = trim((string)($_POST['confirm_password'] ?? ''));
     $department = trim((string)($_POST['department'] ?? 'General'));
+    $birthDate = trim((string)($_POST['birth_date'] ?? ''));
+    $ageGroup = normalize_age_group((string)($_POST['age_group'] ?? 'adult'));
 
-    if ($name === '' || $email === '' || $password === '' || $confirmPassword === '' || $department === '') {
+    if ($birthDate !== '') {
+        $derivedAgeGroup = get_age_group_from_birth_date($birthDate);
+        if ($derivedAgeGroup === null) {
+            $error = 'Tanggal lahir tidak valid.';
+        } else {
+            $ageGroup = $derivedAgeGroup;
+        }
+    }
+
+    if ($error === '' && ($name === '' || $email === '' || $password === '' || $confirmPassword === '' || $department === '')) {
         $error = 'Semua field wajib diisi.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    } elseif ($error === '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Format email tidak valid.';
-    } elseif (strlen($password) < 6) {
+    } elseif ($error === '' && strlen($password) < 6) {
         $error = 'Password minimal 6 karakter.';
-    } elseif ($password !== $confirmPassword) {
+    } elseif ($error === '' && $password !== $confirmPassword) {
         $error = 'Konfirmasi password tidak cocok.';
-    } elseif (!in_array($department, $departmentOptions, true)) {
+    } elseif ($error === '' && !in_array($department, $departmentOptions, true)) {
         $error = 'Department tidak valid.';
     } else {
         $check = $pdo->prepare('SELECT id_users FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) LIMIT 1');
@@ -45,10 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hash = password_hash($password, PASSWORD_DEFAULT);
 
             $insert = $pdo->prepare(
-                "INSERT INTO users (name, email, password_hash, role, department, is_active, created_at)
-                 VALUES (?, ?, ?, 'user', ?, 1, NOW())"
+                "INSERT INTO users (name, email, password_hash, role, department, birth_date, age_group, is_active, created_at)
+                 VALUES (?, ?, ?, 'user', ?, ?, ?, 1, NOW())"
             );
-            $insert->execute([$name, $email, $hash, $department]);
+            $insert->execute([$name, $email, $hash, $department, ($birthDate !== '' ? $birthDate : null), $ageGroup]);
 
             $_SESSION['register_success'] = 'Registrasi berhasil. Silakan login.';
             header('Location: login.php');
@@ -108,6 +125,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php foreach ($departmentOptions as $dept): ?>
                             <option value="<?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $department === $dept ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret" aria-hidden="true"></i>
+                </div>
+
+                <div class="field">
+                    <i class="fa-solid fa-cake-candles" aria-hidden="true"></i>
+                    <input type="date" id="birth_date" name="birth_date" value="<?php echo htmlspecialchars($birthDate); ?>" max="<?php echo date('Y-m-d'); ?>" class="sign-in-custom-input">
+                </div>
+
+                <div class="field">
+                    <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                    <select id="age_group" name="age_group" class="sign-in-custom-input" required>
+                        <?php foreach ($ageGroupOptions as $groupKey => $groupLabel): ?>
+                            <option value="<?php echo htmlspecialchars($groupKey, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $ageGroup === $groupKey ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($groupLabel, ENT_QUOTES, 'UTF-8'); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

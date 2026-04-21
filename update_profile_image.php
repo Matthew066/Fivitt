@@ -11,8 +11,35 @@ require_once 'includes/profile_image.php';
 
 ensure_users_profile_image_schema($pdo);
 
+function slugifyProfileFilePart(string $value): string
+{
+    $value = strtolower(trim($value));
+    $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?? '';
+    $value = trim($value, '-');
+    return $value !== '' ? $value : 'user';
+}
+
+function deleteOwnedProfileImage(?string $path, array $allowedBases): void
+{
+    $path = trim((string) $path);
+    if ($path === '') {
+        return;
+    }
+
+    foreach ($allowedBases as $baseDir) {
+        if (str_starts_with($path, $baseDir . '/')) {
+            $absolutePath = __DIR__ . '/' . $path;
+            if (is_file($absolutePath)) {
+                @unlink($absolutePath);
+            }
+            return;
+        }
+    }
+}
+
 $redirect = $_SERVER['HTTP_REFERER'] ?? 'index.php';
 $userId = (int) $_SESSION['user_id'];
+$userName = trim((string) ($_SESSION['user_name'] ?? ''));
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || $userId <= 0) {
     header('Location: ' . $redirect);
@@ -34,14 +61,14 @@ if ($size <= 0 || $size > 2 * 1024 * 1024 || !isset($allowed[$mime])) {
     exit;
 }
 
-$dirRelative = 'assets/images/profiles';
+$dirRelative = 'assets/images/user';
 $dirAbsolute = __DIR__ . '/' . $dirRelative;
 if (!is_dir($dirAbsolute)) {
     mkdir($dirAbsolute, 0777, true);
 }
 
 $oldImage = get_user_profile_image($pdo, $userId);
-$fileName = 'profile-' . $userId . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(4)) . '.' . $allowed[$mime];
+$fileName = slugifyProfileFilePart($userName !== '' ? $userName : ('user-' . $userId)) . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(4)) . '.' . $allowed[$mime];
 $targetAbsolute = $dirAbsolute . '/' . $fileName;
 $targetRelative = $dirRelative . '/' . $fileName;
 
@@ -49,13 +76,7 @@ if (move_uploaded_file($tmp, $targetAbsolute)) {
     $update = $pdo->prepare("UPDATE users SET profile_image = ? WHERE id_users = ?");
     $update->execute([$targetRelative, $userId]);
 
-    if (
-        !empty($oldImage) &&
-        str_starts_with($oldImage, $dirRelative . '/') &&
-        is_file(__DIR__ . '/' . $oldImage)
-    ) {
-        @unlink(__DIR__ . '/' . $oldImage);
-    }
+    deleteOwnedProfileImage($oldImage, ['assets/images/user', 'assets/images/profiles']);
 }
 
 header('Location: ' . $redirect);
