@@ -10,24 +10,24 @@ include 'includes/header.php';
 
 $user_id = $_SESSION['user_id'] ?? 1;
 $today = date('Y-m-d');
+$selectedDate = $_GET['date'] ?? $today;
 
-/* ================= AUTO CREATE TODAY ================= */
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selectedDate) || strtotime($selectedDate) === false || $selectedDate > $today) {
+    $selectedDate = $today;
+}
+
+/* ================= LOAD SELECTED DATE ================= */
 
 $check = $pdo->prepare("
     SELECT * FROM sleep_logs
     WHERE id_users = ? AND sleep_date = ?
 ");
-$check->execute([$user_id, $today]);
-$todayLog = $check->fetch(PDO::FETCH_ASSOC);
+$check->execute([$user_id, $selectedDate]);
+$selectedLog = $check->fetch(PDO::FETCH_ASSOC);
 
-if (!$todayLog) {
-    $insert = $pdo->prepare("
-        INSERT INTO sleep_logs (id_users, sleep_date, sleep_start, sleep_end)
-        VALUES (?, ?, '22:00', '06:00')
-    ");
-    $insert->execute([$user_id, $today]);
-
-    $todayLog = [
+if (!$selectedLog) {
+    $selectedLog = [
+        'sleep_date'  => $selectedDate,
         'sleep_start' => '22:00',
         'sleep_end'   => '06:00'
     ];
@@ -37,24 +37,44 @@ if (!$todayLog) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    $sleepDate = $_POST['sleep_date'] ?? $today;
     $start = $_POST['sleep_start'];
     $end   = $_POST['sleep_end'];
     $ageGroup = $_POST['age_group'] ?? 'adult';
     $sleepLatency = isset($_POST['sleep_latency_min']) ? (int) $_POST['sleep_latency_min'] : 20;
     $nightAwakenings = isset($_POST['night_awakenings']) ? (int) $_POST['night_awakenings'] : 0;
 
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $sleepDate) || strtotime($sleepDate) === false || $sleepDate > $today) {
+        $sleepDate = $today;
+    }
+
     $_SESSION['sleep_age_group'] = in_array($ageGroup, ['teen_12_14', 'adult'], true) ? $ageGroup : 'adult';
     $_SESSION['sleep_latency_min'] = max(0, min(180, $sleepLatency));
     $_SESSION['night_awakenings'] = max(0, min(10, $nightAwakenings));
 
-    $update = $pdo->prepare("
-        UPDATE sleep_logs
-        SET sleep_start = ?, sleep_end = ?
+    $existingLog = $pdo->prepare("
+        SELECT id_users
+        FROM sleep_logs
         WHERE id_users = ? AND sleep_date = ?
     ");
-    $update->execute([$start, $end, $user_id, $today]);
+    $existingLog->execute([$user_id, $sleepDate]);
 
-    header("Location: sleep.php");
+    if ($existingLog->fetchColumn()) {
+        $update = $pdo->prepare("
+            UPDATE sleep_logs
+            SET sleep_start = ?, sleep_end = ?
+            WHERE id_users = ? AND sleep_date = ?
+        ");
+        $update->execute([$start, $end, $user_id, $sleepDate]);
+    } else {
+        $insert = $pdo->prepare("
+            INSERT INTO sleep_logs (id_users, sleep_date, sleep_start, sleep_end)
+            VALUES (?, ?, ?, ?)
+        ");
+        $insert->execute([$user_id, $sleepDate, $start, $end]);
+    }
+
+    header("Location: sleep.php?date=" . urlencode($sleepDate));
     exit;
 }
 
@@ -206,21 +226,28 @@ if ($combinedSleepScore < 6) {
 
 <!-- ================= INPUT ================= -->
 <section class="card">
-    <div class="summary-title">Input Tidur Hari Ini</div>
+    <div class="summary-title">Input Tidur</div>
 
     <form method="POST">
+        <div class="input-row">
+            <div class="input-group">
+                <label>Tanggal</label>
+                <input type="date" name="sleep_date" max="<?= htmlspecialchars($today) ?>"
+                       value="<?= htmlspecialchars($selectedDate) ?>" required>
+            </div>
+        </div>
         <div class="input-row">
 
             <div class="input-group">
                 <label>Mulai</label>
                 <input type="time" name="sleep_start"
-                       value="<?= $todayLog['sleep_start'] ?>" required>
+                       value="<?= htmlspecialchars($selectedLog['sleep_start']) ?>" required>
             </div>
 
             <div class="input-group">
                 <label>Selesai</label>
                 <input type="time" name="sleep_end"
-                       value="<?= $todayLog['sleep_end'] ?>" required>
+                       value="<?= htmlspecialchars($selectedLog['sleep_end']) ?>" required>
             </div>
 
         </div>
@@ -248,6 +275,9 @@ if ($combinedSleepScore < 6) {
             Update Tidur
         </button>
         <div class="sleep-sub" style="margin-top: 10px;">
+            Pilih tanggal jika kamu ingin memperbarui data tidur yang belum sempat diisi kemarin.
+        </div>
+        <div class="sleep-sub" style="margin-top: 6px;">
             Catatan: indikator kualitas ini adalah skrining harian ringan (bukan PSQI lengkap).
         </div>
     </form>
