@@ -1,3 +1,6 @@
+<?php
+$logoutModalCssVersion = @filemtime(__DIR__ . '/../../assets/css/logout-modal.css') ?: time();
+?>
 <head>
 	<!-- Required meta tags -->
 	<meta charset="utf-8">
@@ -21,6 +24,7 @@
 	<link rel="stylesheet" href="assets/css/dark-theme.css?v=20260223" />
 	<link rel="stylesheet" href="assets/css/semi-dark.css?v=20260223" />
 	<link rel="stylesheet" href="assets/css/header-color.css?v=20260223" />
+	<link rel="stylesheet" href="/Fivitt/assets/css/logout-modal.css?v=<?php echo urlencode((string) $logoutModalCssVersion); ?>" />
 	<style>
 		body,
 		h1, h2, h3, h4, h5, h6,

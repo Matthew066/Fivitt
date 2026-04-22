@@ -7,19 +7,18 @@
 		</footer>
 	</div>
 
-	<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+	<div class="modal fade logout-modal" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered">
-			<div class="modal-content" style="border-radius: 16px;">
-				<div class="modal-header" style="border-bottom: none;">
+			<div class="modal-content">
+				<div class="modal-header">
 					<h5 class="modal-title" id="logoutModalLabel">Konfirmasi Logout</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
 					Anda yakin ingin logout?
 				</div>
-				<div class="modal-footer" style="border-top: none;">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 999px;">Batal</button>
-					<a href="/Fivitt/logout.php" class="btn btn-danger" style="border-radius: 999px;">Logout</a>
+				<div class="modal-footer">
+					<button type="button" class="logout-modal__button logout-modal__button--cancel" data-bs-dismiss="modal">Batal</button>
+					<a href="/Fivitt/logout.php" class="logout-modal__button logout-modal__button--confirm">Logout</a>
 				</div>
 			</div>
 		</div>

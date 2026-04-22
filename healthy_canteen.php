@@ -483,7 +483,7 @@ require 'includes/header.php';
                                                 <form method="post" class="d-inline-block" onsubmit="return confirm('Selesaikan pesanan ini?');">
                                                     <input type="hidden" name="action" value="complete_order">
                                                     <input type="hidden" name="order_id" value="<?php echo $orderId; ?>">
-                                                    <button type="submit" class="btn btn-success btn-sm">Selesai</button>
+                                                    <button type="submit" class="btn hc-btn hc-btn-complete hc-action-btn">Selesai</button>
                                                 </form>
                                             </td>
                                         </tr>
@@ -609,10 +609,10 @@ require 'includes/header.php';
                             </div>
                         <?php endif; ?>
 
-                        <div class="col-12">
+                        <div class="col-12 hc-form-actions">
                             <button type="submit" class="btn hc-btn hc-btn-edit"><?php echo $editFood ? 'Update Menu' : 'Add Menu'; ?></button>
                             <?php if ($editFood): ?>
-                                <a href="healthy_canteen.php" class="btn hc-btn hc-btn-cancel ms-2">Batal Edit</a>
+                                <a href="healthy_canteen.php" class="btn hc-btn hc-btn-cancel">Batal Edit</a>
                             <?php endif; ?>
                         </div>
                     </form>
@@ -671,16 +671,20 @@ require 'includes/header.php';
                                             <td><?php echo htmlspecialchars((string)$food['carbs'], ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo (int)$food['rating']; ?></td>
                                             <td><?php echo htmlspecialchars((string)$food['creator_name'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td class="text-nowrap">
-                                                <?php if ($canEdit): ?>
-                                                    <a href="healthy_canteen.php?edit_id=<?php echo (int)$food['id_foods']; ?>#menu-form-card" class="btn hc-btn hc-btn-edit hc-action-btn">Edit</a>
-                                                <?php endif; ?>
-                                                <?php if ($canDelete): ?>
-                                                    <form method="post" class="d-inline-block ms-1" onsubmit="return confirm('Yakin ingin menghapus menu ini?');">
-                                                        <input type="hidden" name="action" value="delete">
-                                                        <input type="hidden" name="food_id" value="<?php echo (int)$food['id_foods']; ?>">
-                                                        <button type="submit" class="btn hc-btn hc-btn-delete hc-action-btn">Delete</button>
-                                                    </form>
+                                            <td class="text-nowrap hc-table-actions">
+                                                <?php if ($canEdit || $canDelete): ?>
+                                                    <div class="hc-table-actions-row">
+                                                        <?php if ($canEdit): ?>
+                                                            <a href="healthy_canteen.php?edit_id=<?php echo (int)$food['id_foods']; ?>#menu-form-card" class="btn btn-primary btn-sport-primary btn-action btn-sm">Edit</a>
+                                                        <?php endif; ?>
+                                                        <?php if ($canDelete): ?>
+                                                            <form method="post" class="d-inline-block" onsubmit="return confirm('Yakin ingin menghapus menu ini?');">
+                                                                <input type="hidden" name="action" value="delete">
+                                                                <input type="hidden" name="food_id" value="<?php echo (int)$food['id_foods']; ?>">
+                                                                <button type="submit" class="btn btn-danger btn-sport-danger btn-action btn-sm">Delete</button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 <?php else: ?>
                                                     <span class="text-muted small">-</span>
                                                 <?php endif; ?>

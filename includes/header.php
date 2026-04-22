@@ -4,6 +4,7 @@ $bodyClass = $bodyClass ?? '';
 $extraStyles = $extraStyles ?? [];
 $mainCssVersion = @filemtime(__DIR__ . '/../assets/css/style.css') ?: time();
 $mediaCssVersion = @filemtime(__DIR__ . '/../assets/css/media-query.css') ?: time();
+$logoutModalCssVersion = @filemtime(__DIR__ . '/../assets/css/logout-modal.css') ?: time();
 
 if (!is_array($extraStyles)) {
     $extraStyles = [];
@@ -34,6 +35,7 @@ if ($isLoggedIn) {
     <link rel="stylesheet" href="/Fivitt/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/Fivitt/assets/css/style.css?v=<?= urlencode((string) $mainCssVersion) ?>">
     <link rel="stylesheet" href="/Fivitt/assets/css/media-query.css?v=<?= urlencode((string) $mediaCssVersion) ?>">
+    <link rel="stylesheet" href="/Fivitt/assets/css/logout-modal.css?v=<?= urlencode((string) $logoutModalCssVersion) ?>">
     <?php foreach ($extraStyles as $stylePath): ?>
         <?php if (!is_string($stylePath) || trim($stylePath) === '') continue; ?>
         <link rel="stylesheet" href="/Fivitt/<?= htmlspecialchars(ltrim($stylePath, '/'), ENT_QUOTES, 'UTF-8') ?>">

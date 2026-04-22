@@ -544,6 +544,192 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     transform: translateY(-2px);
 }
 
+.healthy-canteen-page .hc-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.healthy-canteen-page .hc-btn {
+    --hc-btn-bg: linear-gradient(135deg, #0f766e 0%, #22c55e 100%);
+    --hc-btn-color: #ffffff;
+    --hc-btn-border: transparent;
+    --hc-btn-shadow: 0 14px 28px rgba(15, 118, 110, 0.18);
+    --hc-btn-hover-shadow: 0 18px 32px rgba(15, 118, 110, 0.24);
+    --hc-btn-focus: rgba(15, 118, 110, 0.22);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 11px 18px;
+    border: 1px solid var(--hc-btn-border);
+    border-radius: 14px;
+    background: var(--hc-btn-bg);
+    color: var(--hc-btn-color) !important;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    box-shadow: var(--hc-btn-shadow);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.healthy-canteen-page .hc-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--hc-btn-hover-shadow);
+    filter: saturate(1.03);
+    text-decoration: none;
+}
+
+.healthy-canteen-page .hc-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 0.25rem var(--hc-btn-focus), var(--hc-btn-hover-shadow);
+}
+
+.healthy-canteen-page .hc-btn:active {
+    transform: translateY(0);
+    box-shadow: var(--hc-btn-shadow);
+}
+
+.healthy-canteen-page .hc-btn.hc-btn-edit {
+    min-width: 150px;
+}
+
+.healthy-canteen-page .hc-btn.hc-btn-complete,
+.healthy-canteen-page .hc-btn.hc-btn-edit {
+    --hc-btn-bg: linear-gradient(135deg, #0f766e 0%, #22c55e 100%);
+    --hc-btn-shadow: 0 14px 28px rgba(15, 118, 110, 0.18);
+    --hc-btn-hover-shadow: 0 18px 32px rgba(15, 118, 110, 0.24);
+    --hc-btn-focus: rgba(15, 118, 110, 0.22);
+}
+
+.healthy-canteen-page .hc-btn.hc-btn-cancel {
+    --hc-btn-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    --hc-btn-color: #0f172a;
+    --hc-btn-border: #cbd5e1;
+    --hc-btn-shadow: 0 10px 22px rgba(148, 163, 184, 0.16);
+    --hc-btn-hover-shadow: 0 14px 26px rgba(148, 163, 184, 0.22);
+    --hc-btn-focus: rgba(148, 163, 184, 0.22);
+}
+
+.healthy-canteen-page .hc-btn.hc-btn-delete {
+    --hc-btn-bg: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    --hc-btn-color: #ffffff;
+    --hc-btn-shadow: 0 14px 28px rgba(220, 38, 38, 0.18);
+    --hc-btn-hover-shadow: 0 18px 32px rgba(220, 38, 38, 0.24);
+    --hc-btn-focus: rgba(220, 38, 38, 0.2);
+}
+
+.healthy-canteen-page .hc-action-btn {
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+}
+
+.healthy-canteen-page .hc-action-btn:hover {
+    box-shadow: 0 14px 24px rgba(15, 23, 42, 0.16);
+}
+
+.healthy-canteen-page .btn.btn-action {
+    border-width: 1px;
+    font-weight: 500;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.healthy-canteen-page .hc-table-actions {
+    white-space: nowrap;
+}
+
+.healthy-canteen-page .hc-table-actions-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.healthy-canteen-page .hc-table-actions .btn.btn-action.btn-sm {
+    min-width: 57px;
+    min-height: 31px;
+    padding: 7px 14px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    box-shadow: none;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.healthy-canteen-page .hc-table-actions .btn.btn-action.btn-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.14);
+    filter: brightness(1.03);
+}
+
+.healthy-canteen-page .hc-table-actions form {
+    margin: 0;
+}
+
+.healthy-canteen-page .btn.btn-sport-primary,
+.healthy-canteen-page .btn.btn-sport-primary:not(:disabled):not(.disabled) {
+    color: #ffffff !important;
+    background-color: #32c7d8 !important;
+    border-color: #32c7d8 !important;
+}
+
+.healthy-canteen-page .btn.btn-sport-primary:hover,
+.healthy-canteen-page .btn.btn-sport-primary:not(:disabled):not(.disabled):hover {
+    color: #ffffff !important;
+    background-color: #2aaab9 !important;
+    border-color: #2aaab9 !important;
+}
+
+.healthy-canteen-page .btn.btn-sport-primary:focus,
+.healthy-canteen-page .btn.btn-sport-primary:focus-visible,
+.healthy-canteen-page .btn.btn-sport-primary:active,
+.healthy-canteen-page .btn.btn-sport-primary.active,
+.healthy-canteen-page .show > .btn.btn-sport-primary.dropdown-toggle {
+    color: #28b8c9 !important;
+    background-color: #ffffff !important;
+    border-color: #28b8c9 !important;
+    box-shadow: 0 0 0 0.2rem rgba(50, 199, 216, 0.2) !important;
+    transform: none;
+}
+
+.healthy-canteen-page .btn.btn-sport-danger,
+.healthy-canteen-page .btn.btn-sport-danger:not(:disabled):not(.disabled) {
+    color: #ffffff !important;
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+.healthy-canteen-page .btn.btn-sport-danger:hover,
+.healthy-canteen-page .btn.btn-sport-danger:not(:disabled):not(.disabled):hover {
+    color: #ffffff !important;
+    background-color: #bb2d3b !important;
+    border-color: #bb2d3b !important;
+}
+
+.healthy-canteen-page .btn.btn-sport-danger:focus,
+.healthy-canteen-page .btn.btn-sport-danger:focus-visible,
+.healthy-canteen-page .btn.btn-sport-danger:active,
+.healthy-canteen-page .btn.btn-sport-danger.active,
+.healthy-canteen-page .show > .btn.btn-sport-danger.dropdown-toggle {
+    color: #c62839 !important;
+    background-color: #ffffff !important;
+    border-color: #c62839 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.2) !important;
+    transform: none;
+}
+
+@media (max-width: 575.98px) {
+    .healthy-canteen-page .hc-form-actions .hc-btn {
+        width: 100%;
+    }
+}
+
 @media (min-width: 640px) {
     .input-row {
         grid-template-columns: 1fr 1fr;
