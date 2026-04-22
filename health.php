@@ -285,28 +285,6 @@ if ($weeklyActivityMinutes <= 0) {
     $activityWeeklyClass = "act-high";
 }
 
-if ($bmi == 0) {
-    $workoutPlan = "Isi data IMT agar rekomendasi latihan lebih personal. Mulai dari jalan cepat 20-30 menit, 5 hari per minggu.";
-    $workoutFocus = "Mulai dari ritme dasar";
-} elseif ($bmi < 18.5) {
-    $workoutPlan = "Prioritaskan latihan kekuatan 3-4x/minggu dengan progresif load, tambahkan kardio ringan 2-3x/minggu.";
-    $workoutFocus = "Bangun massa dan tenaga";
-} elseif ($bmi < 23) {
-    $workoutPlan = "Pola seimbang: 3x latihan kekuatan + 2-3x kardio sedang per minggu untuk menjaga kebugaran dan komposisi tubuh.";
-    $workoutFocus = "Jaga kebugaran tetap stabil";
-} elseif ($bmi < 30) {
-    $workoutPlan = "Fokus fat-loss aman: brisk walk/circuit training 30-45 menit, 5-6 hari per minggu + kekuatan 2-3x/minggu.";
-    $workoutFocus = "Turunkan lemak secara aman";
-} else {
-    $workoutPlan = "Mulai low-impact cardio (jalan, sepeda statis) 20-40 menit bertahap, plus kekuatan seluruh tubuh 2-3x/minggu.";
-    $workoutFocus = "Low impact dan konsisten";
-}
-
-$activityWindowPercent = max(0, min(100, round(($weeklyActivityMinutes / $activityMaxTarget) * 100)));
-$activityTargetNote = $activityLeft > 0
-    ? "Butuh {$activityLeft} menit lagi untuk menyentuh batas sehat minimum."
-    : "Target minimum sudah aman. Kamu bisa fokus ke kualitas latihan dan recovery.";
-
 if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
     $status = "Sangat Sehat";
 } elseif ($averageScore < 5) {
@@ -375,17 +353,6 @@ $sleepAvgHoursFormatted = number_format($weeklySleepAvgHours, 1);
 $activityCompletionPercent = max(0, min(100, round(($weeklyActivityMinutes / $activityMinTarget) * 100)));
 $waterCompletionPercent = max(0, min(100, round(($waterDailyAvgMl / $waterTargetMl) * 100)));
 $sleepCompletionPercent = max(0, min(100, round(($weeklySleepAvgHours / 8) * 100)));
-$healthPulse = $averageScore >= 7.5 ? 'Aligned Week' : ($averageScore >= 5 ? 'Rebuilding Rhythm' : 'Needs Recovery');
-$healthPulseText = $averageScore >= 7.5
-    ? 'Kebiasaan utama kamu lagi sinkron. Pertahankan ritmenya tanpa harus ngebut.'
-    : ($averageScore >= 5
-        ? 'Fondasinya sudah ada, tapi masih perlu stabil di tidur, hidrasi, atau aktivitas.'
-        : 'Tubuhmu butuh reset yang lembut. Fokus ke pilar dasar dulu minggu ini.');
-$pillarFocus = $activityCompletionPercent >= $waterCompletionPercent && $activityCompletionPercent >= $sleepCompletionPercent
-    ? 'Aktivitas paling dominan minggu ini'
-    : ($waterCompletionPercent >= $sleepCompletionPercent
-        ? 'Hidrasi paling stabil minggu ini'
-        : 'Tidur lagi paling mendukung pemulihan');
 
 ?>
 
@@ -481,14 +448,6 @@ body.health-page {
     color: rgba(255, 250, 240, 0.86);
 }
 
-.health-page .hero-badges {
-    margin-top: 12px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.health-page .hero-badge,
 .health-page .summary-pill,
 .health-page .activity-status,
 .health-page .water-status {
@@ -496,72 +455,6 @@ body.health-page {
     padding: 8px 12px;
     font-size: 12px;
     font-weight: 800;
-}
-
-.health-page .hero-badge {
-    background: rgba(255,255,255,.14);
-    color: #fff8ef;
-    border: 1px solid rgba(255,255,255,.16);
-}
-
-.health-page .hero-side {
-    padding: 14px;
-    border-radius: 18px;
-    border: 1px solid rgba(255,255,255,.16);
-    background: rgba(15, 23, 42, 0.18);
-    backdrop-filter: blur(10px);
-}
-
-.health-page .hero-side-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: rgba(255,250,240,.74);
-}
-
-.health-page .hero-side strong {
-    display: block;
-    margin-top: 8px;
-    color: #fffdf8;
-    font-size: 24px;
-    line-height: 1.08;
-}
-
-.health-page .hero-side p {
-    margin: 10px 0 0;
-    color: rgba(255,250,240,.84);
-    font-size: 13px;
-    line-height: 1.55;
-}
-
-.health-page .hero-side-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-    margin-top: 12px;
-}
-
-.health-page .hero-side-tile {
-    padding: 12px;
-    border-radius: 18px;
-    background: rgba(255,255,255,.12);
-    border: 1px solid rgba(255,255,255,.12);
-}
-
-.health-page .hero-side-tile span {
-    display: block;
-    color: rgba(255,250,240,.72);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-}
-
-.health-page .hero-side-tile strong {
-    margin-top: 7px;
-    font-size: 18px;
 }
 
 .health-page .health-pillars-card,
@@ -572,44 +465,46 @@ body.health-page {
 
 .health-page .health-pillars-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
 }
 
 .health-page .health-pillar-tile {
-    padding: 14px;
-    border-radius: 18px;
-    background: linear-gradient(145deg, #fbf8f1, #ffffff);
-    border: 1px solid rgba(226,232,240,.78);
+    padding: 16px;
+    border-radius: 20px;
+    background: #f8fafc;
+    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .health-page .health-pillar-label {
     display: block;
     margin-bottom: 8px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 800;
-    letter-spacing: .04em;
+    letter-spacing: .05em;
     text-transform: uppercase;
-    color: #6b7280;
+    color: #64748b;
 }
 
 .health-page .health-pillar-tile strong {
     display: block;
-    font-size: 20px;
-    color: #16323b;
+    margin-top: 6px;
+    font-size: 22px;
+    line-height: 1.15;
+    color: #0f172a;
 }
 
 .health-page .health-pillar-tile small {
     display: block;
-    margin-top: 6px;
-    color: #607077;
-    line-height: 1.45;
+    margin-top: 8px;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .health-page .health-checkin-card,
 .health-page .health-bmi-card,
 .health-page .health-summary-card,
-.health-page .health-workout-card,
 .health-page .score-card {
     padding: 16px;
 }
@@ -771,147 +666,6 @@ body.health-page {
     color: #991b1b;
 }
 
-.health-page .health-workout-card {
-    background:
-        radial-gradient(circle at top right, rgba(31, 118, 110, 0.10), transparent 28%),
-        linear-gradient(145deg, #fffdf7, #f5fbf9 62%, #eef7f5 100%);
-}
-
-.health-page .workout-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.health-page .workout-kicker {
-    display: inline-flex;
-    margin-bottom: 8px;
-    padding: 6px 11px;
-    border-radius: 999px;
-    background: rgba(31, 118, 110, 0.10);
-    color: #1f766e;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-}
-
-.health-page .workout-icon {
-    flex: 0 0 auto;
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(145deg, #1f766e, #d6b36f);
-    color: #fff;
-    font-size: 22px;
-    box-shadow: 0 16px 28px rgba(31, 118, 110, 0.18);
-}
-
-.health-page .workout-meta-grid,
-.health-page .workout-guidance {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-}
-
-.health-page .workout-meta-grid {
-    margin-top: 16px;
-}
-
-.health-page .workout-metric,
-.health-page .workout-advice-box {
-    padding: 14px;
-    border-radius: 18px;
-    border: 1px solid rgba(226,232,240,.85);
-    background: rgba(255,255,255,.72);
-}
-
-.health-page .workout-metric span,
-.health-page .workout-advice-box span {
-    display: block;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .07em;
-    text-transform: uppercase;
-    color: #6b7280;
-}
-
-.health-page .workout-metric strong {
-    display: block;
-    margin-top: 8px;
-    font-size: 22px;
-    color: #16323b;
-}
-
-.health-page .workout-metric small,
-.health-page .workout-advice-box p {
-    display: block;
-    margin-top: 7px;
-    color: #607077;
-    line-height: 1.55;
-}
-
-.health-page .workout-progress {
-    margin-top: 16px;
-    padding: 14px;
-    border-radius: 18px;
-    background: #ffffff;
-    border: 1px solid rgba(226,232,240,.85);
-}
-
-.health-page .workout-progress-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.health-page .workout-progress-top strong {
-    color: #16323b;
-    font-size: 15px;
-}
-
-.health-page .workout-progress-top span {
-    color: #607077;
-    font-size: 13px;
-}
-
-.health-page .workout-progress .progress {
-    height: 12px;
-    border-radius: 999px;
-    overflow: hidden;
-    background: #e6f1ef;
-}
-
-.health-page .workout-progress .progress-fill {
-    border-radius: inherit;
-    min-width: 8%;
-    background: linear-gradient(90deg, #1f766e, #34d399, #d6b36f);
-}
-
-.health-page .workout-progress-note {
-    margin-top: 10px;
-    color: #607077;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.health-page .workout-guidance {
-    margin-top: 16px;
-}
-
-.health-page .workout-advice-box strong {
-    display: block;
-    margin-top: 8px;
-    color: #16323b;
-    font-size: 17px;
-}
-
 .health-page .sleep-form-footer {
     display: flex;
     flex-direction: column;
@@ -947,7 +701,7 @@ body.health-page {
     }
 
     .health-page .sleep-hero-inner {
-        grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr);
+        grid-template-columns: 1fr;
         gap: 18px;
     }
 
@@ -964,25 +718,6 @@ body.health-page {
 
     .health-page .sleep-hero .sleep-title {
         font-size: clamp(28px, 3.6vw, 38px);
-    }
-
-    .health-page .hero-side {
-        padding: 18px;
-        border-radius: 24px;
-    }
-
-    .health-page .hero-side strong {
-        font-size: 30px;
-    }
-
-    .health-page .hero-side p {
-        font-size: 14px;
-        line-height: 1.65;
-    }
-
-    .health-page .hero-side-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        margin-top: 16px;
     }
 
     .health-page .health-pillars-card,
@@ -1010,6 +745,10 @@ body.health-page {
     .health-page .health-workout-card,
     .health-page .score-card {
         padding: 18px;
+    }
+
+    .health-page .health-bmi-card {
+        grid-column: 1 / -1;
     }
 
     .health-page .input-card,
@@ -1057,28 +796,8 @@ body.health-page {
                 <div class="sleep-sub">
                     Ringkasan kondisi health kamu minggu ini dari check-in otomatis, hidrasi, aktivitas, dan BMI.
                 </div>
-                <div class="hero-badges">
-                    <span class="hero-badge">Skor <?= $averageScore ?>/10 minggu ini</span>
-                    <span class="hero-badge"><?= (int) $healthyPillarCount ?>/4 pilar tercapai</span>
-                    <span class="hero-badge">Check-in otomatis aktif</span>
-                </div>
             </div>
         </div>
-        <aside class="hero-side">
-            <span class="hero-side-label">Body Pulse</span>
-            <strong><?= htmlspecialchars($healthPulse) ?></strong>
-            <p><?= htmlspecialchars($healthPulseText) ?></p>
-            <div class="hero-side-grid">
-                <div class="hero-side-tile">
-                    <span>Focus</span>
-                    <strong><?= htmlspecialchars($pillarFocus) ?></strong>
-                </div>
-                <div class="hero-side-tile">
-                    <span>Trend</span>
-                    <strong><?= (int) $weeklyActivityMinutes ?>m / <?= number_format($waterAvgLiters, 1) ?>L</strong>
-                </div>
-            </div>
-        </aside>
     </div>
 </section>
 
@@ -1270,72 +989,6 @@ body.health-page {
     <div class="sleep-sub">
         Skor Pilar: BMI <?= number_format($bmiPillarScore,1) ?>, Water <?= number_format($waterPillarScore,1) ?>,
         Workout <?= number_format($workoutPillarScore,1) ?>, Sleep <?= number_format($sleepPillarScore,1) ?>
-    </div>
-</section>
-
-<!-- ================= PERSONALIZED WORKOUT ================= -->
-<section class="card health-workout-card">
-    <div class="workout-header">
-        <div>
-            <span class="workout-kicker">Personal Workout</span>
-            <div class="summary-title">Workout Personal (Mingguan)</div>
-            <div class="sleep-sub">Ringkasan target, status aktivitas, dan arah latihan yang lebih enak dibaca.</div>
-        </div>
-        <div class="workout-icon">&#127947;</div>
-    </div>
-
-    <div class="workout-meta-grid">
-        <div class="workout-metric">
-            <span>Total Aktivitas</span>
-            <strong><?= (int) $weeklyActivityMinutes ?> menit</strong>
-            <small>Akumulasi gerak selama 7 hari terakhir.</small>
-        </div>
-        <div class="workout-metric">
-            <span>Fokus Minggu Ini</span>
-            <strong><?= htmlspecialchars($workoutFocus) ?></strong>
-            <small>Disesuaikan dari status BMI/IMT terakhir yang tercatat.</small>
-        </div>
-    </div>
-
-    <div class="activity-status <?= $activityWeeklyClass ?>">
-        <?= $activityWeeklyStatus ?>
-    </div>
-
-    <div class="workout-progress">
-        <div class="workout-progress-top">
-            <strong>Progress Target 150-300 menit</strong>
-            <span><?= $activityWindowPercent ?>% dari batas atas rentang</span>
-        </div>
-        <div class="progress">
-            <div class="progress-fill" style="width: <?= $activityWindowPercent ?>%;"></div>
-        </div>
-        <div class="workout-progress-note"><?= htmlspecialchars($activityTargetNote) ?></div>
-    </div>
-
-    <div class="workout-guidance">
-        <div class="workout-advice-box">
-            <span>Next Step</span>
-            <strong>
-                <?php if ($activityLeft > 0): ?>
-                    Tambah <?= (int) $activityLeft ?> menit lagi
-                <?php else: ?>
-                    Pertahankan ritme minggu ini
-                <?php endif; ?>
-            </strong>
-            <p>
-                <?php if ($activityLeft > 0): ?>
-                    Bagi ke 3-4 sesi ringan supaya target lebih realistis dan tidak terasa berat.
-                <?php else: ?>
-                    Sisakan 1-2 hari recovery aktif agar tubuh tetap segar dan konsisten.
-                <?php endif; ?>
-            </p>
-        </div>
-
-        <div class="workout-advice-box">
-            <span>Rekomendasi Personal</span>
-            <strong><?= htmlspecialchars($workoutFocus) ?></strong>
-            <p><?= htmlspecialchars($workoutPlan) ?></p>
-        </div>
     </div>
 </section>
 
