@@ -69,17 +69,22 @@
 
     menuBtn.addEventListener('click', openDrawer);
     closeTargets.forEach(target => target.addEventListener('click', closeDrawer));
-    drawer.querySelectorAll('a').forEach(link => link.addEventListener('click', closeDrawer));
+    drawer.querySelectorAll('a:not([data-logout-trigger="true"])').forEach(link => {
+        link.addEventListener('click', closeDrawer);
+    });
 
     if (logoutTrigger && logoutModalEl && typeof bootstrap !== 'undefined') {
         logoutTrigger.addEventListener('click', (event) => {
             event.preventDefault();
+            event.stopPropagation();
             closeDrawer();
 
-            window.setTimeout(() => {
-                const logoutModal = bootstrap.Modal.getOrCreateInstance(logoutModalEl);
-                logoutModal.show();
-            }, 180);
+            window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
+                    const logoutModal = bootstrap.Modal.getOrCreateInstance(logoutModalEl);
+                    logoutModal.show();
+                });
+            });
         });
     }
 })();

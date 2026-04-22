@@ -320,12 +320,13 @@ body.home-page .section-link:hover,
 .summary-tile {
     min-height: 144px;
     padding: 18px;
-    background: var(--home-card-bg);
-    border: 1px solid var(--home-card-border);
+    background: linear-gradient(180deg, #ecfffb 0%, #dcf7f3 100%);
+    border: 1px solid rgba(45, 212, 191, 0.22);
+    font-family: "Poppins", sans-serif;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 12px 24px rgba(13, 148, 136, 0.08);
 }
 
 .summary-tile span {
@@ -351,6 +352,13 @@ body.home-page .section-link:hover,
     color: #64748b;
     font-size: 12px;
     line-height: 1.5;
+}
+
+.summary-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px rgba(13, 148, 136, 0.14);
+    border-color: rgba(13, 148, 136, 0.28);
+    background: linear-gradient(180deg, #f3fffd 0%, #d7f7f0 100%);
 }
 
 .action-card {
