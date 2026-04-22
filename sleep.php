@@ -138,6 +138,62 @@ foreach ($rows as $row) {
 $averageScore = $count ? round($totalScore / $count, 1) : 0;
 $average = $count ? round($totalDuration / $count, 2) : 0;
 
+/* ================= WEEKLY CHART ================= */
+$weeklyChartMap = [];
+$weeklyChartLabels = [];
+$weeklyChartScores = [];
+
+$weeklyChartStmt = $pdo->prepare("
+    SELECT sleep_date, sleep_start, sleep_end
+    FROM sleep_logs
+    WHERE id_users = ?
+      AND sleep_date >= DATE_SUB(CURDATE(), INTERVAL 41 DAY)
+    ORDER BY sleep_date ASC
+");
+$weeklyChartStmt->execute([$user_id]);
+$weeklyChartRows = $weeklyChartStmt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($weeklyChartRows as $row) {
+    $date = (string) ($row['sleep_date'] ?? '');
+    if ($date === '') {
+        continue;
+    }
+
+    $startTime = strtotime($date . ' ' . $row['sleep_start']);
+    $endTime = strtotime($date . ' ' . $row['sleep_end']);
+
+    if ($endTime <= $startTime) {
+        $endTime = strtotime('+1 day', $endTime);
+    }
+
+    $duration = ($endTime - $startTime) / 3600;
+    $dailyScore = 10 - (abs($duration - $sleepTargetMid) * 1.6);
+    $dailyScore = max(0, min(10, $dailyScore));
+
+    $weekStart = date('Y-m-d', strtotime('monday this week', strtotime($date)));
+    if (!isset($weeklyChartMap[$weekStart])) {
+        $weeklyChartMap[$weekStart] = ['total' => 0, 'count' => 0];
+    }
+
+    $weeklyChartMap[$weekStart]['total'] += $dailyScore;
+    $weeklyChartMap[$weekStart]['count']++;
+}
+
+for ($i = 5; $i >= 0; $i--) {
+    $weekStart = date('Y-m-d', strtotime('monday this week -' . $i . ' week'));
+    $weekEnd = date('d M', strtotime($weekStart . ' +6 day'));
+    $weeklyChartLabels[] = date('d M', strtotime($weekStart)) . ' - ' . $weekEnd;
+
+    if (isset($weeklyChartMap[$weekStart]) && $weeklyChartMap[$weekStart]['count'] > 0) {
+        $weeklyChartScores[] = round(
+            $weeklyChartMap[$weekStart]['total'] / $weeklyChartMap[$weekStart]['count'],
+            1
+        );
+    } else {
+        $weeklyChartScores[] = 0;
+    }
+}
+
 /* ================= QUALITY PROXY (PSQI RINGAN) ================= */
 $qualityScore = 0;
 
@@ -336,9 +392,9 @@ if ($combinedSleepScore < 6) {
 
 
 
-<!-- ================= CHART (SKOR HARIAN) ================= -->
+<!-- ================= CHART (SKOR MINGGUAN) ================= -->
 <section class="card chart-card">
-    <div class="summary-title">Grafik Skor Harian</div>
+    <div class="summary-title">Grafik Skor Mingguan</div>
     <canvas id="sleepChart" height="320"></canvas>
 </section>
 
@@ -356,10 +412,10 @@ if ($combinedSleepScore < 6) {
     new Chart(canvas, {
         type: 'line',
         data: {
-            labels: <?= json_encode($dates) ?>,
+            labels: <?= json_encode($weeklyChartLabels) ?>,
             datasets: [{
-                label: 'Skor Harian',
-                data: <?= json_encode($hours) ?>,
+                label: 'Skor Mingguan',
+                data: <?= json_encode($weeklyChartScores) ?>,
                 borderColor: '#2ec4cc',
                 backgroundColor: 'rgba(46, 196, 204, 0.18)',
                 pointBackgroundColor: '#4facfe',

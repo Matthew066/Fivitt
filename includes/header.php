@@ -87,7 +87,7 @@ if ($isLoggedIn) {
         <?php if ($isLoggedIn): ?>
             <div class="drawer-section">Account</div>
             <a class="drawer-link sub" href="/Fivitt/profile_settings.php">Profil</a>
-            <a class="drawer-link drawer-link-logout" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            <a class="drawer-link drawer-link-logout" href="#" data-logout-trigger="true">
                 <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
                 <span>Logout</span>
             </a>

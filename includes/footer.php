@@ -46,6 +46,8 @@
     const drawer = document.querySelector('.drawer');
     const backdrop = document.querySelector('.drawer-backdrop');
     const closeTargets = document.querySelectorAll('[data-drawer-close]');
+    const logoutTrigger = document.querySelector('[data-logout-trigger="true"]');
+    const logoutModalEl = document.getElementById('logoutModal');
 
     if (!menuBtn || !drawer || !backdrop) return;
 
@@ -68,6 +70,18 @@
     menuBtn.addEventListener('click', openDrawer);
     closeTargets.forEach(target => target.addEventListener('click', closeDrawer));
     drawer.querySelectorAll('a').forEach(link => link.addEventListener('click', closeDrawer));
+
+    if (logoutTrigger && logoutModalEl && typeof bootstrap !== 'undefined') {
+        logoutTrigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            closeDrawer();
+
+            window.setTimeout(() => {
+                const logoutModal = bootstrap.Modal.getOrCreateInstance(logoutModalEl);
+                logoutModal.show();
+            }, 180);
+        });
+    }
 })();
 
 (() => {

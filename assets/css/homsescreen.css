@@ -44,6 +44,15 @@ body.home-page {
     position: relative;
 }
 
+body.home-page .upgraded-hero {
+    background:
+        radial-gradient(circle at top right, rgba(125, 211, 252, 0.24), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(74, 222, 128, 0.14), transparent 36%),
+        linear-gradient(145deg, #f6fffd 0%, #edf9f6 52%, #e8f6ff 100%);
+    border: 1px solid rgba(148, 210, 189, 0.34);
+    box-shadow: 0 18px 34px rgba(15, 118, 110, 0.08);
+}
+
 .home-hero::after {
     content: "";
     position: absolute;
@@ -135,9 +144,10 @@ body.home-page {
     margin-top: 22px;
     padding: 18px;
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(243, 251, 248, 0.96) 100%);
+    border: 1px solid rgba(148, 210, 189, 0.24);
     backdrop-filter: blur(10px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .hero-progress-label {
@@ -151,12 +161,14 @@ body.home-page {
 .hero-progress-label span {
     font-size: 13px;
     font-weight: 600;
-    opacity: 0.9;
+    color: #4b5563;
+    opacity: 1;
 }
 
 .hero-progress-label strong {
     font-size: 22px;
     line-height: 1;
+    color: #1f2937;
 }
 
 .hero-progress {
@@ -167,7 +179,7 @@ body.home-page {
     height: 12px;
     border-radius: 999px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.22);
+    background: #d6e4ef;
 }
 
 .progress-fill {
@@ -181,7 +193,8 @@ body.home-page {
     margin: 12px 0 0 !important;
     font-size: 13px;
     line-height: 1.65;
-    opacity: 0.95;
+    color: #5b6676;
+    opacity: 1;
 }
 
 .home-summary-card,
@@ -270,10 +283,10 @@ body.home-page {
 
 body.home-page .section-link,
 .action-profile-link {
-    background: var(--home-ai-button);
-    border: 1px solid rgba(15, 118, 110, 0.18);
+    background: linear-gradient(135deg, #4facfe, #43e97b);
+    border: none;
     color: #ffffff !important;
-    box-shadow: 0 10px 20px rgba(15, 118, 110, 0.22);
+    box-shadow: 0 12px 24px rgba(79, 172, 254, 0.22);
 }
 
 body.home-page .section-link:hover,
@@ -351,37 +364,39 @@ body.home-page .action-card {
     align-items: center;
     justify-content: center;
     text-align: center;
-    box-shadow: 0 12px 24px rgba(15, 118, 110, 0.1);
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    box-shadow: 0 12px 24px rgba(15, 118, 110, 0.08);
 }
 
 .action-health {
-    background: linear-gradient(180deg, #fff7df 0%, #fde9b4 100%);
-    border: 1px solid rgba(217, 119, 6, 0.16);
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .action-sleep {
-    background: linear-gradient(180deg, #eafff4 0%, #c9f7dc 100%);
-    border: 1px solid rgba(22, 163, 74, 0.16);
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .action-gym {
-    background: linear-gradient(180deg, #f4ecff 0%, #dfcffd 100%);
-    border: 1px solid rgba(124, 58, 237, 0.14);
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .action-nutrition {
-    background: linear-gradient(180deg, #fff1e4 0%, #ffd8b6 100%);
-    border: 1px solid rgba(234, 88, 12, 0.14);
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .action-community {
-    background: linear-gradient(180deg, #eaf3ff 0%, #cfe0ff 100%);
-    border: 1px solid rgba(37, 99, 235, 0.14);
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .action-education {
-    background: linear-gradient(180deg, #f4ffe2 0%, #ddf3a8 100%);
-    border: 1px solid rgba(101, 163, 13, 0.14);
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .action-card::before {
@@ -515,22 +530,24 @@ body.home-page .other-card {
     align-items: center;
     justify-content: center;
     text-align: center;
-    box-shadow: 0 10px 22px rgba(15, 118, 110, 0.1);
+    background: linear-gradient(180deg, #ffffff, #f6fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    box-shadow: 0 10px 22px rgba(15, 118, 110, 0.08);
 }
 
 .other-events {
-    background: linear-gradient(180deg, #eaf7ff 0%, #d1ebff 100%);
-    border: 1px solid rgba(14, 165, 233, 0.14);
+    background: linear-gradient(180deg, #ffffff, #f6fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .other-education {
-    background: linear-gradient(180deg, #f4ffe2 0%, #ddf3a8 100%);
-    border: 1px solid rgba(101, 163, 13, 0.14);
+    background: linear-gradient(180deg, #ffffff, #f6fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .other-community {
-    background: linear-gradient(180deg, #e9fff7 0%, #c9f7e7 100%);
-    border: 1px solid rgba(16, 185, 129, 0.14);
+    background: linear-gradient(180deg, #ffffff, #f6fbff);
+    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .other-card p {
