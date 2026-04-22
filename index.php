@@ -129,76 +129,78 @@ include 'includes/header.php';
 
 <div class="homescreen-wrapper">
     <main class="app home-main">
-        <section class="card hero home-hero">
+        <section class="card home-hero upgraded-hero">
             <div class="sleep-hero-inner home-hero-top">
+
+                <!-- AVATAR -->
                 <form class="avatar-upload-form" method="post" action="update_profile_image.php" enctype="multipart/form-data">
-                    <input type="file" name="profile_image" id="userProfileImageInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
+                    <input type="file" name="profile_image" id="userProfileImageInput" hidden>
+
                     <div class="avatar-shell">
                         <div class="avatar-circle">
                             <?php if (!empty($profileImage)): ?>
-                                <img class="avatar-image" src="<?php echo htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8'); ?>" alt="Profile">
+                                <img class="avatar-image" src="<?= htmlspecialchars($profileImage) ?>">
                             <?php else: ?>
                                 <i class="fa-solid fa-seedling"></i>
                             <?php endif; ?>
                         </div>
-                        <button type="button" class="avatar-upload-btn" onclick="document.getElementById('userProfileImageInput').click()">
+
+                        <button type="button" class="avatar-upload-btn"
+                                onclick="document.getElementById('userProfileImageInput').click()">
                             <i class="fa-solid fa-camera"></i>
                         </button>
                     </div>
                 </form>
+
+                <!-- TEXT -->
                 <div class="hero-copy">
-                    <div class="sleep-title">Hi, <?php echo htmlspecialchars($_SESSION['user_name'], ENT_QUOTES, 'UTF-8'); ?>!</div>
-                    <div class="sleep-sub"><?php echo htmlspecialchars($heroMessage, ENT_QUOTES, 'UTF-8'); ?></div>
+                    <div class="sleep-title">
+                        Hi, <?= htmlspecialchars($_SESSION['user_name']) ?>!
+                    </div>
+
+                    <div class="sleep-sub"><?= htmlspecialchars($heroMessage) ?></div>
+
                     <div class="hero-badges">
-                        <span class="hero-badge"><?php echo htmlspecialchars($todayPulse, ENT_QUOTES, 'UTF-8'); ?></span>
-                        <span class="hero-badge">Profil: <?php echo htmlspecialchars($sleepTarget['profile_label'], ENT_QUOTES, 'UTF-8'); ?></span>
-                        <span class="hero-badge">Check-in <?php echo $checkinCount; ?>/7</span>
+                        <span class="hero-badge"><?= $todayPulse ?></span>
+                        <span class="hero-badge"><?= $sleepTarget['profile_label'] ?></span>
+                        <span class="hero-badge"><?= $checkinCount ?>/7</span>
                     </div>
                 </div>
             </div>
 
+            <!-- PROGRESS -->
             <div class="hero-progress-block">
                 <div class="hero-progress-label">
                     <span>Weekly rhythm</span>
-                    <strong><?php echo $goalProgress; ?>%</strong>
+                    <strong><?= $goalProgress ?>%</strong>
                 </div>
-                <div class="hero-progress" style="--goal-progress: <?php echo $goalProgress; ?>%;">
-                    <div class="progress-track">
-                        <div class="progress-fill"></div>
-                    </div>
+
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: <?= $goalProgress ?>%;"></div>
                 </div>
-                <p class="hero-note"><?php echo htmlspecialchars($todayPulseText, ENT_QUOTES, 'UTF-8'); ?></p>
+
+                <p class="hero-note"><?= htmlspecialchars($todayPulseText) ?></p>
             </div>
         </section>
 
-        <section class="card home-summary-card">
-            <div class="section-head section-head-compact">
+
+        <section class="card chart-card">
+            <div class="section-head">
                 <div>
-                    <h2>Ringkasan Hari Ini</h2>
-                    <p>Snapshot singkat progres sehatmu minggu ini.</p>
+                    <h3>Weekly Rhythm</h3>
+                    <p>Aktivitas, hidrasi, dan tidur 7 hari terakhir.</p>
                 </div>
+                <a href="health.php" class="section-link">Detail</a>
             </div>
-            <div class="home-summary-grid">
-                <div class="summary-tile">
-                    <span>Aktivitas</span>
-                    <strong><?php echo $weeklyActivity; ?> menit</strong>
-                    <small>Akumulasi 7 hari terakhir</small>
-                </div>
-                <div class="summary-tile">
-                    <span>Tidur</span>
-                    <strong><?php echo number_format($avgSleepHours, 1); ?> jam</strong>
-                    <small><?php echo htmlspecialchars($sleepMood, ENT_QUOTES, 'UTF-8'); ?></small>
-                </div>
-                <div class="summary-tile">
-                    <span>Hidrasi</span>
-                    <strong><?php echo number_format($avgWaterLiters, 1); ?> L</strong>
-                    <small><?php echo htmlspecialchars($hydrationMood, ENT_QUOTES, 'UTF-8'); ?></small>
-                </div>
-                <div class="summary-tile">
-                    <span>Check-in</span>
-                    <strong><?php echo $checkinCount; ?>/7</strong>
-                    <small><?php echo htmlspecialchars($consistencyText, ENT_QUOTES, 'UTF-8'); ?></small>
-                </div>
+
+            <div class="home-chart-shell">
+                <canvas id="homeWeeklyChart" height="240"></canvas>
+            </div>
+
+            <div class="legend">
+                <span><i class="dot teal"></i>Aktivitas</span>
+                <span><i class="dot sand"></i>Air</span>
+                <span><i class="dot green"></i>Tidur</span>
             </div>
         </section>
 
@@ -206,57 +208,91 @@ include 'includes/header.php';
             <div class="section-head">
                 <div>
                     <h2>Quick Access</h2>
-                    <p>Akses fitur utama yang paling sering kamu pakai.</p>
+                    <p>Fitur utama yang sering dipakai.</p>
                 </div>
-                <a href="profile_settings.php" class="section-link">Atur Profil</a>
+                <a href="profile_settings.php" class="section-link">Profil</a>
             </div>
+
             <div class="home-actions-grid">
+
                 <a class="action-card" href="health.php">
                     <div class="action-icon icon-yellow"><i class="fa-solid fa-heart-pulse"></i></div>
                     <div class="action-copy">
-                        <strong>Health Overview</strong>
-                        <span><?php echo htmlspecialchars($checkinStatus, ENT_QUOTES, 'UTF-8'); ?></span>
+                        <strong>Health</strong>
+                        <span><?= $checkinStatus ?></span>
                     </div>
                 </a>
+
                 <a class="action-card" href="sleep.php">
                     <div class="action-icon icon-mint"><i class="fa-solid fa-bed"></i></div>
                     <div class="action-copy">
-                        <strong>Sleep Tracking</strong>
-                        <span><?php echo number_format($avgSleepHours, 1); ?>h rata-rata</span>
+                        <strong>Sleep</strong>
+                        <span><?= number_format($avgSleepHours,1) ?>h</span>
                     </div>
                 </a>
+
                 <a class="action-card" href="gym_booking.php">
                     <div class="action-icon icon-purple"><i class="fa-solid fa-dumbbell"></i></div>
                     <div class="action-copy">
-                        <strong>Gym Booking</strong>
-                        <span><?php echo $weeklyActivity; ?> menit aktif</span>
+                        <strong>Gym</strong>
+                        <span><?= $weeklyActivity ?> min</span>
                     </div>
                 </a>
-                <a class="action-card" href="<?php echo htmlspecialchars($canteenLink, ENT_QUOTES, 'UTF-8'); ?>">
+
+                <a class="action-card" href="<?= htmlspecialchars($canteenLink) ?>">
                     <div class="action-icon icon-cream"><i class="fa-solid fa-utensils"></i></div>
                     <div class="action-copy">
-                        <strong><?php echo in_array($userRole, ['cooker', 'admin']) ? 'Healthy Canteen' : 'Food Selection'; ?></strong>
-                        <span>Pilihan makan yang nyambung ke ritme sehatmu</span>
+                        <strong>Nutrition</strong>
+                        <span>Meal plan</span>
                     </div>
                 </a>
+
+                <a class="action-card" href="community.php">
+                    <div class="action-icon icon-sky"><i class="fa-solid fa-users"></i></div>
+                    <div class="action-copy">
+                        <strong>Community</strong>
+                        <span>Support circle</span>
+                    </div>
+                </a>
+
+                <a class="action-card" href="education.php">
+                    <div class="action-icon icon-lime"><i class="fa-solid fa-book-open"></i></div>
+                    <div class="action-copy">
+                        <strong>Education</strong>
+                        <span>Healthy tips</span>
+                    </div>
+                </a>
+
             </div>
         </section>
 
-        <section class="card chart-section">
-            <div class="section-head chart-head">
-                <div>
-                    <h3>Weekly Rhythm</h3>
-                    <p>Lihat pola aktivitas, air, dan tidur dalam 7 hari terakhir.</p>
+        <section class="card home-summary-card">
+            <div class="section-head">
+                <h2>Ringkasan</h2>
+            </div>
+
+            <div class="home-summary-grid">
+
+                <div class="summary-tile">
+                    <span>Aktivitas</span>
+                    <strong><?= $weeklyActivity ?> min</strong>
                 </div>
-                <a href="health.php" class="section-link">Lihat detail</a>
-            </div>
-            <div class="home-chart-shell">
-                <canvas id="homeWeeklyChart" height="240"></canvas>
-            </div>
-            <div class="legend">
-                <span><i class="dot teal"></i>Aktivitas</span>
-                <span><i class="dot sand"></i>Air</span>
-                <span><i class="dot green"></i>Tidur</span>
+
+                <div class="summary-tile">
+                    <span>Tidur</span>
+                    <strong><?= number_format($avgSleepHours,1) ?> jam</strong>
+                </div>
+
+                <div class="summary-tile">
+                    <span>Air</span>
+                    <strong><?= number_format($avgWaterLiters,1) ?> L</strong>
+                </div>
+
+                <div class="summary-tile">
+                    <span>Check-in</span>
+                    <strong><?= $checkinCount ?>/7</strong>
+                </div>
+
             </div>
         </section>
 

@@ -245,12 +245,13 @@ body.home-page {
 
 .summary-tile {
     min-height: 144px;
-    padding: 16px;
+    padding: 18px;
     background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
     border: 1px solid #dbe8f2;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
 }
 
 .summary-tile span {
@@ -280,14 +281,17 @@ body.home-page {
 
 .action-card {
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 12px;
-    min-height: 96px;
-    padding: 16px;
+    min-height: 156px;
+    padding: 18px 16px;
     text-decoration: none;
     background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
     border: 1px solid #dbe8f2;
     transition: transform 0.25s ease, box-shadow 0.25s ease;
+    text-align: center;
 }
 
 .action-card:hover,
@@ -315,6 +319,7 @@ body.home-page {
 
 .action-copy {
     min-width: 0;
+    width: 100%;
 }
 
 .action-copy strong {
@@ -327,7 +332,7 @@ body.home-page {
 
 .action-copy span {
     display: block;
-    margin-top: 3px;
+    margin-top: 5px;
     color: #64748b;
     font-size: 12px;
     line-height: 1.45;
@@ -438,6 +443,17 @@ body.home-page {
         min-height: 0;
     }
 
+    .action-card {
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+        min-height: 0;
+    }
+
+    .action-copy {
+        width: auto;
+    }
+
     .hero-progress-block {
         margin-top: 18px;
         padding: 16px;
@@ -495,3 +511,4 @@ body.home-page {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+

@@ -287,15 +287,25 @@ if ($weeklyActivityMinutes <= 0) {
 
 if ($bmi == 0) {
     $workoutPlan = "Isi data IMT agar rekomendasi latihan lebih personal. Mulai dari jalan cepat 20-30 menit, 5 hari per minggu.";
+    $workoutFocus = "Mulai dari ritme dasar";
 } elseif ($bmi < 18.5) {
     $workoutPlan = "Prioritaskan latihan kekuatan 3-4x/minggu dengan progresif load, tambahkan kardio ringan 2-3x/minggu.";
+    $workoutFocus = "Bangun massa dan tenaga";
 } elseif ($bmi < 23) {
     $workoutPlan = "Pola seimbang: 3x latihan kekuatan + 2-3x kardio sedang per minggu untuk menjaga kebugaran dan komposisi tubuh.";
+    $workoutFocus = "Jaga kebugaran tetap stabil";
 } elseif ($bmi < 30) {
     $workoutPlan = "Fokus fat-loss aman: brisk walk/circuit training 30-45 menit, 5-6 hari per minggu + kekuatan 2-3x/minggu.";
+    $workoutFocus = "Turunkan lemak secara aman";
 } else {
     $workoutPlan = "Mulai low-impact cardio (jalan, sepeda statis) 20-40 menit bertahap, plus kekuatan seluruh tubuh 2-3x/minggu.";
+    $workoutFocus = "Low impact dan konsisten";
 }
+
+$activityWindowPercent = max(0, min(100, round(($weeklyActivityMinutes / $activityMaxTarget) * 100)));
+$activityTargetNote = $activityLeft > 0
+    ? "Butuh {$activityLeft} menit lagi untuk menyentuh batas sehat minimum."
+    : "Target minimum sudah aman. Kamu bisa fokus ke kualitas latihan dan recovery.";
 
 if ($healthyPillarCount >= 3 && $averageScore >= 7.5) {
     $status = "Sangat Sehat";
@@ -761,6 +771,164 @@ body.health-page {
     color: #991b1b;
 }
 
+.health-page .health-workout-card {
+    background:
+        radial-gradient(circle at top right, rgba(31, 118, 110, 0.10), transparent 28%),
+        linear-gradient(145deg, #fffdf7, #f5fbf9 62%, #eef7f5 100%);
+}
+
+.health-page .workout-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.health-page .workout-kicker {
+    display: inline-flex;
+    margin-bottom: 8px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: rgba(31, 118, 110, 0.10);
+    color: #1f766e;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.health-page .workout-icon {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #1f766e, #d6b36f);
+    color: #fff;
+    font-size: 22px;
+    box-shadow: 0 16px 28px rgba(31, 118, 110, 0.18);
+}
+
+.health-page .workout-meta-grid,
+.health-page .workout-guidance {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.health-page .workout-meta-grid {
+    margin-top: 16px;
+}
+
+.health-page .workout-metric,
+.health-page .workout-advice-box {
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(226,232,240,.85);
+    background: rgba(255,255,255,.72);
+}
+
+.health-page .workout-metric span,
+.health-page .workout-advice-box span {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.health-page .workout-metric strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 22px;
+    color: #16323b;
+}
+
+.health-page .workout-metric small,
+.health-page .workout-advice-box p {
+    display: block;
+    margin-top: 7px;
+    color: #607077;
+    line-height: 1.55;
+}
+
+.health-page .workout-progress {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 18px;
+    background: #ffffff;
+    border: 1px solid rgba(226,232,240,.85);
+}
+
+.health-page .workout-progress-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.health-page .workout-progress-top strong {
+    color: #16323b;
+    font-size: 15px;
+}
+
+.health-page .workout-progress-top span {
+    color: #607077;
+    font-size: 13px;
+}
+
+.health-page .workout-progress .progress {
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #e6f1ef;
+}
+
+.health-page .workout-progress .progress-fill {
+    border-radius: inherit;
+    min-width: 8%;
+    background: linear-gradient(90deg, #1f766e, #34d399, #d6b36f);
+}
+
+.health-page .workout-progress-note {
+    margin-top: 10px;
+    color: #607077;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.health-page .workout-guidance {
+    margin-top: 16px;
+}
+
+.health-page .workout-advice-box strong {
+    display: block;
+    margin-top: 8px;
+    color: #16323b;
+    font-size: 17px;
+}
+
+.health-page .sleep-form-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.health-page .sleep-submit-btn {
+    width: 100%;
+    min-width: 0;
+    order: 1;
+}
+
+.health-page .sleep-form-note {
+    order: 2;
+}
+
 @media (min-width: 900px) {
     .health-page .app {
         width: min(1080px, 92%);
@@ -860,6 +1028,18 @@ body.health-page {
     .health-page .health-summary-top,
     .health-page .health-summary-metrics {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .health-page .workout-meta-grid,
+    .health-page .workout-guidance {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .health-page .workout-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        font-size: 26px;
     }
 }
 </style>
@@ -1005,12 +1185,12 @@ body.health-page {
         </div>
 
         <div class="sleep-form-footer">
-            <div class="sleep-form-note">
-                <strong>Tip:</strong> data hari ini otomatis jadi dasar ringkasan mingguan, jadi cukup update sekali tiap hari.
-            </div>
             <button class="btn-primary sleep-submit-btn" type="submit">
                 Simpan Semua Data
             </button>
+            <div class="sleep-form-note">
+                <strong>Tip:</strong> data hari ini otomatis jadi dasar ringkasan mingguan, jadi cukup update sekali tiap hari.
+            </div>
         </div>
 
     </form>
@@ -1095,26 +1275,67 @@ body.health-page {
 
 <!-- ================= PERSONALIZED WORKOUT ================= -->
 <section class="card health-workout-card">
-    <div class="summary-title">Workout Personal (Mingguan)</div>
+    <div class="workout-header">
+        <div>
+            <span class="workout-kicker">Personal Workout</span>
+            <div class="summary-title">Workout Personal (Mingguan)</div>
+            <div class="sleep-sub">Ringkasan target, status aktivitas, dan arah latihan yang lebih enak dibaca.</div>
+        </div>
+        <div class="workout-icon">&#127947;</div>
+    </div>
 
-    <div class="activity-meta">
-        Total aktivitas 7 hari: <strong><?= (int) $weeklyActivityMinutes ?> menit</strong>
+    <div class="workout-meta-grid">
+        <div class="workout-metric">
+            <span>Total Aktivitas</span>
+            <strong><?= (int) $weeklyActivityMinutes ?> menit</strong>
+            <small>Akumulasi gerak selama 7 hari terakhir.</small>
+        </div>
+        <div class="workout-metric">
+            <span>Fokus Minggu Ini</span>
+            <strong><?= htmlspecialchars($workoutFocus) ?></strong>
+            <small>Disesuaikan dari status BMI/IMT terakhir yang tercatat.</small>
+        </div>
     </div>
 
     <div class="activity-status <?= $activityWeeklyClass ?>">
         <?= $activityWeeklyStatus ?>
     </div>
 
-    <div class="activity-advice">
-        <?php if ($activityLeft > 0): ?>
-            Tambah sekitar <strong><?= (int) $activityLeft ?> menit</strong> lagi minggu ini agar mencapai target minimum.
-        <?php else: ?>
-            Target minimum minggu ini sudah tercapai. Pertahankan ritme dan pastikan hari pemulihan tetap cukup.
-        <?php endif; ?>
+    <div class="workout-progress">
+        <div class="workout-progress-top">
+            <strong>Progress Target 150-300 menit</strong>
+            <span><?= $activityWindowPercent ?>% dari batas atas rentang</span>
+        </div>
+        <div class="progress">
+            <div class="progress-fill" style="width: <?= $activityWindowPercent ?>%;"></div>
+        </div>
+        <div class="workout-progress-note"><?= htmlspecialchars($activityTargetNote) ?></div>
     </div>
 
-    <div class="activity-advice">
-        Rekomendasi personal: <?= htmlspecialchars($workoutPlan) ?>
+    <div class="workout-guidance">
+        <div class="workout-advice-box">
+            <span>Next Step</span>
+            <strong>
+                <?php if ($activityLeft > 0): ?>
+                    Tambah <?= (int) $activityLeft ?> menit lagi
+                <?php else: ?>
+                    Pertahankan ritme minggu ini
+                <?php endif; ?>
+            </strong>
+            <p>
+                <?php if ($activityLeft > 0): ?>
+                    Bagi ke 3-4 sesi ringan supaya target lebih realistis dan tidak terasa berat.
+                <?php else: ?>
+                    Sisakan 1-2 hari recovery aktif agar tubuh tetap segar dan konsisten.
+                <?php endif; ?>
+            </p>
+        </div>
+
+        <div class="workout-advice-box">
+            <span>Rekomendasi Personal</span>
+            <strong><?= htmlspecialchars($workoutFocus) ?></strong>
+            <p><?= htmlspecialchars($workoutPlan) ?></p>
+        </div>
     </div>
 </section>
 
