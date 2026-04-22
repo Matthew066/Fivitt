@@ -131,8 +131,6 @@ include 'includes/header.php';
     <main class="app home-main">
         <section class="card home-hero upgraded-hero">
             <div class="sleep-hero-inner home-hero-top">
-
-                <!-- AVATAR -->
                 <form class="avatar-upload-form" method="post" action="update_profile_image.php" enctype="multipart/form-data">
                     <input type="file" name="profile_image" id="userProfileImageInput" hidden>
 
@@ -152,23 +150,15 @@ include 'includes/header.php';
                     </div>
                 </form>
 
-                <!-- TEXT -->
                 <div class="hero-copy">
                     <div class="sleep-title">
                         Hi, <?= htmlspecialchars($_SESSION['user_name']) ?>!
                     </div>
 
                     <div class="sleep-sub"><?= htmlspecialchars($heroMessage) ?></div>
-
-                    <div class="hero-badges">
-                        <span class="hero-badge"><?= $todayPulse ?></span>
-                        <span class="hero-badge"><?= $sleepTarget['profile_label'] ?></span>
-                        <span class="hero-badge"><?= $checkinCount ?>/7</span>
-                    </div>
                 </div>
             </div>
 
-            <!-- PROGRESS -->
             <div class="hero-progress-block">
                 <div class="hero-progress-label">
                     <span>Weekly rhythm</span>
@@ -180,27 +170,6 @@ include 'includes/header.php';
                 </div>
 
                 <p class="hero-note"><?= htmlspecialchars($todayPulseText) ?></p>
-            </div>
-        </section>
-
-
-        <section class="card chart-card">
-            <div class="section-head">
-                <div>
-                    <h3>Weekly Rhythm</h3>
-                    <p>Aktivitas, hidrasi, dan tidur 7 hari terakhir.</p>
-                </div>
-                <a href="health.php" class="section-link">Detail</a>
-            </div>
-
-            <div class="home-chart-shell">
-                <canvas id="homeWeeklyChart" height="240"></canvas>
-            </div>
-
-            <div class="legend">
-                <span><i class="dot teal"></i>Aktivitas</span>
-                <span><i class="dot sand"></i>Air</span>
-                <span><i class="dot green"></i>Tidur</span>
             </div>
         </section>
 
@@ -262,7 +231,26 @@ include 'includes/header.php';
                         <span>Healthy tips</span>
                     </div>
                 </a>
+            </div>
+        </section>
 
+        <section class="card chart-card">
+            <div class="section-head">
+                <div>
+                    <h3>Weekly Rhythm</h3>
+                    <p>Aktivitas, hidrasi, dan tidur 7 hari terakhir.</p>
+                </div>
+                <a href="health.php" class="section-link">Detail</a>
+            </div>
+
+            <div class="home-chart-shell">
+                <canvas id="homeWeeklyChart" height="240"></canvas>
+            </div>
+
+            <div class="legend">
+                <span><i class="dot teal"></i>Aktivitas</span>
+                <span><i class="dot sand"></i>Air</span>
+                <span><i class="dot green"></i>Tidur</span>
             </div>
         </section>
 
