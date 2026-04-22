@@ -2,12 +2,25 @@
 session_start();
 require_once 'includes/db.php';
 require_once 'includes/auth_guard.php';
+require_once 'includes/user_profile.php';
 require_login();
+
+ensure_users_profile_schema($pdo);
+
+$user_id = (int) ($_SESSION['user_id'] ?? 0);
+$genderStmt = $pdo->prepare("SELECT gender FROM users WHERE id_users = ? LIMIT 1");
+$genderStmt->execute([$user_id]);
+$userGender = normalize_gender((string) ($genderStmt->fetchColumn() ?: ($_SESSION['user_gender'] ?? '')));
+$_SESSION['user_gender'] = $userGender;
+
+if ($userGender === 'pria') {
+    header('Location: index.php');
+    exit;
+}
 
 $pageTitle = 'Lunar Harmony Insight';
 include 'includes/header.php';
 
-$user_id = $_SESSION['user_id'] ?? 1;
 $today = date('Y-m-d');
 
 /* ================= SCHEMA GUARD ================= */

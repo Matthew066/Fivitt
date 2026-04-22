@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once '../includes/db.php';
+require_once '../includes/user_profile.php';
+
+ensure_users_profile_schema($pdo);
 
 function redirect_with_status(string $type, string $message): void
 {
@@ -17,7 +20,9 @@ $email = strtolower(trim((string)($_POST['email'] ?? '')));
 $password = (string)($_POST['password'] ?? '');
 $role = strtolower(trim((string)($_POST['role'] ?? 'user')));
 $department = trim((string)($_POST['department'] ?? 'General'));
+$gender = normalize_gender((string)($_POST['gender'] ?? ''));
 $validRoles = ['user', 'admin', 'cooker'];
+$validGenders = get_gender_options();
 
 if ($name === '' || $email === '' || $password === '') {
     redirect_with_status('danger', 'Nama, email, dan password wajib diisi.');
@@ -29,6 +34,10 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 if (strlen($password) < 6) {
     redirect_with_status('danger', 'Password minimal 6 karakter.');
+}
+
+if (!array_key_exists($gender, $validGenders)) {
+    redirect_with_status('danger', 'Gender wajib dipilih.');
 }
 
 if (!in_array($role, $validRoles, true)) {
@@ -48,8 +57,8 @@ if ($checkStmt->fetch()) {
 }
 
 $insertStmt = $pdo->prepare(
-    "INSERT INTO users (name, email, password_hash, role, department, is_active, created_at)
-     VALUES (:name, :email, :password_hash, :role, :department, 1, NOW())"
+    "INSERT INTO users (name, email, password_hash, role, department, gender, is_active, created_at)
+     VALUES (:name, :email, :password_hash, :role, :department, :gender, 1, NOW())"
 );
 $insertStmt->execute([
     ':name' => $name,
@@ -57,6 +66,7 @@ $insertStmt->execute([
     ':password_hash' => password_hash($password, PASSWORD_DEFAULT),
     ':role' => $role,
     ':department' => $department,
+    ':gender' => $gender,
 ]);
 
 redirect_with_status('success', 'User baru berhasil ditambahkan.');

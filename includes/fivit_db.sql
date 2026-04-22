@@ -351,6 +351,7 @@ CREATE TABLE `users` (
   `password_hash` varchar(255) DEFAULT NULL,
   `role` varchar(100) DEFAULT NULL,
   `department` varchar(100) DEFAULT NULL,
+  `gender` varchar(16) DEFAULT NULL,
   `profile_image` varchar(255) DEFAULT NULL,
   `birth_date` date DEFAULT NULL,
   `age_group` varchar(32) DEFAULT NULL,
@@ -363,9 +364,9 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id_users`, `name`, `email`, `password_hash`, `role`, `department`, `profile_image`, `birth_date`, `age_group`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'phylicia', 'phylicia@gmail.com', '$2y$10$vy2FD/27VdAKJ2APgux03O29ReA74urQyFHFwPsKQAffj0rZp7ZQC', 'user', 'General', NULL, NULL, 'adult', 1, '2026-02-18 03:13:16', '2026-02-18 03:13:16'),
-(2, 'phyliciatiffany456', 'phyliciatiffany456@gmail.com', '$2y$10$XiWi.XgrUWT5.8BLm8QpBeZojdYLIGFGH3BSyVgO.Vxdej0VO9u26', 'user', 'General', NULL, NULL, 'adult', 1, '2026-02-18 05:12:28', '2026-02-18 05:12:28');
+INSERT INTO `users` (`id_users`, `name`, `email`, `password_hash`, `role`, `department`, `gender`, `profile_image`, `birth_date`, `age_group`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'phylicia', 'phylicia@gmail.com', '$2y$10$vy2FD/27VdAKJ2APgux03O29ReA74urQyFHFwPsKQAffj0rZp7ZQC', 'user', 'General', NULL, NULL, NULL, 'adult', 1, '2026-02-18 03:13:16', '2026-02-18 03:13:16'),
+(2, 'phyliciatiffany456', 'phyliciatiffany456@gmail.com', '$2y$10$XiWi.XgrUWT5.8BLm8QpBeZojdYLIGFGH3BSyVgO.Vxdej0VO9u26', 'user', 'General', NULL, NULL, NULL, 'adult', 1, '2026-02-18 05:12:28', '2026-02-18 05:12:28');
 
 -- --------------------------------------------------------
 

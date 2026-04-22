@@ -48,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = (int)$user['id_users'];
                 $_SESSION['user_name'] = (string)$user['name'];
                 $_SESSION['user_role'] = $role;
+                $_SESSION['user_gender'] = normalize_gender((string)($user['gender'] ?? ''));
                 $_SESSION['user_age_group'] = normalize_age_group((string)($user['age_group'] ?? 'adult'));
 
                 if ($role === 'admin') {

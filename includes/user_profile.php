@@ -19,6 +19,28 @@ function ensure_users_profile_schema(PDO $pdo): void
     } catch (Throwable $e) {
         // ignore if column already exists
     }
+
+    try {
+        $pdo->query("ALTER TABLE users ADD COLUMN gender varchar(16) DEFAULT NULL");
+    } catch (Throwable $e) {
+        // ignore if column already exists
+    }
+}
+
+function get_gender_options(): array
+{
+    return [
+        'pria' => 'Pria',
+        'wanita' => 'Wanita',
+    ];
+}
+
+function normalize_gender(?string $value): string
+{
+    $value = strtolower(trim((string) $value));
+    $options = get_gender_options();
+
+    return array_key_exists($value, $options) ? $value : '';
 }
 
 function get_age_group_options(): array

@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once '../includes/db.php';
+require_once '../includes/user_profile.php';
+
+ensure_users_profile_schema($pdo);
 
 function redirect_with_status(string $type, string $message): void
 {
@@ -15,7 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $userId = (int)($_POST['user_id'] ?? 0);
 $role = strtolower(trim((string)($_POST['role'] ?? '')));
 $department = trim((string)($_POST['department'] ?? 'General'));
+$gender = normalize_gender((string)($_POST['gender'] ?? ''));
 $allowedRoles = ['manajerial', 'hr', 'cooker', 'user'];
+$genderOptions = get_gender_options();
 
 if ($userId <= 0) {
     redirect_with_status('danger', 'User tidak valid.');
@@ -27,7 +32,7 @@ if ($department === '') {
 
 $department = substr($department, 0, 100);
 
-$currentStmt = $pdo->prepare("SELECT role, department FROM users WHERE id_users = :id_users LIMIT 1");
+$currentStmt = $pdo->prepare("SELECT role, department, gender FROM users WHERE id_users = :id_users LIMIT 1");
 $currentStmt->execute([':id_users' => $userId]);
 $currentUser = $currentStmt->fetch();
 
@@ -37,6 +42,7 @@ if (!$currentUser) {
 
 $currentRole = strtolower(trim((string)($currentUser['role'] ?? 'user')));
 $currentDepartment = trim((string)($currentUser['department'] ?? 'General'));
+$currentGender = normalize_gender((string)($currentUser['gender'] ?? ''));
 
 $newRole = $currentRole;
 if ($currentRole !== 'admin') {
@@ -47,23 +53,37 @@ if ($currentRole !== 'admin') {
     $newRole = $role;
 }
 
-$updateStmt = $pdo->prepare("UPDATE users SET role = :role, department = :department WHERE id_users = :id_users");
+if ($gender === '' || !array_key_exists($gender, $genderOptions)) {
+    redirect_with_status('danger', 'Gender yang dipilih tidak valid.');
+}
+
+$updateStmt = $pdo->prepare("UPDATE users SET role = :role, department = :department, gender = :gender WHERE id_users = :id_users");
 $updateStmt->execute([
     ':role' => $newRole,
     ':department' => $department,
+    ':gender' => $gender,
     ':id_users' => $userId,
 ]);
 
-if ($newRole !== $currentRole && $department !== $currentDepartment) {
-    redirect_with_status('success', 'Role dan department berhasil diupdate.');
-}
-
+$changedParts = [];
 if ($newRole !== $currentRole) {
-    redirect_with_status('success', 'Role berhasil diupdate.');
+    $changedParts[] = 'role';
+}
+if ($department !== $currentDepartment) {
+    $changedParts[] = 'department';
+}
+if ($gender !== $currentGender) {
+    $changedParts[] = 'gender';
 }
 
-if ($department !== $currentDepartment) {
-    redirect_with_status('success', 'Department berhasil diupdate.');
+if ($changedParts !== []) {
+    $labels = [
+        'role' => 'Role',
+        'department' => 'Department',
+        'gender' => 'Gender',
+    ];
+    $messageParts = array_map(static fn(string $key): string => $labels[$key] ?? $key, $changedParts);
+    redirect_with_status('success', implode(', ', $messageParts) . ' berhasil diupdate.');
 }
 
 redirect_with_status('success', 'Tidak ada perubahan data.');

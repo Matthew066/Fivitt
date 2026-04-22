@@ -1,11 +1,15 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once '../includes/db.php';
+require_once '../includes/user_profile.php';
+
+ensure_users_profile_schema($pdo);
 
 $status = strtolower(trim((string)($_GET['status'] ?? '')));
 $message = trim((string)($_GET['message'] ?? ''));
 $allowedStatus = ['success', 'danger', 'warning', 'info'];
 $departmentOptions = ['General', 'HR', 'Finance', 'IT', 'Marketing', 'Operations'];
+$genderOptions = get_gender_options();
 $roleOptions = [
     'manajerial' => 'Manajerial',
     'hr' => 'HR',
@@ -17,7 +21,7 @@ if (!in_array($status, $allowedStatus, true)) {
     $status = '';
 }
 
-$query = "SELECT id_users, name, email, role, department FROM users ORDER BY id_users DESC";
+$query = "SELECT id_users, name, email, role, department, gender FROM users ORDER BY id_users DESC";
 $result = $pdo->query($query);
 ?>
 
@@ -80,6 +84,13 @@ $result = $pdo->query($query);
                   <?php endforeach; ?>
                 </select>
               </div>
+              <div class="col-md-2">
+                <label for="gender" class="form-label">Gender</label>
+                <select id="gender" name="gender" class="form-select" required>
+                  <option value="pria">Pria</option>
+                  <option value="wanita">Wanita</option>
+                </select>
+              </div>
               <div class="col-12">
                 <button type="submit" class="btn btn-primary btn-sport-primary btn-action">Add User</button>
               </div>
@@ -98,12 +109,14 @@ $result = $pdo->query($query);
                     <th>Email</th>
                     <th>Role</th>
                     <th>Department</th>
+                    <th>Gender</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   <?php while ($row = $result->fetch()): ?>
                     <?php $currentDepartment = trim((string)$row['department']); ?>
+                    <?php $currentGender = normalize_gender((string)$row['gender']); ?>
                     <?php $currentRole = strtolower(trim((string)$row['role'])); ?>
                     <?php $isAdminRole = $currentRole === 'admin'; ?>
                     <tr>
@@ -130,6 +143,16 @@ $result = $pdo->query($query);
                             <?php foreach ($departmentOptions as $dept): ?>
                               <option value="<?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $currentDepartment === $dept ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($dept, ENT_QUOTES, 'UTF-8'); ?>
+                              </option>
+                            <?php endforeach; ?>
+                          </select>
+                      </td>
+                      <td>
+                          <select class="form-select" name="gender">
+                            <option value="">Pilih gender</option>
+                            <?php foreach ($genderOptions as $genderValue => $genderLabel): ?>
+                              <option value="<?php echo htmlspecialchars($genderValue, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $currentGender === $genderValue ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($genderLabel, ENT_QUOTES, 'UTF-8'); ?>
                               </option>
                             <?php endforeach; ?>
                           </select>

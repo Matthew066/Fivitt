@@ -11,6 +11,20 @@ if (!is_array($extraStyles)) {
 }
 
 $isLoggedIn = isset($_SESSION['user_id']);
+$userGender = strtolower(trim((string) ($_SESSION['user_gender'] ?? '')));
+if ($isLoggedIn && $userGender === '' && isset($pdo) && $pdo instanceof PDO) {
+    try {
+        $genderStmt = $pdo->prepare("SELECT gender FROM users WHERE id_users = ? LIMIT 1");
+        $genderStmt->execute([(int) ($_SESSION['user_id'] ?? 0)]);
+        $userGender = strtolower(trim((string) ($genderStmt->fetchColumn() ?: '')));
+        $_SESSION['user_gender'] = $userGender;
+    } catch (Throwable $e) {
+        $userGender = '';
+    }
+}
+if (!in_array($userGender, ['pria', 'wanita'], true)) {
+    $userGender = '';
+}
 
 $canteenLink = 'foodselection.php';
 $canteenLabel = 'Food Selection';
@@ -68,7 +82,19 @@ if ($isLoggedIn) {
         <div class="drawer-section">Daily</div>
         <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? '/Fivitt/health.php' : '/Fivitt/login.php' ?>">Basic Health Monitoring</a>
         <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? '/Fivitt/sleep.php' : '/Fivitt/login.php' ?>">Sleep Tracking</a>
-        <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? '/Fivitt/mens_fivit.php' : '/Fivitt/login.php' ?>">Menstruation Tracking</a>
+        <?php
+        $mensLink = '/Fivitt/login.php';
+        $mensDisabledClass = ' is-disabled';
+        if ($isLoggedIn) {
+            if ($userGender === 'pria') {
+                $mensLink = '#';
+            } else {
+                $mensLink = '/Fivitt/mens_fivit.php';
+                $mensDisabledClass = '';
+            }
+        }
+        ?>
+        <a class="drawer-link sub<?= $mensDisabledClass ?>" href="<?= htmlspecialchars($mensLink, ENT_QUOTES, 'UTF-8') ?>"<?= $isLoggedIn && $userGender === 'pria' ? ' aria-disabled="true" tabindex="-1" onclick="return false;"' : '' ?>>Menstruation Tracking</a>
 
         <div class="drawer-section">Fitness</div>
         <a class="drawer-link sub<?= $isLoggedIn ? '' : ' is-disabled' ?>" href="<?= $isLoggedIn ? '/Fivitt/sportevent.php' : '/Fivitt/login.php' ?>">Sport Events</a>
