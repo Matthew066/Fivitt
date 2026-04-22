@@ -179,12 +179,12 @@ include 'includes/header.php';
                     <h2>Quick Access</h2>
                     <p>Fitur utama yang sering dipakai.</p>
                 </div>
-                <a href="profile_settings.php" class="section-link">Profil</a>
+                <a href="profile_settings.php" class="section-link action-profile-link">Profil</a>
             </div>
 
             <div class="home-actions-grid">
 
-                <a class="action-card" href="health.php">
+                <a class="action-card action-health" href="health.php">
                     <div class="action-icon icon-yellow"><i class="fa-solid fa-heart-pulse"></i></div>
                     <div class="action-copy">
                         <strong>Health</strong>
@@ -192,7 +192,7 @@ include 'includes/header.php';
                     </div>
                 </a>
 
-                <a class="action-card" href="sleep.php">
+                <a class="action-card action-sleep" href="sleep.php">
                     <div class="action-icon icon-mint"><i class="fa-solid fa-bed"></i></div>
                     <div class="action-copy">
                         <strong>Sleep</strong>
@@ -200,7 +200,7 @@ include 'includes/header.php';
                     </div>
                 </a>
 
-                <a class="action-card" href="gym_booking.php">
+                <a class="action-card action-gym" href="gym_booking.php">
                     <div class="action-icon icon-purple"><i class="fa-solid fa-dumbbell"></i></div>
                     <div class="action-copy">
                         <strong>Gym</strong>
@@ -208,7 +208,7 @@ include 'includes/header.php';
                     </div>
                 </a>
 
-                <a class="action-card" href="<?= htmlspecialchars($canteenLink) ?>">
+                <a class="action-card action-nutrition" href="<?= htmlspecialchars($canteenLink) ?>">
                     <div class="action-icon icon-cream"><i class="fa-solid fa-utensils"></i></div>
                     <div class="action-copy">
                         <strong>Nutrition</strong>
@@ -216,7 +216,7 @@ include 'includes/header.php';
                     </div>
                 </a>
 
-                <a class="action-card" href="community.php">
+                <a class="action-card action-community" href="community.php">
                     <div class="action-icon icon-sky"><i class="fa-solid fa-users"></i></div>
                     <div class="action-copy">
                         <strong>Community</strong>
@@ -224,7 +224,7 @@ include 'includes/header.php';
                     </div>
                 </a>
 
-                <a class="action-card" href="education.php">
+                <a class="action-card action-education" href="education.php">
                     <div class="action-icon icon-lime"><i class="fa-solid fa-book-open"></i></div>
                     <div class="action-copy">
                         <strong>Education</strong>
@@ -290,15 +290,15 @@ include 'includes/header.php';
                 <p>Fitur pendukung yang tetap satu tema dengan dashboard health kamu.</p>
             </div>
             <div class="other-grid">
-                <a class="other-card" href="sportevent.php">
+                <a class="other-card other-events" href="sportevent.php">
                     <div class="other-icon"><i class="fa-solid fa-calendar-days"></i></div>
                     <p>Events</p>
                 </a>
-                <a class="other-card" href="education.php">
+                <a class="other-card other-education" href="education.php">
                     <div class="other-icon"><i class="fa-solid fa-graduation-cap"></i></div>
                     <p>Education</p>
                 </a>
-                <a class="other-card" href="community.php">
+                <a class="other-card other-community" href="community.php">
                     <div class="other-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
                     <p>Community</p>
                 </a>

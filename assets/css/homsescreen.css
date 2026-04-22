@@ -9,6 +9,8 @@
     --home-mint: #22c55e;
     --home-card-border: #d8e8ea;
     --home-card-bg: linear-gradient(180deg, #ffffff 0%, #f6fcfb 100%);
+    --home-ai-button: linear-gradient(135deg, #0f766e, #22c55e);
+    --home-ai-shadow: 0 10px 20px rgba(15, 118, 110, 0.3);
 }
 
 body.home-page {
@@ -110,6 +112,16 @@ body.home-page {
     justify-content: center;
     cursor: pointer;
     box-shadow: 0 10px 24px rgba(15, 118, 110, 0.2);
+}
+
+.avatar-upload-btn i,
+.action-icon i,
+.other-icon i {
+    line-height: 1;
+}
+
+.hero-copy {
+    min-width: 0;
 }
 
 .home-hero .sleep-title {
@@ -256,6 +268,18 @@ body.home-page {
     filter: brightness(1.04);
 }
 
+body.home-page .section-link,
+.action-profile-link {
+    background: var(--home-ai-button);
+    color: #ffffff;
+    box-shadow: var(--home-ai-shadow);
+}
+
+body.home-page .section-link:hover,
+.action-profile-link:hover {
+    color: #ffffff;
+}
+
 .home-summary-grid,
 .home-actions-grid {
     display: grid;
@@ -322,6 +346,15 @@ body.home-page {
     overflow: hidden;
 }
 
+body.home-page .action-card {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: var(--home-ai-button);
+    border-color: rgba(15, 118, 110, 0.24);
+    box-shadow: var(--home-ai-shadow);
+}
+
 .action-card::before {
     content: "";
     position: absolute;
@@ -363,9 +396,14 @@ body.home-page {
     width: 100%;
 }
 
+body.home-page .action-copy {
+    width: 100%;
+    text-align: center;
+}
+
 .action-copy strong {
     display: block;
-    color: #0f172a;
+    color: #ffffff;
     font-size: 14px;
     font-weight: 700;
     line-height: 1.3;
@@ -374,7 +412,7 @@ body.home-page {
 .action-copy span {
     display: block;
     margin-top: 5px;
-    color: #5f7286;
+    color: rgba(255, 255, 255, 0.84);
     font-size: 12px;
     line-height: 1.45;
 }
@@ -444,27 +482,52 @@ body.home-page {
     border: 1px solid var(--home-card-border);
 }
 
+body.home-page .other-card {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: var(--home-ai-button);
+    border-color: rgba(15, 118, 110, 0.24);
+    box-shadow: var(--home-ai-shadow);
+}
+
 .other-card p {
     margin: 0;
-    color: #0f172a;
+    color: #ffffff;
     font-size: 13px;
     font-weight: 700;
     text-align: center;
 }
 
 .other-icon {
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(34, 197, 94, 0.18));
-    color: var(--home-teal);
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
 }
 
 @media (max-width: 640px) {
+    .header {
+        height: 68px;
+        padding: 0 14px;
+    }
+
+    .header .logo {
+        width: 46px !important;
+        height: 46px !important;
+    }
+
+    .menu {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+    }
+
     .homescreen-wrapper {
-        padding-bottom: 84px;
+        padding: 4px 0 84px;
     }
 
     .home-main {
-        width: min(100%, calc(100vw - 8px));
-        margin-top: 12px;
+        width: min(100%, calc(100vw - 10px));
+        margin-top: 10px;
     }
 
     .home-summary-card,
@@ -472,6 +535,72 @@ body.home-page {
     .chart-section,
     .other-section {
         padding: 16px;
+    }
+
+    .upgraded-hero {
+        padding: 18px 16px;
+        border-radius: 24px;
+    }
+
+    .home-hero::after {
+        right: -28px;
+        top: -28px;
+        width: 130px;
+        height: 130px;
+    }
+
+    .home-hero-top {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 14px;
+        align-items: start;
+    }
+
+    .avatar-upload-form {
+        justify-self: start;
+        align-self: start;
+    }
+
+    .hero-copy {
+        align-self: center;
+        gap: 6px;
+    }
+
+    .avatar-shell {
+        width: 72px;
+        height: 72px;
+    }
+
+    .avatar-circle {
+        width: 72px;
+        height: 72px;
+        border-radius: 22px;
+    }
+
+    .avatar-circle i {
+        font-size: 24px;
+    }
+
+    .avatar-upload-btn {
+        right: -4px;
+        bottom: -4px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .home-hero .sleep-title {
+        margin-bottom: 4px;
+    }
+
+    .sleep-title {
+        font-size: clamp(22px, 6vw, 32px);
+        line-height: 1.12;
+    }
+
+    .sleep-sub {
+        max-width: 24ch;
+        font-size: 13px;
+        line-height: 1.55;
     }
 
     .home-summary-grid,
@@ -486,19 +615,39 @@ body.home-page {
     }
 
     .action-card {
-        flex-direction: row;
-        justify-content: flex-start;
-        text-align: left;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
         min-height: 0;
     }
 
     .action-copy {
-        width: auto;
+        width: 100%;
+        text-align: center;
     }
 
     .hero-progress-block {
-        margin-top: 18px;
-        padding: 16px;
+        margin-top: 16px;
+        padding: 15px 14px;
+        border-radius: 18px;
+    }
+
+    .hero-progress-label {
+        margin-bottom: 10px;
+    }
+
+    .hero-progress-label strong {
+        font-size: 18px;
+    }
+
+    .progress-track {
+        height: 10px;
+    }
+
+    .hero-note {
+        font-size: 12px;
+        line-height: 1.55;
     }
 
     .section-head {
@@ -521,13 +670,15 @@ body.home-page {
     }
 
     .other-card {
-        flex-direction: row;
-        justify-content: flex-start;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         min-height: 0;
+        text-align: center;
     }
 
     .other-card p {
-        text-align: left;
+        text-align: center;
     }
 }
 
