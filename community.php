@@ -679,9 +679,12 @@ function formatTime(?string $value): string {
 }
 .community-hero h1 { margin: 0 0 8px; font-size: 28px; }
 .community-hero p { margin: 0; font-size: 14px; max-width: 760px; opacity: .95; }
-.tabs { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+.community-switcher { margin-top: 14px; padding: 14px 16px; background: rgba(255,255,255,.92); border: 1px solid rgba(148,163,184,.28); border-radius: 20px; box-shadow: 0 8px 22px rgba(15,23,42,.06); }
+.tabs { display:flex; flex-wrap:wrap; gap:10px; }
 .tab { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border-radius:999px; padding:10px 14px; font-size:13px; font-weight:800; border:1px solid rgba(255,255,255,.35); color:#fff; background:rgba(255,255,255,.12); }
 .tab.active { background:#fff; color:#0f172a; border-color:#fff; }
+ .community-switcher .tab { flex: 1 1 220px; border-color: rgba(15,118,110,.22); color: #0f766e; background: linear-gradient(180deg, #ffffff, #f8fbff); }
+ .community-switcher .tab.active { background: linear-gradient(135deg,#0f766e,#22c55e); color: #fff; border-color: transparent; }
 .section { margin-top: 16px; background: rgba(255,255,255,.92); border: 1px solid rgba(148,163,184,.35); border-radius: 20px; padding: 18px; box-shadow: 0 8px 22px rgba(15,23,42,.07); }
 .title { margin: 0 0 8px; font-size: 20px; color: #0f172a; }
 .sub { margin: 0 0 14px; color: #475569; font-size: 13px; }
@@ -730,7 +733,10 @@ function formatTime(?string $value): string {
     <section class="community-hero">
         <h1>Community Hub</h1>
         <p>Tempat ngobrol dan promosi bareng untuk gym & coach. Ada channel global dan private seperti server game, plus fitur undang orang untuk join sesi coach atau membership gym.</p>
-        <nav class="tabs" aria-label="Community channel">
+    </section>
+
+    <section class="community-switcher" aria-label="Community channel">
+        <nav class="tabs">
             <a class="tab <?= $channel === 'gym' ? 'active' : '' ?>" href="community.php?channel=gym">Gym Community</a>
             <a class="tab <?= $channel === 'coach' ? 'active' : '' ?>" href="community.php?channel=coach">Coach Community</a>
         </nav>
