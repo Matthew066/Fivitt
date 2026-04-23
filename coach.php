@@ -445,6 +445,52 @@ $coaches = array_map(static function (array $row): array {
 .dept-pill { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:800; border-radius:999px; padding:8px 12px; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.3); margin-top:12px; }
 
 @media (max-width: 900px) { .grid-2,.input-grid { grid-template-columns:1fr; } }
+@media (min-width: 900px) {
+    .coach-app {
+        width: min(1160px, calc(100% - 40px));
+    }
+
+    .coach-hero {
+        padding: 30px 28px;
+        border-radius: 28px;
+    }
+
+    .coach-nav-shell {
+        padding: 16px;
+        border-radius: 22px;
+        margin-top: 16px;
+        background: rgba(255,255,255,.94);
+        border: 1px solid rgba(148,163,184,.28);
+        box-shadow: 0 10px 24px rgba(15,23,42,.08);
+    }
+
+    .coach-nav-shell .tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .coach-nav-shell .tab {
+        min-height: 58px;
+        padding: 14px 18px;
+        border-radius: 20px;
+        border-color: #cbd5e1;
+        color: #0f172a;
+        background: #f8fafc;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .coach-nav-shell .tab.active {
+        color: #fff;
+        border-color: transparent;
+        background: linear-gradient(135deg,#1d4ed8,#0ea5e9);
+    }
+
+    .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+}
 </style>
 
 <main class="coach-app">

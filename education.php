@@ -88,6 +88,49 @@ $trending = $trendingStmt->fetchAll();
 @media (max-width: 900px) {
     .education-grid { grid-template-columns: 1fr; }
 }
+@media (min-width: 900px) {
+    .education-app {
+        width: min(1160px, calc(100% - 40px));
+        padding-bottom: 76px;
+    }
+
+    .education-hero {
+        padding: 32px 28px;
+        border-radius: 28px;
+    }
+
+    .education-hero h1 {
+        margin-bottom: 12px;
+        font-size: clamp(34px, 3.8vw, 44px);
+    }
+
+    .education-hero p {
+        max-width: 860px;
+        font-size: 16px;
+        line-height: 1.8;
+        color: rgba(255,255,255,.9);
+    }
+
+    .education-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .education-panel {
+        padding: 22px;
+        border-radius: 24px;
+    }
+
+    .menu-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .menu-link {
+        min-height: 96px;
+        padding: 16px;
+        border-radius: 20px;
+    }
+}
 @media (max-width: 640px) {
     .education-app { width: min(94%, 560px); }
     .trending-item { grid-template-columns: 1fr; }

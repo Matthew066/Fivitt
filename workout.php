@@ -505,18 +505,35 @@ $planText = implode("\n", $planLines);
 @media (max-width: 480px) {
     .app {
         max-width: 100%;
-        padding: 14px 10px 78px;
+        padding: 10px 10px 76px;
     }
 
     .card,
     .hero {
-        padding: 14px;
+        padding: 12px;
         border-radius: 18px;
+    }
+
+    .hero {
+        margin-bottom: 10px;
+    }
+
+    .sleep-hero-inner {
+        gap: 10px;
+    }
+
+    .sleep-title {
+        font-size: clamp(22px, 6vw, 26px);
+    }
+
+    .hero .sleep-sub {
+        font-size: 12px;
+        line-height: 1.45;
     }
 
     .tab-row {
         gap: 6px;
-        margin: 10px 0 14px;
+        margin: 2px 0 12px;
         font-size: 11px;
     }
 
@@ -526,13 +543,18 @@ $planText = implode("\n", $planLines);
     }
 
     .hero-badges {
+        margin-top: 8px;
         gap: 6px;
     }
 
     .hero-badge {
         min-height: 30px;
-        padding: 6px 9px;
+        padding: 5px 8px;
         font-size: 11px;
+    }
+
+    .summary-title {
+        margin-bottom: 8px;
     }
 }
 

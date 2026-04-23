@@ -329,9 +329,10 @@ if ($isCoach && $selfCoachId > 0) {
 }
 .coach-hero h1 { margin: 0 0 8px; font-size: 28px; }
 .coach-hero p { margin: 0; font-size: 14px; max-width: 760px; opacity: .95; }
-.tabs { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
-.tab { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border-radius:999px; padding:10px 14px; font-size:13px; font-weight:800; border:1px solid rgba(255,255,255,.35); color:#fff; background:rgba(255,255,255,.12); }
-.tab.active { background:#fff; color:#0f172a; border-color:#fff; }
+.session-switcher { margin-top:16px; padding:14px; border-radius:18px; background:#fff; border:1px solid rgba(191,219,254,.6); box-shadow:0 10px 22px rgba(14,116,144,.08); }
+.tabs { display:flex; flex-wrap:wrap; gap:10px; }
+.tab { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border-radius:999px; padding:10px 14px; font-size:13px; font-weight:700; border:1px solid #cbd5e1; color:#0f172a; background:#f8fafc; }
+.tab.active { background:linear-gradient(135deg,#0f766e,#22c55e); color:#fff; border-color:transparent; }
 .section { margin-top: 16px; background: rgba(255,255,255,.92); border: 1px solid rgba(125,211,252,.35); border-radius: 20px; padding: 18px; box-shadow: 0 8px 22px rgba(15,23,42,.07); }
 .title { margin: 0 0 8px; font-size: 20px; color: #0f172a; }
 .sub { margin: 0 0 14px; color: #475569; font-size: 13px; }
@@ -363,12 +364,49 @@ if ($isCoach && $selfCoachId > 0) {
 .hint { font-size:12px; color:#64748b; margin-top:6px; }
 .inline { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 @media (max-width: 900px) { .input-grid { grid-template-columns:1fr; } }
+@media (min-width: 900px) {
+    .coach-app {
+        width: min(1120px, calc(100% - 40px));
+    }
+
+    .coach-hero {
+        padding: 30px 28px;
+        border-radius: 28px;
+    }
+
+    .session-switcher {
+        padding: 16px;
+        border-radius: 22px;
+    }
+
+    .tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .tab {
+        min-height: 58px;
+        padding: 14px 18px;
+        border-radius: 20px;
+        border-color: #cbd5e1;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .section {
+        border-radius: 24px;
+        padding: 22px;
+    }
+}
 </style>
 
 <main class="coach-app">
     <section class="coach-hero">
         <h1>Coach Sessions</h1>
         <p>Request jadwal sesi dengan coach, lalu coach internal bisa approve/reject. Kamu juga bisa cancel request kamu sendiri.</p>
+    </section>
+
+    <section class="session-switcher">
         <nav class="tabs" aria-label="Coach sessions menu">
             <a class="tab <?= $tab === 'request' ? 'active' : '' ?>" href="coach_sessions.php?tab=request">Request Sesi</a>
             <a class="tab <?= $tab === 'mine' ? 'active' : '' ?>" href="coach_sessions.php?tab=mine">Sesi Saya</a>

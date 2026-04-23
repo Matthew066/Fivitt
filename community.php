@@ -727,6 +727,50 @@ function formatTime(?string $value): string {
 @media (max-width: 900px) {
     .grid-2, .room-grid { grid-template-columns:1fr; }
 }
+@media (min-width: 900px) {
+    .community-app {
+        width: min(1180px, calc(100% - 40px));
+    }
+
+    .community-hero {
+        padding: 30px 28px;
+        border-radius: 28px;
+    }
+
+    .community-hero h1 {
+        font-size: 34px;
+        margin-bottom: 12px;
+    }
+
+    .community-hero p {
+        max-width: 880px;
+        font-size: 16px;
+        line-height: 1.8;
+        color: rgba(255,255,255,.9);
+    }
+
+    .community-switcher {
+        padding: 16px;
+        border-radius: 22px;
+    }
+
+    .community-switcher .tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .community-switcher .tab {
+        min-height: 58px;
+        border-radius: 20px;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .section {
+        padding: 22px;
+        border-radius: 24px;
+    }
+}
 </style>
 
 <main class="community-app">

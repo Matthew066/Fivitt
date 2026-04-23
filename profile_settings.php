@@ -31,7 +31,7 @@ $department = (string) ($user['department'] ?? '');
 $gender = normalize_gender((string) ($user['gender'] ?? ''));
 $birthDate = (string) ($user['birth_date'] ?? '');
 $ageGroup = normalize_age_group((string) ($user['age_group'] ?? 'adult'));
-$profileImage = (string) ($user['profile_image'] ?? '');
+$profileImage = get_user_profile_image($pdo, $userId) ?? (string) ($user['profile_image'] ?? '');
 $genderOptions = get_gender_options();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -78,9 +78,21 @@ $bodyClass = 'sleep-page';
 include 'includes/header.php';
 ?>
 <style>
+body.sleep-page .header {
+    z-index: 140;
+}
+
+body.sleep-page .menu,
+body.sleep-page .logo-link {
+    position: relative;
+    z-index: 141;
+}
+
 .profile-page-shell {
     width: min(1040px, calc(100% - 32px));
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .profile-avatar-bubble {
@@ -99,6 +111,11 @@ include 'includes/header.php';
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.profile-avatar-bubble span {
+    font-size: 30px;
+    line-height: 1;
 }
 
 @media (min-width: 900px) {
