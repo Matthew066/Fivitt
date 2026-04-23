@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
 $db   = 'inoh4572_fivit_db';
-$user = 'USERNAME_DB_KAMPUS';
-$pass = 'PASSWORD_DB_KAMPUS';
+$user = 'inoh4572_fivit';
+$pass = '+IKSN0;-aUooA~!x';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
