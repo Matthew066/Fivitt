@@ -373,7 +373,7 @@ $planText = implode("\n", $planLines);
 .tab-row {
     display: flex;
     gap: 8px;
-    margin: 12px 0 16px;
+    margin: 4px 0 14px;
     font-weight: 700;
     font-size: 12px;
     flex-wrap: nowrap;
@@ -538,8 +538,8 @@ $planText = implode("\n", $planLines);
 
 @media (min-width: 900px) {
     .app {
-        max-width: 960px;
-        padding: 22px 22px 92px;
+        max-width: 1100px;
+        padding: 20px 22px 92px;
     }
 
     .sleep-hero-inner {
@@ -548,11 +548,29 @@ $planText = implode("\n", $planLines);
     }
 
     .hero {
-        padding: 30px;
+        padding: 28px;
+        margin-bottom: 12px;
     }
 
     .sleep-title {
         font-size: 34px;
+    }
+
+    .tab-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 4px 0 18px;
+    }
+
+    .tab-row a,
+    .tab-row span {
+        min-height: 56px;
+        padding: 14px 18px;
+        border-radius: 20px;
+        font-size: 15px;
+        font-weight: 800;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
     }
 }
 </style>

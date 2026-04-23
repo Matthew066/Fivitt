@@ -12,7 +12,7 @@ $message = '';
 $error = '';
 
 $userStmt = $pdo->prepare("
-    SELECT name, email, department, gender, birth_date, age_group
+    SELECT name, email, department, gender, birth_date, age_group, profile_image
     FROM users
     WHERE id_users = ?
     LIMIT 1
@@ -31,6 +31,7 @@ $department = (string) ($user['department'] ?? '');
 $gender = normalize_gender((string) ($user['gender'] ?? ''));
 $birthDate = (string) ($user['birth_date'] ?? '');
 $ageGroup = normalize_age_group((string) ($user['age_group'] ?? 'adult'));
+$profileImage = (string) ($user['profile_image'] ?? '');
 $genderOptions = get_gender_options();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -76,11 +77,52 @@ $pageTitle = 'Profil';
 $bodyClass = 'sleep-page';
 include 'includes/header.php';
 ?>
+<style>
+.profile-page-shell {
+    width: min(1040px, calc(100% - 32px));
+    margin: 0 auto;
+}
 
-<main class="app">
+.profile-avatar-bubble {
+    width: 78px;
+    height: 78px;
+    border-radius: 24px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-avatar-bubble img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+@media (min-width: 900px) {
+    .profile-page-shell {
+        width: min(1120px, calc(100% - 40px));
+        padding-bottom: 24px;
+    }
+
+    .profile-page-shell .sleep-hero {
+        padding: 28px;
+    }
+}
+</style>
+
+<main class="app profile-page-shell">
     <section class="card sleep-hero" style="margin-bottom:16px;">
         <div class="sleep-hero-inner">
-            <div class="emoji-bubble">👤</div>
+            <div class="emoji-bubble profile-avatar-bubble">
+                <?php if ($profileImage !== ''): ?>
+                    <img src="<?= htmlspecialchars($profileImage) ?>" alt="Foto profil">
+                <?php else: ?>
+                    <span>&#128100;</span>
+                <?php endif; ?>
+            </div>
             <div class="hero-copy">
                 <div class="sleep-title">Profil</div>
                 <div class="sleep-sub">

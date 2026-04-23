@@ -296,6 +296,96 @@ $events = $listStmt->fetchAll() ?: [];
     border: 1px solid #f7bcbc;
     color: #8a2f2f;
 }
+
+@media (min-width: 900px) {
+    .app {
+        max-width: 1100px;
+        padding: 22px 22px 92px;
+    }
+
+    .hero {
+        padding: 28px;
+        border-radius: 26px;
+    }
+
+    .hero h2 {
+        font-size: 30px;
+    }
+
+    .hero p {
+        font-size: 15px;
+    }
+
+    .pill-row {
+        gap: 12px;
+    }
+
+    .pill {
+        min-height: 42px;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .tab-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 2px 0 18px;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .tab-row a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 56px;
+        padding: 14px 18px;
+        border-radius: 20px;
+        background: #ffffff;
+        border: 1px solid #d7e6ef;
+        color: #5b6b77;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .tab-row a.active {
+        color: #0f766e;
+        border-bottom: 1px solid #8be4dc;
+        background: linear-gradient(145deg, #ecfeff, #f0fdfa);
+    }
+
+    .event-card {
+        padding: 16px;
+        border-radius: 22px;
+        margin-bottom: 18px;
+    }
+
+    .event-detail {
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    .event-cover {
+        height: 220px;
+        border-radius: 16px;
+    }
+
+    .event-title {
+        font-size: 20px;
+    }
+
+    .event-desc {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .btn-detail {
+        min-height: 44px;
+        padding: 10px 18px;
+        font-size: 13px;
+    }
+}
 </style>
 
 <main class="app">

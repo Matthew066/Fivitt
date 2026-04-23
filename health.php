@@ -788,10 +788,10 @@ body.health-page {
 
 @media (min-width: 900px) {
     .health-page .app {
-        width: min(1080px, 92%);
+        width: min(1160px, calc(100% - 40px));
         margin: 18px auto 0;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 16px;
+        gap: 18px;
         padding-bottom: 90px;
     }
 
@@ -800,7 +800,7 @@ body.health-page {
     }
 
     .health-page .sleep-hero {
-        padding: 24px;
+        padding: 28px;
     }
 
     .health-page .sleep-hero-inner {
