@@ -550,10 +550,28 @@ body.health-page {
     padding: 14px;
 }
 
-.health-page .glass-wrapper {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
+body.health-page .glass-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: flex-end;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    overflow-x: hidden;
+    padding-bottom: 0;
+    gap: 2px;
+}
+
+body.health-page .glass {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 52px;
+    transform: none;
+}
+
+body.health-page .glass.active {
+    transform: none;
 }
 
 .health-page .glass-label,
@@ -746,7 +764,7 @@ body.health-page {
 
 @media (max-width: 480px) {
     .health-page .app {
-        width: min(100%, calc(100vw - 12px));
+        width: min(100%, calc(100vw - 20px));
         gap: 12px;
         padding-bottom: 80px;
     }
@@ -784,15 +802,44 @@ body.health-page {
     .health-page .chart-card canvas {
         height: 200px !important;
     }
+
+    .health-page .health-checkin-card {
+        padding: 12px;
+    }
+
+    .health-page .water-card,
+    .health-page .input-card {
+        border-radius: 16px;
+    }
+
+    .health-page .water-card {
+        margin: 4px 0 10px;
+        padding: 12px 10px;
+    }
+
+    .health-page .input-row,
+    .health-page .health-body-metrics {
+        gap: 10px;
+    }
+
+    body.health-page .glass-wrapper {
+        gap: 2px;
+    }
+
+    body.health-page .glass {
+        flex-basis: 28px;
+        width: 28px;
+        height: 50px;
+    }
 }
 
 @media (min-width: 900px) {
     .health-page .app {
-        width: min(1160px, calc(100% - 40px));
-        margin: 18px auto 0;
+        width: min(1200px, calc(100% - 56px));
+        margin: 24px auto 0;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 18px;
-        padding-bottom: 90px;
+        gap: 22px;
+        padding-bottom: 104px;
     }
 
     .health-page .card {
@@ -800,7 +847,7 @@ body.health-page {
     }
 
     .health-page .sleep-hero {
-        padding: 28px;
+        padding: 32px;
     }
 
     .health-page .sleep-hero-inner {
@@ -847,11 +894,30 @@ body.health-page {
     .health-page .health-summary-card,
     .health-page .health-workout-card,
     .health-page .score-card {
-        padding: 18px;
+        padding: 22px;
     }
 
-    .health-page .health-bmi-card {
+    .health-page .health-bmi-card,
+    .health-page .health-summary-card,
+    .health-page .score-card {
         grid-column: 1 / -1;
+    }
+
+    .health-page .score-card {
+        display: grid;
+        justify-items: center;
+        text-align: center;
+    }
+
+    .health-page .score-card .score-header,
+    .health-page .score-card .score-label {
+        width: 100%;
+        text-align: left;
+    }
+
+    .health-page .score-wrapper {
+        width: min(420px, 100%);
+        margin: 4px auto 0;
     }
 
     .health-page .input-card,
@@ -860,7 +926,24 @@ body.health-page {
     }
 
     .health-page .water-card {
-        padding: 18px;
+        margin: 10px 0 16px;
+        padding: 20px 22px;
+    }
+
+    body.health-page .glass-wrapper {
+        justify-content: center;
+        align-items: flex-end;
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        overflow: hidden;
+        gap: 2px;
+    }
+
+    body.health-page .glass {
+        flex-basis: 30px;
+        width: 30px;
+        height: 52px;
     }
 
     .health-page .chart-card canvas {

@@ -38,15 +38,46 @@
         ring.classList.add('is-active');
     }, { passive: true });
 
+    document.addEventListener('pointermove', (event) => {
+        mouseX = event.clientX;
+        mouseY = event.clientY;
+        cursor.classList.add('is-active');
+        ring.classList.add('is-active');
+
+        if (event.target && event.target.closest(hoverSelector)) {
+            cursor.classList.add('is-hover');
+            ring.classList.add('is-hover');
+        } else {
+            cursor.classList.remove('is-hover');
+            ring.classList.remove('is-hover');
+        }
+    }, { passive: true });
+
     document.addEventListener('mouseleave', () => {
         cursor.classList.remove('is-active');
         ring.classList.remove('is-active');
     });
 
+    document.addEventListener('pointerleave', () => {
+        cursor.classList.remove('is-active');
+        ring.classList.remove('is-active');
+        cursor.classList.remove('is-hover');
+        ring.classList.remove('is-hover');
+    }, { passive: true });
+
     document.addEventListener('pointerdown', (event) => {
         if (event.button && event.button !== 0) return;
+        mouseX = event.clientX;
+        mouseY = event.clientY;
+        cursor.classList.add('is-active');
+        ring.classList.add('is-active');
         cursor.classList.add('is-click');
         ring.classList.add('is-click');
+
+        if (event.target && event.target.closest(hoverSelector)) {
+            cursor.classList.add('is-hover');
+            ring.classList.add('is-hover');
+        }
     }, { passive: true });
 
     document.addEventListener('pointerup', () => {

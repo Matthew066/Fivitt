@@ -131,13 +131,15 @@ body.has-fivit-cursor {
 }
 
 @media (max-width: 768px) {
-    body.has-fivit-cursor {
-        cursor: auto;
+    .fivit-cursor {
+        width: 16px;
+        height: 16px;
+        box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.16);
     }
 
-    .fivit-cursor,
     .fivit-cursor-ring {
-        display: none;
+        width: 28px;
+        height: 28px;
     }
 }
 
