@@ -17,9 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $userId = (int)($_POST['user_id'] ?? 0);
 $role = strtolower(trim((string)($_POST['role'] ?? '')));
+$role = $role === 'manajerial' ? 'managerial' : $role;
+$role = $role === 'hrd' ? 'hr' : $role;
 $department = trim((string)($_POST['department'] ?? 'General'));
 $gender = normalize_gender((string)($_POST['gender'] ?? ''));
-$allowedRoles = ['manajerial', 'hr', 'cooker', 'user'];
+$allowedRoles = ['managerial', 'hr', 'cooker', 'user'];
 $genderOptions = get_gender_options();
 
 if ($userId <= 0) {
@@ -41,6 +43,12 @@ if (!$currentUser) {
 }
 
 $currentRole = strtolower(trim((string)($currentUser['role'] ?? 'user')));
+if ($currentRole === 'manajerial') {
+    $currentRole = 'managerial';
+}
+if ($currentRole === 'hrd') {
+    $currentRole = 'hr';
+}
 $currentDepartment = trim((string)($currentUser['department'] ?? 'General'));
 $currentGender = normalize_gender((string)($currentUser['gender'] ?? ''));
 

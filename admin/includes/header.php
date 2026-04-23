@@ -21,6 +21,15 @@ if ($adminUserId > 0) {
         }
     }
 }
+
+$normalizedAdminRole = strtolower(trim((string) $adminRole));
+if ($normalizedAdminRole === 'manajerial') {
+    $normalizedAdminRole = 'managerial';
+}
+if ($normalizedAdminRole === 'hrd') {
+    $normalizedAdminRole = 'hr';
+}
+$adminRoleLabel = $normalizedAdminRole === 'hr' ? 'HRD' : strtoupper((string) $normalizedAdminRole);
 ?>
 <style>
 .profile-dropdown {
@@ -122,7 +131,7 @@ if ($adminUserId > 0) {
                     <img src="<?php echo htmlspecialchars($adminImage, ENT_QUOTES, 'UTF-8'); ?>" class="user-img" alt="user avatar">
                     <div class="user-info ps-3">
                         <p class="user-name mb-0"><?php echo htmlspecialchars($adminName, ENT_QUOTES, 'UTF-8'); ?></p>
-                        <p class="designattion mb-0"><?php echo htmlspecialchars(strtoupper((string) $adminRole), ENT_QUOTES, 'UTF-8'); ?></p>
+                        <p class="designattion mb-0"><?php echo htmlspecialchars($adminRoleLabel, ENT_QUOTES, 'UTF-8'); ?></p>
                     </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-start profile-dropdown">

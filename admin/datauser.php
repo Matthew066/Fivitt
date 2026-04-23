@@ -11,8 +11,8 @@ $allowedStatus = ['success', 'danger', 'warning', 'info'];
 $departmentOptions = ['General', 'HR', 'Finance', 'IT', 'Marketing', 'Operations'];
 $genderOptions = get_gender_options();
 $roleOptions = [
-    'manajerial' => 'Manajerial',
-    'hr' => 'HR',
+    'managerial' => 'Managerial',
+    'hr' => 'HRD',
     'cooker' => 'Cooker',
     'user' => 'User',
 ];
@@ -71,6 +71,8 @@ $result = $pdo->query($query);
                 <select id="role" name="role" class="form-select">
                   <option value="user">User</option>
                   <option value="cooker">Cooker</option>
+                  <option value="hr">HRD</option>
+                  <option value="managerial">Managerial</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
@@ -118,6 +120,8 @@ $result = $pdo->query($query);
                     <?php $currentDepartment = trim((string)$row['department']); ?>
                     <?php $currentGender = normalize_gender((string)$row['gender']); ?>
                     <?php $currentRole = strtolower(trim((string)$row['role'])); ?>
+                    <?php if ($currentRole === 'manajerial') { $currentRole = 'managerial'; } ?>
+                    <?php if ($currentRole === 'hrd') { $currentRole = 'hr'; } ?>
                     <?php $isAdminRole = $currentRole === 'admin'; ?>
                     <tr>
                       <td><?php echo (int)$row['id_users']; ?></td>

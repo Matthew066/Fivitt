@@ -19,9 +19,11 @@ $name = trim((string)($_POST['name'] ?? ''));
 $email = strtolower(trim((string)($_POST['email'] ?? '')));
 $password = (string)($_POST['password'] ?? '');
 $role = strtolower(trim((string)($_POST['role'] ?? 'user')));
+$role = $role === 'manajerial' ? 'managerial' : $role;
+$role = $role === 'hrd' ? 'hr' : $role;
 $department = trim((string)($_POST['department'] ?? 'General'));
 $gender = normalize_gender((string)($_POST['gender'] ?? ''));
-$validRoles = ['user', 'admin', 'cooker'];
+$validRoles = ['user', 'admin', 'cooker', 'hr', 'managerial'];
 $validGenders = get_gender_options();
 
 if ($name === '' || $email === '' || $password === '') {

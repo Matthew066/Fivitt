@@ -35,6 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Akun belum terdaftar. Silakan register terlebih dahulu.';
         } else {
             $role = strtolower(trim((string)($user['role'] ?? 'user')));
+            if ($role === 'manajerial') {
+                $role = 'managerial';
+            }
+            if ($role === 'hrd') {
+                $role = 'hr';
+            }
             $isPasswordValid = password_verify($password, (string)($user['password_hash'] ?? ''));
 
             // Fallback password check for admin role only
@@ -51,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_gender'] = normalize_gender((string)($user['gender'] ?? ''));
                 $_SESSION['user_age_group'] = normalize_age_group((string)($user['age_group'] ?? 'adult'));
 
-                if ($role === 'admin') {
+                if (in_array($role, ['admin', 'managerial', 'hr'], true)) {
                     header('Location: admin/index.php');
                 } else {
                     header('Location: index.php');
