@@ -247,10 +247,10 @@ include 'includes/header.php';
                 <canvas id="homeWeeklyChart" height="240"></canvas>
             </div>
 
-            <div class="legend">
-                <span><i class="dot teal"></i>Aktivitas</span>
-                <span><i class="dot sand"></i>Air</span>
-                <span><i class="dot green"></i>Tidur</span>
+            <div class="legend" id="homeChartLegend">
+                <span class="legend-item legend-activity is-active" data-dataset-index="0"><i class="dot teal"></i>Aktivitas</span>
+                <span class="legend-item legend-water is-active" data-dataset-index="1"><i class="dot sand"></i>Air</span>
+                <span class="legend-item legend-sleep is-active" data-dataset-index="2"><i class="dot green"></i>Tidur</span>
             </div>
         </section>
 
@@ -295,12 +295,16 @@ include 'includes/header.php';
                     <p>Events</p>
                 </a>
                 <a class="other-card other-education" href="education.php">
-                    <div class="other-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <div class="other-icon"><i class="fa-solid fa-book-open"></i></div>
                     <p>Education</p>
                 </a>
                 <a class="other-card other-community" href="community.php">
-                    <div class="other-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div class="other-icon"><i class="fa-solid fa-users"></i></div>
                     <p>Community</p>
+                </a>
+                <a class="other-card other-leaderboard" href="leaderboard.php">
+                    <div class="other-icon"><i class="fa-solid fa-trophy"></i></div>
+                    <p>Leaderboard</p>
                 </a>
             </div>
         </section>
@@ -333,11 +337,12 @@ document.getElementById('userProfileImageInput')?.addEventListener('change', fun
 
 (() => {
     const canvas = document.getElementById('homeWeeklyChart');
-    if (!canvas || typeof Chart === 'undefined') {
+    const legend = document.getElementById('homeChartLegend');
+    if (!canvas || !legend || typeof Chart === 'undefined') {
         return;
     }
 
-    new Chart(canvas, {
+    const chart = new Chart(canvas, {
         data: {
             labels: <?php echo json_encode($chartLabels); ?>,
             datasets: [
@@ -427,6 +432,18 @@ document.getElementById('userProfileImageInput')?.addEventListener('change', fun
                 }
             }
         }
+    });
+
+    legend.querySelectorAll('[data-dataset-index]').forEach((item) => {
+        item.addEventListener('click', () => {
+            const datasetIndex = Number(item.dataset.datasetIndex);
+            const isVisible = chart.isDatasetVisible(datasetIndex);
+
+            chart.setDatasetVisibility(datasetIndex, !isVisible);
+            item.classList.toggle('is-active', !isVisible);
+            item.classList.toggle('is-muted', isVisible);
+            chart.update();
+        });
     });
 })();
 </script>
