@@ -287,6 +287,7 @@ $planText = implode("\n", $planLines);
     max-width: 420px;
     margin: 0 auto;
     padding: 18px 18px 80px;
+    min-width: 0;
 }
 
 .card {
@@ -295,6 +296,8 @@ $planText = implode("\n", $planLines);
     padding: 18px;
     box-shadow: 0 12px 26px rgba(22, 64, 94, 0.12);
     margin-bottom: 16px;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .hero {
@@ -310,24 +313,92 @@ $planText = implode("\n", $planLines);
     color: rgba(255, 255, 255, 0.95);
 }
 
+.sleep-hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.hero-copy {
+    min-width: 0;
+}
+
+.emoji-bubble {
+    width: 56px;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    font-size: 28px;
+}
+
+.sleep-title {
+    font-size: clamp(24px, 7vw, 30px);
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.summary-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #16323b;
+    margin-bottom: 10px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.hero-badges {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
 .tab-row {
     display: flex;
-    gap: 18px;
-    margin: 8px 4px 14px;
+    gap: 8px;
+    margin: 12px 0 16px;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 12px;
+    flex-wrap: nowrap;
 }
 
 .tab-row a,
 .tab-row span {
     text-decoration: none;
-    color: #6b7a88;
-    padding-bottom: 7px;
+    color: #5b6b77;
+    padding: 10px 12px;
+    border-radius: 999px;
+    border: 1px solid #d7e6ef;
+    background: #ffffff;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
+    line-height: 1.3;
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    overflow-wrap: anywhere;
 }
 
 .tab-row .active {
-    color: #1a2e3a;
-    border-bottom: 2px solid #2ec4cc;
+    color: #0f766e;
+    background: linear-gradient(145deg, #ecfeff, #f0fdfa);
+    border-color: #8be4dc;
 }
 
 .plan-item {
@@ -336,17 +407,20 @@ $planText = implode("\n", $planLines);
     padding: 12px;
     margin-bottom: 10px;
     border: 1px solid #e1edf4;
+    min-width: 0;
 }
 
 .plan-name {
     font-weight: 700;
     font-size: 14px;
     margin-bottom: 4px;
+    overflow-wrap: anywhere;
 }
 
 .plan-desc {
     font-size: 12px;
     color: #60707e;
+    overflow-wrap: anywhere;
 }
 
 .plan-meta {
@@ -354,6 +428,7 @@ $planText = implode("\n", $planLines);
     font-size: 12px;
     font-weight: 700;
     color: #1c8a6a;
+    overflow-wrap: anywhere;
 }
 
 .input-group {
@@ -361,6 +436,7 @@ $planText = implode("\n", $planLines);
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-width: 0;
 }
 
 .input-group label {
@@ -371,10 +447,13 @@ $planText = implode("\n", $planLines);
 
 .input-group input,
 .input-group textarea {
+    width: 100%;
+    max-width: 100%;
     padding: 10px 12px;
     border-radius: 12px;
     border: 1px solid #d7e1ea;
     font-size: 13px;
+    min-width: 0;
 }
 
 .btn-primary {
@@ -416,6 +495,65 @@ $planText = implode("\n", $planLines);
     background: #ffecec;
     border: 1px solid #f7bcbc;
     color: #8a2f2f;
+}
+
+.btn-primary,
+.btn-secondary {
+    max-width: 100%;
+}
+
+@media (max-width: 480px) {
+    .app {
+        max-width: 100%;
+        padding: 14px 10px 78px;
+    }
+
+    .card,
+    .hero {
+        padding: 14px;
+        border-radius: 18px;
+    }
+
+    .tab-row {
+        gap: 6px;
+        margin: 10px 0 14px;
+        font-size: 11px;
+    }
+
+    .tab-row a,
+    .tab-row span {
+        padding: 9px 8px;
+    }
+
+    .hero-badges {
+        gap: 6px;
+    }
+
+    .hero-badge {
+        min-height: 30px;
+        padding: 6px 9px;
+        font-size: 11px;
+    }
+}
+
+@media (min-width: 900px) {
+    .app {
+        max-width: 960px;
+        padding: 22px 22px 92px;
+    }
+
+    .sleep-hero-inner {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .hero {
+        padding: 30px;
+    }
+
+    .sleep-title {
+        font-size: 34px;
+    }
 }
 </style>
 

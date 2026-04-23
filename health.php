@@ -378,6 +378,8 @@ body.health-page {
     border-radius: 22px;
     background: linear-gradient(145deg, #ffffff, #fbfdfa 58%, #f4fbf8 100%);
     box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .health-page .sleep-hero {
@@ -413,6 +415,17 @@ body.health-page {
     display: flex;
     align-items: flex-start;
     gap: 12px;
+    min-width: 0;
+}
+
+.health-page .hero-copy,
+.health-page .sleep-form-head,
+.health-page .health-summary-score,
+.health-page .health-summary-metric,
+.health-page .health-pillar-tile,
+.health-page .input-group,
+.health-page .score-wrapper {
+    min-width: 0;
 }
 
 .health-page .hero-kicker {
@@ -438,10 +451,13 @@ body.health-page {
 .health-page .sleep-hero .sleep-title {
     color: #fffdf8;
     font-size: clamp(24px, 8vw, 32px);
+    line-height: 1.08;
+    overflow-wrap: anywhere;
 }
 
 .health-page .sleep-sub {
     color: #607077;
+    overflow-wrap: anywhere;
 }
 
 .health-page .sleep-hero .sleep-sub {
@@ -465,7 +481,7 @@ body.health-page {
 
 .health-page .health-pillars-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 12px;
 }
 
@@ -492,6 +508,7 @@ body.health-page {
     font-size: 22px;
     line-height: 1.15;
     color: #0f172a;
+    overflow-wrap: anywhere;
 }
 
 .health-page .health-pillar-tile small {
@@ -500,6 +517,7 @@ body.health-page {
     color: #475569;
     font-size: 13px;
     line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 .health-page .health-checkin-card,
@@ -513,6 +531,13 @@ body.health-page {
     grid-column: 1 / -1;
 }
 
+.health-page .input-row,
+.health-page .health-body-metrics {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
 .health-page .input-card,
 .health-page .water-card {
     background: linear-gradient(145deg, #fffdf8, #f8fbfb);
@@ -523,6 +548,22 @@ body.health-page {
 .health-page .water-card {
     margin: 6px 0 12px;
     padding: 14px;
+}
+
+.health-page .glass-wrapper {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.health-page .glass-label,
+.health-page .water-title,
+.health-page .water-subtitle,
+.health-page .water-advice,
+.health-page .bmi-status,
+.health-page .bmi-labels,
+.health-page .summary-pill {
+    overflow-wrap: anywhere;
 }
 
 .health-page .progress {
@@ -540,6 +581,9 @@ body.health-page {
 
 .health-page .score-number {
     color: #16323b;
+    font-size: clamp(30px, 10vw, 48px);
+    line-height: 1;
+    overflow-wrap: anywhere;
 }
 
 .health-page .health-summary-card {
@@ -576,6 +620,7 @@ body.health-page {
     font-size: 30px;
     line-height: 1;
     color: #fff;
+    overflow-wrap: anywhere;
 }
 
 .health-page .health-summary-score small {
@@ -612,6 +657,7 @@ body.health-page {
     margin-top: 6px;
     color: #fff;
     font-size: 18px;
+    overflow-wrap: anywhere;
 }
 
 .health-page .health-summary-card .summary-title,
@@ -681,6 +727,63 @@ body.health-page {
 
 .health-page .sleep-form-note {
     order: 2;
+    overflow-wrap: anywhere;
+}
+
+.health-page input,
+.health-page textarea,
+.health-page button,
+.health-page canvas {
+    max-width: 100%;
+}
+
+.health-page .bmi-labels {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    font-size: 10px;
+}
+
+@media (max-width: 480px) {
+    .health-page .app {
+        width: min(100%, calc(100vw - 12px));
+        gap: 12px;
+        padding-bottom: 80px;
+    }
+
+    .health-page .card,
+    .health-page .sleep-hero,
+    .health-page .health-pillars-card,
+    .health-page .chart-card,
+    .health-page .health-checkin-card,
+    .health-page .health-bmi-card,
+    .health-page .health-summary-card,
+    .health-page .score-card {
+        padding: 14px;
+        border-radius: 18px;
+    }
+
+    .health-page .hero-kicker {
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    .health-page .summary-title {
+        font-size: 18px;
+        line-height: 1.2;
+    }
+
+    .health-page .health-pillar-tile strong {
+        font-size: 20px;
+    }
+
+    .health-page .health-summary-score strong {
+        font-size: 26px;
+    }
+
+    .health-page .chart-card canvas {
+        height: 200px !important;
+    }
 }
 
 @media (min-width: 900px) {
@@ -766,6 +869,11 @@ body.health-page {
 
     .health-page .health-summary-top,
     .health-page .health-summary-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .health-page .input-row,
+    .health-page .health-body-metrics {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 

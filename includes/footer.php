@@ -13,7 +13,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="logout-modal__button logout-modal__button--cancel" data-bs-dismiss="modal">Batal</button>
-                <a href="/Fivitt/logout.php" class="logout-modal__button logout-modal__button--confirm">Logout</a>
+                <a href="/fivitt/logout.php" class="logout-modal__button logout-modal__button--confirm">Logout</a>
             </div>
         </div>
     </div>
@@ -34,11 +34,11 @@
     </form>
 </section>
 
-<script src="/Fivitt/assets/js/jquery.min.js"></script>
-<script src="/Fivitt/assets/js/bootstrap.bundle.min.js"></script>
-<script src="/Fivitt/assets/js/custom.js"></script>
+<script src="/fivitt/assets/js/jquery.min.js"></script>
+<script src="/fivitt/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/fivitt/assets/js/custom.js"></script>
 
-<script src="/Fivitt/assets/js/fivit-cursor.js" defer></script>
+<script src="/fivitt/assets/js/fivit-cursor.js" defer></script>
 <script>
 (() => {
     const menuBtn = document.querySelector('.menu');

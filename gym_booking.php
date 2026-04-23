@@ -122,7 +122,7 @@ $equipments = $stmt->fetchAll();
                             <div class="equipment-name"><?= htmlspecialchars($eq['equipment_name']) ?></div>
                             <div class="equipment-detail"><?= htmlspecialchars($eq['description'] ?? ('Detail singkat ' . $eq['equipment_name'])) ?></div>
                             <div class="equipment-meta">
-                                <span class="equipment-badge <?= $isAvailable ? '' : 'out' ?>"><?= $isAvailable ? 'Available' : 'Habis' ?></span>
+                                <span class="equipment-badge <?= $isAvailable ? '' : 'out' ?>"><?= $isAvailable ? 'Tersedia' : 'Habis' ?></span>
                                 <span class="equipment-badge">Sisa <?= (int) $eq['quantity'] ?></span>
                             </div>
                         </div>
@@ -132,7 +132,7 @@ $equipments = $stmt->fetchAll();
                         <?php if ($isAvailable): ?>
                             <a href="gym_booking_detail.php?id=<?= (int) $eq['id_gym_equipments'] ?>" class="btn-add">Pesan alat</a>
                         <?php else: ?>
-                            <span class="btn-add is-disabled">Unavailable</span>
+                            <span class="btn-add is-disabled">Stok habis</span>
                         <?php endif; ?>
                     </div>
                 </article>
