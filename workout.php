@@ -320,6 +320,7 @@ $planText = implode("\n", $planLines);
 }
 
 .hero-copy {
+    flex: 0 1 auto;
     min-width: 0;
 }
 
@@ -382,12 +383,12 @@ $planText = implode("\n", $planLines);
 .tab-row a,
 .tab-row span {
     text-decoration: none;
-    color: #5b6b77;
+    color: #415466;
     padding: 10px 12px;
     border-radius: 999px;
-    border: 1px solid #d7e6ef;
-    background: #ffffff;
-    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
+    border: 1px solid #cfddea;
+    background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
     line-height: 1.3;
     flex: 1 1 0;
     min-width: 0;
@@ -398,7 +399,8 @@ $planText = implode("\n", $planLines);
 .tab-row .active {
     color: #0f766e;
     background: linear-gradient(145deg, #ecfeff, #f0fdfa);
-    border-color: #8be4dc;
+    border-color: #76e4dc;
+    box-shadow: 0 10px 22px rgba(15, 118, 110, 0.08);
 }
 
 .plan-item {
@@ -502,20 +504,36 @@ $planText = implode("\n", $planLines);
     max-width: 100%;
 }
 
+@media (max-width: 640px) {
+    .hero {
+        padding: 16px 16px 10px;
+    }
+
+    .sleep-hero-inner {
+        gap: 10px;
+    }
+
+    .hero-badges {
+        margin-top: 8px;
+        margin-bottom: 0;
+    }
+}
+
 @media (max-width: 480px) {
     .app {
         max-width: 100%;
-        padding: 10px 10px 76px;
+        padding: 10px 10px 68px;
     }
 
     .card,
     .hero {
         padding: 12px;
         border-radius: 18px;
+        margin-bottom: 12px;
     }
 
     .hero {
-        margin-bottom: 10px;
+        margin-bottom: 6px;
     }
 
     .sleep-hero-inner {
@@ -533,13 +551,14 @@ $planText = implode("\n", $planLines);
 
     .tab-row {
         gap: 6px;
-        margin: 2px 0 12px;
+        margin: 0 0 8px;
         font-size: 11px;
     }
 
     .tab-row a,
     .tab-row span {
         padding: 9px 8px;
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
     }
 
     .hero-badges {
@@ -592,7 +611,7 @@ $planText = implode("\n", $planLines);
         border-radius: 20px;
         font-size: 15px;
         font-weight: 800;
-        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
     }
 }
 </style>

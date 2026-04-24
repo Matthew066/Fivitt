@@ -59,9 +59,19 @@ $equipments = $stmt->fetchAll();
 .booking-tabs { margin:16px 0; display:flex; gap:10px; flex-wrap:wrap; }
 .booking-tab {
     text-decoration:none; padding:11px 16px; border-radius:999px; font-size:13px; font-weight:700;
-    background:#ffffff; color:#475569; border:1px solid rgba(203,213,225,.9); box-shadow: 0 10px 18px rgba(15,23,42,.05);
+    background:linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+    color:#415466; border:1px solid #cfddea; box-shadow: 0 8px 18px rgba(15,23,42,.04);
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    line-height: 1.3;
 }
-.booking-tab.active { color:#0f766e; background:linear-gradient(145deg, #ecfeff, #f0fdfa); border-color: rgba(94,234,212,.88); }
+.booking-tab.active {
+    color:#0f766e;
+    background:linear-gradient(145deg, #ecfeff, #f0fdfa);
+    border-color:#76e4dc;
+    box-shadow: 0 10px 22px rgba(15,118,110,.08);
+}
 .equipment-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:14px; }
 .equipment-card {
     background: rgba(255,255,255,.94); border:1px solid rgba(226,232,240,.92); border-radius:22px; padding:16px;
@@ -86,6 +96,12 @@ $equipments = $stmt->fetchAll();
 .empty-card { background:#fff; border-radius:18px; padding:18px; color:#64748b; }
 @media (max-width: 720px) {
     .equipment-grid { grid-template-columns: 1fr; }
+    .booking-tabs { gap: 6px; }
+    .booking-tab {
+        padding: 9px 8px;
+        font-size: 11px;
+        box-shadow: 0 6px 14px rgba(15,23,42,.04);
+    }
 }
 </style>
 

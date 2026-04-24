@@ -141,17 +141,88 @@
         body.scrollTop = body.scrollHeight;
     }
 
+    const currentPath = (window.location.pathname || '').toLowerCase();
+
+    function hasAny(text, keywords) {
+        return keywords.some((keyword) => text.includes(keyword));
+    }
+
+    function currentPageHint() {
+        if (currentPath.includes('health')) return 'Kamu sedang di halaman Health.';
+        if (currentPath.includes('sleep')) return 'Kamu sedang di halaman Sleep.';
+        if (currentPath.includes('gym')) return 'Kamu sedang di halaman Gym.';
+        if (currentPath.includes('community')) return 'Kamu sedang di halaman Community.';
+        if (currentPath.includes('coach')) return 'Kamu sedang di halaman Coach.';
+        if (currentPath.includes('education')) return 'Kamu sedang di halaman Education.';
+        if (currentPath.includes('leaderboard')) return 'Kamu sedang di halaman Leaderboard.';
+        return 'Kamu sedang di dashboard FiVit.';
+    }
+
     function reply(text) {
         const t = (text || '').toLowerCase();
-        if (t.includes('membership') || t.includes('paket gym')) return 'Info membership gym ada di halaman Gym Booking. Paket dan harga diatur dari database/admin.';
-        if (t.includes('partnership') || t.includes('partner gym')) return 'Untuk partnership, buka Gym Booking lalu isi form Ajukan Partnership Perusahaan.';
-        if (t.includes('sesi') && (t.includes('coach') || t.includes('pelatih'))) return 'Untuk request/approve jadwal sesi coach, buka menu Coach Sessions.';
-        if (t.includes('komunitas') || t.includes('community') || t.includes('chat')) return 'Untuk chat global/private dan undangan sesi/membership, buka menu Community Hub.';
-        if (t.includes('coach') || t.includes('pelatih')) return 'Untuk daftar coach (internal/eksternal) dan undang coach, buka menu Coach Directory.';
-        if (t.includes('sleep') || t.includes('tidur')) return 'Untuk data tidur, buka menu Sleep Tracking.';
-        if (t.includes('workout') || t.includes('latihan')) return 'Untuk rekomendasi latihan personal, buka menu Work Out Personalization.';
-        if (t.includes('health') || t.includes('bmi') || t.includes('air')) return 'Untuk health check, buka Basic Health Monitoring.';
-        return 'Saya bisa bantu soal navigasi fitur FiVit dan flow gym network. Coba tanya: membership, partnership, workout, sleep, atau health.';
+        if (!t) {
+            return 'Coba tanya singkat saja, misalnya: "cara lihat BMI", "membership gym", atau "coach sessions".';
+        }
+
+        if (hasAny(t, ['halo', 'hai', 'hi', 'hello'])) {
+            return currentPageHint() + ' Saya bisa bantu navigasi fitur FiVit seperti health, sleep, gym, coach, community, leaderboard, dan education.';
+        }
+
+        if (hasAny(t, ['siapa kamu', 'kamu bisa apa', 'bisa bantu apa'])) {
+            return 'Saya FiVit AI. Saya bisa bantu jelaskan fungsi menu, arahkan kamu ke halaman yang tepat, dan jawab pertanyaan dasar seputar health, sleep, workout, coach, community, dan gym.';
+        }
+
+        const answers = [];
+
+        if (hasAny(t, ['membership', 'paket gym', 'langganan gym', 'harga gym'])) {
+            answers.push('Info membership gym ada di halaman Gym Booking. Di sana kamu bisa lihat paket, harga, dan proses pendaftaran.');
+        }
+
+        if (hasAny(t, ['partnership', 'partner gym', 'kerja sama gym'])) {
+            answers.push('Untuk partnership perusahaan, buka Gym Booking lalu cari form pengajuan partnership.');
+        }
+
+        if (hasAny(t, ['coach session', 'coach sessions', 'sesi coach', 'jadwal coach'])) {
+            answers.push('Untuk buat atau kelola jadwal sesi coach, buka menu Coach Sessions.');
+        }
+
+        if (hasAny(t, ['coach', 'pelatih', 'mentor'])) {
+            answers.push('Untuk lihat directory coach, undang coach, atau daftar jadi coach, buka menu Coach Directory.');
+        }
+
+        if (hasAny(t, ['community', 'komunitas', 'chat', 'grup'])) {
+            answers.push('Untuk chat global, private chat, dan interaksi komunitas, buka menu Community.');
+        }
+
+        if (hasAny(t, ['sleep', 'tidur', 'jam tidur'])) {
+            answers.push('Untuk catat dan lihat data tidur, buka menu Sleep Tracking.');
+        }
+
+        if (hasAny(t, ['workout', 'latihan', 'olahraga', 'exercise'])) {
+            answers.push('Untuk latihan personal atau rekomendasi workout, buka fitur workout atau gym yang tersedia di aplikasi.');
+        }
+
+        if (hasAny(t, ['health', 'bmi', 'imt', 'air', 'hidrasi', 'check-in kesehatan'])) {
+            answers.push('Untuk BMI, hidrasi, aktivitas, dan check-in harian, buka menu Health.');
+        }
+
+        if (hasAny(t, ['leaderboard', 'ranking', 'peringkat'])) {
+            answers.push('Untuk lihat peringkat member atau progress terbaik, buka halaman Leaderboard.');
+        }
+
+        if (hasAny(t, ['education', 'edukasi', 'artikel', 'tips'])) {
+            answers.push('Untuk artikel dan tips kesehatan, buka menu Education.');
+        }
+
+        if (hasAny(t, ['halaman ini', 'page ini', 'di sini apa'])) {
+            answers.push(currentPageHint());
+        }
+
+        if (answers.length) {
+            return answers.join(' ');
+        }
+
+        return currentPageHint() + ' Saya belum yakin maksud pertanyaannya, tapi saya bisa bantu untuk: health, sleep, gym, membership, coach, community, leaderboard, atau education.';
     }
 
     trigger.addEventListener('click', () => box.classList.toggle('hidden'));
